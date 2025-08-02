@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
+import ThreeDotsLoader from '@/components/ThreeDotsLoader';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -311,7 +312,7 @@ export default function Home() {
               <ActionButton
                 onClick={handleDownloadResume}
                 variant="primary"
-                busy={isGenerating}
+                busy={previewData ? isGenerating : false}
                 disabled={!previewData}
               >
                 Download Resume
@@ -319,7 +320,7 @@ export default function Home() {
               <ActionButton
                 onClick={handleDownloadCoverLetter}
                 variant="secondary"
-                busy={isGeneratingCoverLetter || (isGenerating && !coverLetterData)}
+                busy={coverLetterData ? (isGeneratingCoverLetter || (isGenerating && !coverLetterData)) : false}
                 disabled={!coverLetterData}
               >
                 Download Cover Letter
@@ -339,7 +340,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-center h-96">
                   <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                    <ThreeDotsLoader className="mx-auto mb-4" />
                     <p className="text-gray-600">Generating resume...</p>
                   </div>
                 </div>
@@ -352,7 +353,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center justify-center h-96">
                   <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                    <ThreeDotsLoader className="mx-auto mb-4" />
                     <p className="text-gray-600">Generating cover letter...</p>
                   </div>
                 </div>
@@ -373,33 +374,31 @@ export default function Home() {
                     Regenerate
                   </ActionButton>
                 </div>
-                <div style={{ transform: 'scale(0.7)', transformOrigin: 'top center' }}>
-                  <iframe
-                    srcDoc={`
-                      <!DOCTYPE html>
-                      <html>
-                        <head>
-                          <meta charset="utf-8">
-                          <title>Resume Preview</title>
-                          <script src="https://cdn.tailwindcss.com"></script>
-                          <style>
-                            body { 
-                              font-family: 'Inter', sans-serif; 
-                              margin: 0; 
-                              padding: 20px;
-                              background: white;
-                            }
-                          </style>
-                        </head>
-                        <body>
-                          ${previewData.html}
-                        </body>
-                      </html>
-                    `}
-                    className="w-full h-screen border-0"
-                    title="Resume Preview"
-                  />
-                </div>
+                <iframe
+                  srcDoc={`
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta charset="utf-8">
+                        <title>Resume Preview</title>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <style>
+                          body { 
+                            font-family: 'Inter', sans-serif; 
+                            margin: 0; 
+                            padding: 0;
+                            background: white;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        ${previewData.html}
+                      </body>
+                    </html>
+                  `}
+                  className="w-full h-[800px] border-0"
+                  title="Resume Preview"
+                />
               </div>
               
               {/* Cover Letter Preview */}
@@ -415,33 +414,31 @@ export default function Home() {
                     Regenerate
                   </ActionButton>
                 </div>
-                <div style={{ transform: 'scale(0.7)', transformOrigin: 'top center' }}>
-                  <iframe
-                    srcDoc={`
-                      <!DOCTYPE html>
-                      <html>
-                        <head>
-                          <meta charset="utf-8">
-                          <title>Cover Letter Preview</title>
-                          <script src="https://cdn.tailwindcss.com"></script>
-                          <style>
-                            body { 
-                              font-family: 'Inter', sans-serif; 
-                              margin: 0; 
-                              padding: 20px;
-                              background: white;
-                            }
-                          </style>
-                        </head>
-                        <body>
-                          ${coverLetterData.html}
-                        </body>
-                      </html>
-                    `}
-                    className="w-full h-screen border-0"
-                    title="Cover Letter Preview"
-                  />
-                </div>
+                <iframe
+                  srcDoc={`
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta charset="utf-8">
+                        <title>Cover Letter Preview</title>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <style>
+                          body { 
+                            font-family: 'Inter', sans-serif; 
+                            margin: 0; 
+                            padding: 0;
+                            background: white;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        ${coverLetterData.html}
+                      </body>
+                    </html>
+                  `}
+                  className="w-full h-[800px] border-0"
+                  title="Cover Letter Preview"
+                />
               </div>
             </div>
           ) : null}
