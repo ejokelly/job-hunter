@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-import fs from 'fs';
-import path from 'path';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { loadApplicantData, getAllSkillsFlat } from '@/lib/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/lib/anthropic-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,16 +11,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Load applicant data
-    const dataPath = path.join(process.cwd(), 'data.json');
-    const applicantData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-
-    // Get all skills from applicant data
-    const allSkills: string[] = [];
-    Object.values(applicantData.skills).forEach((skillCategory: any) => {
-      skillCategory.forEach((skill: any) => {
-        allSkills.push(skill.name);
-      });
-    });
+    const applicantData = loadApplicantData();
+    const allSkills = getAllSkillsFlat(applicantData);
 
     const prompt = `Analyze this job description and compare it to the candidate's skills.
 
@@ -47,25 +34,11 @@ Return your analysis as JSON in this exact format:
 
 Focus on technical skills, tools, frameworks, and programming languages. Be specific and use the exact terminology from the job description.`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const message = await callClaude(prompt, 2000);
 
     let analysis;
     try {
-      const content = message.content[0];
-      if (content.type === 'text') {
-        const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          analysis = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('No JSON found in response');
-        }
-      } else {
-        throw new Error('Unexpected response type from Anthropic');
-      }
+      analysis = await extractJsonFromResponse(message);
     } catch (parseError) {
       console.error('Error parsing Anthropic response:', parseError);
       analysis = {

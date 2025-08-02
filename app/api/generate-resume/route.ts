@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { generateResumePDF } from '@/lib/html-pdf-generator';
-import fs from 'fs';
-import path from 'path';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { loadApplicantData } from '@/lib/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/lib/anthropic-client';
+import { extractJobDetails } from '@/lib/job-extraction';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,35 +13,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Load applicant data
-    const dataPath = path.join(process.cwd(), 'data.json');
-    const applicantData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    const applicantData = loadApplicantData();
 
     // Step 0: Extract job title and company name
     console.log('🔄 STEP 0: Extracting job details...');
-    const jobDetailsPrompt = `Extract the job title and company name from this job description. Return ONLY a JSON object with "title" and "company" fields. If company is not mentioned, use "Company".
-
-Job Description:
-${jobDescription}
-
-Return format: {"title": "Senior Software Engineer", "company": "Google"}`;
-
-    const jobDetailsMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 200,
-      messages: [{ role: 'user', content: jobDetailsPrompt }],
-    });
-
-    let jobDetails = { title: 'Software Engineer', company: 'Company' };
-    try {
-      const detailsContent = jobDetailsMessage.content[0];
-      if (detailsContent.type === 'text') {
-        const jsonMatch = detailsContent.text.match(/\{[^}]*\}/);
-        jobDetails = jsonMatch ? JSON.parse(jsonMatch[0]) : jobDetails;
-      }
-    } catch (parseError) {
-      console.log('❌ STEP 0 ERROR - Job details parsing failed:', parseError);
-    }
-
+    const jobDetails = await extractJobDetails(jobDescription);
     console.log('✅ STEP 0 COMPLETE - Job details extracted:', jobDetails);
 
     // Step 1: Tailor the summary and title
@@ -70,25 +42,15 @@ Return ONLY a JSON object with "title" and "summary" fields:
 
 Format: {"title": "Professional Title Here", "summary": "Tailored summary here..."}`;
 
-    const summaryTitleMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 800,
-      messages: [{ role: 'user', content: summaryTitlePrompt }],
-    });
+    const summaryTitleMessage = await callClaude(summaryTitlePrompt, 800);
 
     let tailoredSummary = applicantData.summary;
     let tailoredTitle = applicantData.personalInfo.title;
     
     try {
-      const stContent = summaryTitleMessage.content[0];
-      if (stContent.type === 'text') {
-        const jsonMatch = stContent.text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          tailoredSummary = parsed.summary || applicantData.summary;
-          tailoredTitle = parsed.title || applicantData.personalInfo.title;
-        }
-      }
+      const parsed = await extractJsonFromResponse(summaryTitleMessage);
+      tailoredSummary = parsed.summary || applicantData.summary;
+      tailoredTitle = parsed.title || applicantData.personalInfo.title;
     } catch (parseError) {
       console.log('❌ STEP 1 ERROR - Summary/title parsing failed:', parseError);
     }
@@ -118,28 +80,16 @@ INSTRUCTIONS:
 
 Return ONLY the filtered skills object with relevant skills:`;
 
-    const skillsMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 3000,
-      messages: [{ role: 'user', content: skillsPrompt }],
-    });
+    const skillsMessage = await callClaude(skillsPrompt, 3000);
 
     let tailoredSkills;
     try {
       const skillsContent = skillsMessage.content[0];
       if (skillsContent.type === 'text') {
         console.log('🔍 Raw skills response:', skillsContent.text);
-        const jsonMatch = skillsContent.text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          console.log('🔍 JSON match found:', jsonMatch[0]);
-          tailoredSkills = JSON.parse(jsonMatch[0]);
-        } else {
-          console.log('❌ No JSON match found in skills response');
-          tailoredSkills = applicantData.skills;
-        }
-      } else {
-        tailoredSkills = applicantData.skills;
       }
+      tailoredSkills = await extractJsonFromResponse(skillsMessage);
+      console.log('🔍 JSON parsing successful');
     } catch (parseError) {
       console.log('❌ STEP 2 ERROR - Skills parsing failed:', parseError);
       console.log('❌ Failed content:', skillsMessage.content[0]);
@@ -167,11 +117,7 @@ INSTRUCTIONS:
 - Keep ALL bullet points, just reorder them
 - Return only the experience array JSON:`;
 
-    const experienceMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: experiencePrompt }],
-    });
+    const experienceMessage = await callClaude(experiencePrompt, 4000);
 
     let tailoredExperience;
     try {
