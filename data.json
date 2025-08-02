@@ -66,6 +66,10 @@
       {
         "name": "Core Web Vitals",
         "years": 2
+      },
+      {
+        "name": "socket.io",
+        "years": 2
       }
     ],
     "frontend": [
@@ -485,6 +489,10 @@
       },
       {
         "name": "Formik",
+        "years": 2
+      },
+      {
+        "name": "survey.js",
         "years": 2
       }
     ],

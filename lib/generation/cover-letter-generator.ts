@@ -1,5 +1,6 @@
 import { ApplicantData } from '../data/data-loader';
 import { callClaude } from '../ai/anthropic-client';
+import { Logger } from '../utils/logger';
 
 export interface CoverLetterContent {
   opening: string;
@@ -68,7 +69,7 @@ Opening|||Body|||Closing`;
       }
     }
   } catch (parseError) {
-    console.log('❌ Cover letter parsing failed:', parseError);
+    Logger.error('Cover letter parsing failed', parseError);
   }
 
   return coverLetterContent;

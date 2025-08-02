@@ -1,4 +1,5 @@
 import { callClaude, extractJsonFromResponse } from './anthropic-client';
+import { Logger } from '../utils/logger';
 
 export interface JobDetails {
   title: string;
@@ -22,7 +23,7 @@ Return format: {"title": "Senior Software Engineer", "company": "Google"}`;
       company: jobDetails.company || 'Company'
     };
   } catch (parseError) {
-    console.log('❌ Job details parsing failed:', parseError);
+    Logger.error('Job details parsing failed', parseError);
     return {
       title: 'Software Engineer',
       company: 'Company'
