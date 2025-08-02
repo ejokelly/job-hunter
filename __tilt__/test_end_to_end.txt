@@ -1,0 +1,75 @@
+go to https://localhost:3000
+Click on the first button to start a new resume
+Now Paste in this job description: 
+
+Join the dynamic journey at Vynca, where we're passionate about transforming care for individuals with complex needs.
+
+We’re more than just a team; we're a close-knit community. Our shared commitment to caring for each other and those we serve is what sets us apart. Guided by our unwavering core values: Excellence, Compassion, Curiosity, and Integrity, we forge paths of success together. Join us in this transformative movement where you can contribute to making a profound difference every day.
+
+At Vynca, our mission is to provide comprehensive care for more quality days at home.
+
+About The Role
+
+We’re looking for a Front-End Engineer with 2+ years of experience building production-grade React applications. You’ll work on our Vynca Clinical solution, collaborating with design, backend, and product teams to deliver accessible, performant, and secure user experiences.
+
+You’ll be responsible for writing clean, tested, and maintainable code in a modern React + TypeScript stack using tools like MUI, Apollo, Redux Toolkit, and Vite.
+
+This individual will be a curious and eager learner, especially when it comes to gaining insight from senior engineers. You’ll communicate and collaborate proactively, always striving to contribute effectively within a team. Someone successful in this role will remain thoughtful about both user experience and performance, and approach projects with these priorities in mind. You’ll also be comfortable asking for help when needed and be open to receiving feedback as a means of continuous growth.
+
+What You'll Do
+
+Develop and maintain features in a React + TypeScript codebase using functional components and hooks.
+Implement responsive UI components using Material UI (MUI) and Emotion for styling.
+Manage application state using Redux Toolkit, Formik, and Yup for forms and validation.
+Integrate with backend services via GraphQL using Apollo Client and REST APIs via Axios.
+Handle authentication flows with Auth0.
+Use react-router-dom to build dynamic, nested routes and protect private pages.
+Write and maintain unit/integration tests using React Testing Library, Vitest, Playwright and Mock Service Worker (MSW).
+Work with file uploads, PDF generation (pdf-lib), and components like e-signatures, date pickers, and custom surveys.
+Use LaunchDarkly for feature flagging and Vite for local development and builds.
+Collaborate in an Agile development process using Scrum methodology, and manage tasks and sprints through Jira.
+Participate in code reviews, sprint planning, and QA testing.
+
+Qualifications
+
+At least 2 years of hands-on experience with React and TypeScript
+Familiarity with component libraries (e.g., MUI)
+Experience working with state management tools like Redux Toolkit or Formik
+Understanding of GraphQL and RESTful API integrations
+Comfort working in git-based monorepos and using package managers like Yarn
+Testing experience with Vitest, Testing Library, or Jest
+Experience working in Agile teams using Jira and Scrum ceremonies
+Comfort working with Vite or similar modern bundlers
+
+Preferred Qualifications
+
+Experience with Auth0
+Experience with Apollo Client, socket.io, or PDF libraries
+Exposure to LaunchDarkly, survey.js, and real-time UIs
+Some familiarity with accessibility and performance optimization
+Experience building healthcare related solutions and experiences
+
+Tech Stack You’ll Work With
+
+React 18+, TypeScript
+Redux Toolkit, Formik, Yup
+GraphQL (Apollo), REST (Axios)
+MUI, Emotion, Nivo (charts)
+Auth0, Google ReCAPTCHA
+Testing Library, MSW, Vitest
+Vite, Yarn workspaces
+Jira, Scrum
+
+-- end job description --
+
+Click the Skill gap button
+When it loads, click a single skill, it should disapear
+click the Generate button
+Wait until the resume and cover letter are generated
+
+You should see the skill you added now listed in the resume.
+
+Click Download Resume
+Click Download Cover letter
+
+2 File downloads should be initiated in the next 10 seconds

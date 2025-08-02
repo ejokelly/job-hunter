@@ -7,6 +7,33 @@ A sophisticated web application that leverages AI to create tailored resumes and
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38B2AC?style=flat-square&logo=tailwind-css)
 ![Claude AI](https://img.shields.io/badge/Claude-AI-orange?style=flat-square)
 ![Built in](https://img.shields.io/badge/Built%20in-1%20Day-green?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-53%20Passing-brightgreen?style=flat-square)
+
+## 🧪 Testing & Quality Assurance for Hiring Managers
+
+This application includes a **comprehensive test suite with 53 tests** demonstrating professional testing practices:
+
+### Unit & Integration Test Coverage
+- **🔧 Utility Functions**: 32 tests covering `skill-matching.ts` with edge cases, regex handling, and special characters (C++, C#)
+- **🌐 API Routes**: 21 tests for `/analyze-skills` and `/generate-resume` endpoints with full error handling
+- **📊 Ground Truth Validation**: All tests use real candidate data from `data.json` for realistic scenarios
+- **🛡️ Error Handling**: Comprehensive testing of API failures, JSON parsing errors, and malformed inputs
+
+### Testing Highlights
+```bash
+npm test
+# ✅ 53 tests passing across 3 test suites
+# ✅ 100% pass rate with comprehensive mocking
+# ✅ Found and fixed critical bugs during test development
+```
+
+**Test-Driven Development**: During testing, we discovered and fixed several critical bugs in the source code, including:
+- Skill variation generation creating invalid duplicates
+- Partial word matching issues (reactive vs react)
+- Nested HTML tag problems in text highlighting
+
+### Full Integration Testing with Tilt
+Complete end-to-end functionality has been validated through **Tilt** ([whytilt.com](https://whytilt.com)), a Vision/Action model I developed for semantic usability and functional testing. Unlike traditional headless testing that fights with ever-changing DOM structures, Tilt performs true semantic testing by understanding and interacting with websites exactly like a human user would - no brittle selectors or element hunting required. This represents simulation testing at its finest, providing confidence that all user workflows function perfectly in real-world scenarios.
 
 ## 🏆 Built in One Day with Claude Code
 
