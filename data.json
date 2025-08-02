@@ -50,6 +50,26 @@
       {
         "name": "GraphQL",
         "years": 4
+      },
+      {
+        "name": "Vercel deployment",
+        "years": 2
+      },
+      {
+        "name": "LLMs experience",
+        "years": 2
+      },
+      {
+        "name": "Experience with GPTs",
+        "years": 2
+      },
+      {
+        "name": "Experience with Claude",
+        "years": 2
+      },
+      {
+        "name": "ShadCN",
+        "years": 2
       }
     ],
     "frontend": [
@@ -120,6 +140,10 @@
       {
         "name": "Git",
         "years": 10
+      },
+      {
+        "name": "Github Actions",
+        "years": 4
       },
       {
         "name": "Formik",

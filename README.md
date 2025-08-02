@@ -9,6 +9,31 @@ A sophisticated web application that leverages AI to create tailored resumes and
 ![Built in](https://img.shields.io/badge/Built%20in-7h%2036m-green?style=flat-square)
 ![Tests](https://img.shields.io/badge/Tests-53%20Passing-brightgreen?style=flat-square)
 
+## 📸 Application Screenshots
+
+<div align="center">
+  <table width="100%">
+    <tr>
+      <td width="25%"><a href="public/screenshots/1.png" target="_blank"><img src="public/screenshots/1.png" width="100%" alt="Screenshot 1"></a></td>
+      <td width="25%"><a href="public/screenshots/2.png" target="_blank"><img src="public/screenshots/2.png" width="100%" alt="Screenshot 2"></a></td>
+      <td width="25%"><a href="public/screenshots/3.png" target="_blank"><img src="public/screenshots/3.png" width="100%" alt="Screenshot 3"></a></td>
+      <td width="25%"><a href="public/screenshots/4.png" target="_blank"><img src="public/screenshots/4.png" width="100%" alt="Screenshot 4"></a></td>
+    </tr>
+    <tr>
+      <td width="25%"><a href="public/screenshots/5.png" target="_blank"><img src="public/screenshots/5.png" width="100%" alt="Screenshot 5"></a></td>
+      <td width="25%"><a href="public/screenshots/6.png" target="_blank"><img src="public/screenshots/6.png" width="100%" alt="Screenshot 6"></a></td>
+      <td width="25%"><a href="public/screenshots/7.png" target="_blank"><img src="public/screenshots/7.png" width="100%" alt="Screenshot 7"></a></td>
+      <td width="25%"><a href="public/screenshots/8.png" target="_blank"><img src="public/screenshots/8.png" width="100%" alt="Screenshot 8"></a></td>
+    </tr>
+    <tr>
+      <td width="25%"><a href="public/screenshots/9.png" target="_blank"><img src="public/screenshots/9.png" width="100%" alt="Screenshot 9"></a></td>
+      <td width="25%"><a href="public/screenshots/10.png" target="_blank"><img src="public/screenshots/10.png" width="100%" alt="Screenshot 10"></a></td>
+      <td width="25%"><a href="public/screenshots/11.png" target="_blank"><img src="public/screenshots/11.png" width="100%" alt="Screenshot 11"></a></td>
+      <td width="25%"><a href="public/screenshots/12.png" target="_blank"><img src="public/screenshots/12.png" width="100%" alt="Screenshot 12"></a></td>
+    </tr>
+  </table>
+</div>
+
 ## 🧪 Testing & Quality Assurance for Hiring Managers
 
 This application includes a **comprehensive test suite with 53 tests** demonstrating professional testing practices:

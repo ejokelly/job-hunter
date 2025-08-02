@@ -18,7 +18,7 @@
   background-color: #3b82f6 !important; 
   color: #ffffff !important; 
 }
-.theme-btn-primary:hover { 
+.theme-btn-primary:hover:not(:disabled) { 
   background-color: #2563eb !important; 
 }
 
@@ -26,7 +26,7 @@
   background-color: #10b981 !important; 
   color: #ffffff !important; 
 }
-.theme-btn-secondary:hover { 
+.theme-btn-secondary:hover:not(:disabled) { 
   background-color: #059669 !important; 
 }
 
@@ -34,7 +34,7 @@
   background-color: transparent !important; 
   color: #a1a1aa !important; 
 }
-.theme-btn-ghost:hover { 
+.theme-btn-ghost:hover:not(:disabled) { 
   background-color: #27272a !important; 
   color: #e4e4e7 !important; 
 }
@@ -43,7 +43,7 @@
   background-color: #dc2626 !important; 
   color: #ffffff !important; 
 }
-.theme-btn-skill:hover { 
+.theme-btn-skill:hover:not(:disabled) { 
   background-color: #b91c1c !important; 
 }
 
