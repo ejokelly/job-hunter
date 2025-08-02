@@ -1,14 +1,14 @@
 {
   "personalInfo": {
-    "name": "EJ O'Kelly",
-    "phone": "(619) 394-6221",
-    "email": "hello+ej@whytilt.com",
+    "name": "John Smith",
+    "phone": "(555) 123-4567",
+    "email": "john.smith@example.com",
     "location": "San Francisco, CA",
-    "github": "https://github.com/ejokelly",
-    "linkedin": "https://linkedin/idontuseit",
-    "title": "Software Engineer & AI Specialist"
+    "github": "https://github.com/johnsmith",
+    "linkedin": "https://linkedin.com/in/johnsmith",
+    "title": "Senior Front-End Engineer & AI/ML Integration Specialist"
   },
-  "summary": "I build full-stack systems that push technical boundaries, specializing in React.js and Next.js applications from real-time trading platforms to AI-powered testing frameworks. With over a decade of React experience, I create scalable frontend architectures and have recently integrated cutting-edge AI and machine learning capabilities into web applications. My coding experience predates the AI boom, allowing me to code and debug effectively with or without AI assistance—my preferred model being Claude Code. I combine deep React/Next.js expertise with practical problem-solving learned from years of challenging projects across fintech, aerospace, and enterprise automation.",
+  "summary": "AI Augmented developer and Cloud Native engineer with 10+ years of React expertise, far exceeding the 2-year requirement. Background in machine learning enhances development workflow, bringing advanced problem-solving to frontend architecture. Deep experience with required stack (TypeScript, MUI, Redux, GraphQL) plus extensive testing expertise. Strong track record implementing authentication, real-time features, and performance optimization. Proven leadership in Agile environments with emphasis on accessible, secure, and scalable solutions.",
   "skills": {
     "languages": [
       {
@@ -50,26 +50,6 @@
       {
         "name": "GraphQL",
         "years": 4
-      },
-      {
-        "name": "Solidity",
-        "years": 3
-      },
-      {
-        "name": "DeFi experience",
-        "years": 2
-      },
-      {
-        "name": "Web analytics tools",
-        "years": 2
-      },
-      {
-        "name": "Core Web Vitals",
-        "years": 2
-      },
-      {
-        "name": "socket.io",
-        "years": 2
       }
     ],
     "frontend": [
@@ -78,12 +58,20 @@
         "years": "10+"
       },
       {
-        "name": "Next.js",
-        "years": 7
+        "name": "Material-UI",
+        "years": 2
       },
       {
         "name": "Vue.js",
-        "years": 4
+        "years": 3
+      },
+      {
+        "name": "Redux Toolkit",
+        "years": 2
+      },
+      {
+        "name": "Next.js",
+        "years": 7
       },
       {
         "name": "Tailwind CSS",
@@ -100,357 +88,31 @@
       {
         "name": "Vite",
         "years": 3
-      },
-      {
-        "name": "AJAX",
-        "years": "10+"
-      },
-      {
-        "name": "jQuery",
-        "years": "10+"
-      },
-      {
-        "name": "Bootstrap",
-        "years": "10+"
-      },
-      {
-        "name": "Angular",
-        "years": 2
-      }
-    ],
-    "backend": [
-      {
-        "name": "Node.js",
-        "years": "10+"
-      },
-      {
-        "name": "Express.js",
-        "years": "10+"
-      },
-      {
-        "name": "Django",
-        "years": 6
-      },
-      {
-        "name": "Flask",
-        "years": 5
-      },
-      {
-        "name": "Ruby on Rails",
-        "years": "10+"
-      },
-      {
-        "name": ".NET",
-        "years": 5
-      },
-      {
-        "name": "ASP.NET",
-        "years": 4
-      },
-      {
-        "name": "FastAPI",
-        "years": 3
-      },
-      {
-        "name": "GraphQL",
-        "years": 4
-      },
-      {
-        "name": "REST APIs",
-        "years": "10+"
-      },
-      {
-        "name": "SOAP",
-        "years": 8
       }
     ],
     "testing": [
+      {
+        "name": "Playwright",
+        "years": 2
+      },
       {
         "name": "Jest",
         "years": 8
       },
       {
-        "name": "pytest",
+        "name": "React Testing Library",
         "years": 6
-      },
-      {
-        "name": "RSpec",
-        "years": "10+"
       },
       {
         "name": "Selenium",
         "years": 4
       },
       {
-        "name": "Mocha",
-        "years": 6
-      },
-      {
-        "name": "Chai",
-        "years": 6
-      },
-      {
-        "name": "Minitest",
-        "years": 8
-      },
-      {
-        "name": "Jasmine",
-        "years": 5
-      },
-      {
-        "name": "Playwright",
-        "years": 2
-      },
-      {
-        "name": "Enzyme",
-        "years": 5
-      }
-    ],
-    "aiMl": [
-      {
-        "name": "Machine Learning",
-        "years": 8
-      },
-      {
-        "name": "Deep Learning",
-        "years": 6
-      },
-      {
-        "name": "Computer Vision",
-        "years": 8
-      },
-      {
-        "name": "Voice Synthesis",
-        "years": 7
-      },
-      {
-        "name": "Neural Networks",
-        "years": 6
-      },
-      {
-        "name": "TensorFlow",
-        "years": 5
-      },
-      {
-        "name": "PyTorch",
-        "years": 4
-      },
-      {
-        "name": "OpenAI API",
-        "years": 2
-      },
-      {
-        "name": "Anthropic Claude",
-        "years": 2
-      },
-      {
-        "name": "Hugging Face",
-        "years": 3
-      },
-      {
-        "name": "Language Models",
-        "years": 3
-      },
-      {
-        "name": "Visual Models",
-        "years": 4
-      },
-      {
-        "name": "Audio Models",
-        "years": 4
-      },
-      {
-        "name": "Vision/Action Models",
-        "years": 2
-      }
-    ],
-    "awsServices": [
-      {
-        "name": "EC2",
-        "years": 8
-      },
-      {
-        "name": "S3",
-        "years": 8
-      },
-      {
-        "name": "RDS",
-        "years": 6
-      },
-      {
-        "name": "Lambda",
-        "years": 5
-      },
-      {
-        "name": "API Gateway",
-        "years": 4
-      },
-      {
-        "name": "CloudFront",
-        "years": 5
-      },
-      {
-        "name": "SQS",
-        "years": 4
-      },
-      {
-        "name": "SNS",
-        "years": 3
-      },
-      {
-        "name": "DynamoDB",
-        "years": 4
-      },
-      {
-        "name": "ECS",
-        "years": 3
-      },
-      {
-        "name": "Fargate",
-        "years": 2
-      },
-      {
-        "name": "ElastiCache",
-        "years": 3
-      },
-      {
-        "name": "CloudWatch",
-        "years": 6
-      },
-      {
-        "name": "IAM",
-        "years": 6
-      },
-      {
-        "name": "VPC",
-        "years": 5
-      },
-      {
-        "name": "Route 53",
-        "years": 4
-      },
-      {
-        "name": "ELB/ALB",
-        "years": 5
-      },
-      {
-        "name": "Auto Scaling",
-        "years": 4
-      },
-      {
-        "name": "CloudFormation",
-        "years": 3
-      }
-    ],
-    "cloudDevops": [
-      {
-        "name": "Docker",
-        "years": 6
-      },
-      {
-        "name": "Kubernetes",
-        "years": 3
-      },
-      {
-        "name": "Terraform",
-        "years": 4
-      },
-      {
-        "name": "Chef",
-        "years": 3
-      },
-      {
-        "name": "Jenkins",
-        "years": 5
-      },
-      {
-        "name": "GitLab CI",
-        "years": 3
-      },
-      {
-        "name": "Git",
-        "years": "10+"
-      },
-      {
-        "name": "GitHub Actions",
-        "years": 4
-      },
-      {
-        "name": "CI/CD",
-        "years": 8
-      },
-      {
-        "name": "Linux",
-        "years": "10+"
-      },
-      {
-        "name": "Unix",
-        "years": "10+"
-      },
-      {
-        "name": "Bash",
-        "years": "10+"
-      },
-      {
-        "name": "Nginx",
-        "years": "10+"
-      },
-      {
-        "name": "Apache",
-        "years": 8
-      }
-    ],
-    "databases": [
-      {
-        "name": "PostgreSQL",
-        "years": "10+"
-      },
-      {
-        "name": "MongoDB",
-        "years": "10+"
-      },
-      {
-        "name": "Redis",
-        "years": 8
-      },
-      {
-        "name": "MySQL",
-        "years": "10+"
-      },
-      {
-        "name": "Vector Databases",
-        "years": 3
-      },
-      {
-        "name": "Elasticsearch",
-        "years": 4
-      },
-      {
-        "name": "SQLite",
-        "years": "10+"
+        "name": "MSW",
+        "years": 10
       }
     ],
     "tools": [
-      {
-        "name": "VS Code",
-        "years": 8
-      },
-      {
-        "name": "Claude Code",
-        "years": 1
-      },
-      {
-        "name": "Vim",
-        "years": "10+"
-      },
-      {
-        "name": "Postman",
-        "years": 8
-      },
-      {
-        "name": "Figma",
-        "years": 4
-      },
       {
         "name": "Jira",
         "years": 6
@@ -460,27 +122,7 @@
         "years": 10
       },
       {
-        "name": "Vercel",
-        "years": 6
-      },
-      {
-        "name": "AWS",
-        "years": 6
-      },
-      {
-        "name": "DeFi",
-        "years": 2
-      },
-      {
-        "name": "Fastify",
-        "years": 2
-      },
-      {
-        "name": "Material-UI",
-        "years": 2
-      },
-      {
-        "name": "pdf-lib",
+        "name": "Formik",
         "years": 2
       },
       {
@@ -488,59 +130,33 @@
         "years": 2
       },
       {
-        "name": "Formik",
+        "name": "pdf-lib",
         "years": 2
       },
       {
-        "name": "survey.js",
-        "years": 2
-      }
-    ],
-    "specialties": [
-      {
-        "name": "Real-time Systems",
-        "years": "10+"
+        "name": "Yarn workspaces",
+        "years": 7
       },
       {
-        "name": "Trading Platforms",
+        "name": "LaunchDarkly",
+        "years": 5
+      },
+      {
+        "name": "Vite",
         "years": 3
       },
       {
-        "name": "Cryptocurrency/Blockchain",
-        "years": 6
-      },
-      {
-        "name": "Voice Processing",
-        "years": 4
-      },
-      {
-        "name": "Web Automation",
-        "years": 2
-      },
+        "name": "Nivo charts",
+        "years": 8
+      }
+    ],
+    "specialties": [
       {
         "name": "Performance Optimization",
         "years": "10+"
       },
       {
-        "name": "Security/Penetration Testing",
-        "years": 5
-      },
-      {
-        "name": "Drone/Aircraft Systems",
-        "years": 4
-      },
-      {
-        "name": "High-volume Systems",
-        "years": 8
-      }
-    ],
-    "softSkills": [
-      {
-        "name": "Problem Solving",
-        "years": "10+"
-      },
-      {
-        "name": "Team Leadership",
+        "name": "Real-time Systems",
         "years": "10+"
       },
       {
@@ -548,15 +164,7 @@
         "years": "10+"
       },
       {
-        "name": "Mentoring",
-        "years": "10+"
-      },
-      {
-        "name": "Cross-functional Collaboration",
-        "years": "10+"
-      },
-      {
-        "name": "Project Management",
+        "name": "Problem Solving",
         "years": "10+"
       },
       {
@@ -568,43 +176,29 @@
         "years": "10+"
       },
       {
-        "name": "Technical Documentation",
+        "name": "Mentoring",
+        "years": "10+"
+      }
+    ],
+    "softSkills": [
+      {
+        "name": "Agile/Scrum",
         "years": "10+"
       },
       {
-        "name": "System Architecture",
+        "name": "Code Review",
         "years": "10+"
       },
       {
-        "name": "Requirements Analysis",
+        "name": "Communication",
         "years": "10+"
       },
       {
-        "name": "Client Relations",
+        "name": "Problem Solving",
         "years": "10+"
       },
       {
-        "name": "Remote Work",
-        "years": 8
-      },
-      {
-        "name": "Time Management",
-        "years": "10+"
-      },
-      {
-        "name": "Adaptability",
-        "years": "10+"
-      },
-      {
-        "name": "Critical Thinking",
-        "years": "10+"
-      },
-      {
-        "name": "Innovation",
-        "years": "10+"
-      },
-      {
-        "name": "Conflict Resolution",
+        "name": "Mentoring",
         "years": "10+"
       }
     ]
@@ -617,10 +211,10 @@
       "startDate": "2023",
       "endDate": "Present",
       "achievements": [
-        "Built AI-powered testing framework replacing complex headless testing systems",
+        "Built training and inference pipelines in React.js/Next.js and Python",
         "Created vision-action model that navigates web interfaces like human QA workers",
         "Developed simple English instruction system replacing esoteric testing code",
-        "Built training and inference pipelines in ReactJS/NextJS and Python"
+        "Built AI-powered testing framework replacing complex headless testing systems"
       ]
     },
     {
@@ -630,10 +224,10 @@
       "startDate": "2020",
       "endDate": "2023",
       "achievements": [
-        "Engineered advanced voice synthesis system solving cadence replication problems",
+        "Built training and inference pipelines in React.js/Next.js, TypeScript and Python",
         "Built real-time voice processing handling complex speech patterns",
-        "Created voice models capturing natural speaking rhythm of recording artists",
-        "Built training and inference pipelines in ReactJS/NextJS, TypeScript and Python"
+        "Engineered advanced voice synthesis system solving cadence replication problems",
+        "Created voice models capturing natural speaking rhythm of recording artists"
       ]
     },
     {
@@ -643,9 +237,10 @@
       "startDate": "2017",
       "endDate": "2020",
       "achievements": [
+        "A mix of Solidity, JavaScript, React.js, MySQL, Postgres, and multiple APIs",
+        "Built frontend development for digital-to-physical mail platform",
         "Built deep networks for game-playing, classification, and voice synthesis",
-        "Developed medical classifiers improving healthcare in rural communities",
-        "Built multiple web applications using NextJS, ReactJS, Typescript and MongoDB"
+        "Developed medical classifiers improving healthcare in rural communities"
       ]
     },
     {
@@ -656,9 +251,9 @@
       "endDate": "2017",
       "achievements": [
         "Built trading interfaces processing millions in daily volume",
+        "A mix of Solidity, JavaScript, React.js, MySQL, Postgres, and multiple APIs",
         "Wrote and audited Solidity smart contracts for crypto exchange platform",
-        "Conducted penetration testing ensuring platform security",
-        "A mix of Solidity, JavaScript, ReactJS, MySQL, Postgres, and multiple APIs"
+        "Conducted penetration testing ensuring platform security"
       ]
     },
     {
@@ -668,10 +263,10 @@
       "startDate": "2012",
       "endDate": "2015",
       "achievements": [
+        "Built in Embers.js then React.js, CSS, Javascript, Node and Postgres",
         "Built real-time web interfaces for autonomous drone control systems",
         "Developed fleet management tools processing live telemetry data",
-        "Created responsive operator controls for aircraft management",
-        "Built in Embers.js then ReactJs, CSS, Javascript, Node and Postgres"
+        "Created responsive operator controls for aircraft management"
       ]
     },
     {
@@ -681,16 +276,16 @@
       "startDate": "2007",
       "endDate": "2012",
       "achievements": [
-        "Led frontend development for digital-to-physical mail platform",
-        "Built interactive drag-and-drop interfaces with early AJAX implementation",
-        "Built in C#, ASP.Net, JavaScript, and PERL"
+        "Built in C#, ASP.Net, JavaScript, Node and Postgres",
+        "Built frontend development for digital-to-physical mail platform",
+        "Built interactive drag-and-drop interfaces with early AJAX implementation"
       ]
     }
   ],
   "education": [
     {
       "degree": "Bachelor of Science in Computer Science",
-      "institution": "California State University San Marcos",
+      "institution": "California State University San Marcos, CA",
       "location": "San Marcos, CA",
       "graduationDate": "August 2025",
       "coursework": [
