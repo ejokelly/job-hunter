@@ -166,7 +166,7 @@ echo "ANTHROPIC_API_KEY=your_api_key_here" > .env.local
 ```
 
 4. Update applicant data:
-Edit `data.json` with your personal information, skills, and experience.
+Edit `data.json` with your personal information, skills, and experience. See [Customizing Your Resume Data](#-customizing-your-resume-data) below for detailed instructions.
 
 5. Run the development server:
 ```bash
@@ -175,26 +175,97 @@ npm run dev
 
 6. Open [http://localhost:3000](http://localhost:3000)
 
-## 🔧 Configuration
+## 📝 Customizing Your Resume Data
 
-### Customizing Applicant Data
-The `data.json` file contains all applicant information:
+### Quick Start: Building Your Own Resume
+
+To create your own tailored resumes and cover letters, you'll need to update the `data.json` file with your personal information. This file serves as your resume database that the AI uses to generate documents.
+
+### Step-by-Step Data Customization
+
+1. **Personal Information** - Update your basic contact details:
 ```json
 {
   "personalInfo": {
-    "name": "Your Name",
-    "email": "email@example.com",
-    ...
-  },
-  "skills": {
-    "languages": [...],
-    "frontend": [...],
-    ...
-  },
-  "experience": [...],
-  "education": [...]
+    "name": "Your Full Name",
+    "phone": "(555) 123-4567", 
+    "email": "your.email@example.com",
+    "location": "Your City, State",
+    "github": "https://github.com/yourusername",
+    "linkedin": "https://linkedin.com/in/yourusername",
+    "title": "Your Professional Title"
+  }
 }
 ```
+
+2. **Skills** - Add your technical and professional skills organized by category:
+```json
+{
+  "skills": {
+    "languages": [
+      {"name": "JavaScript", "years": "5"},
+      {"name": "Python", "years": 3}
+    ],
+    "frontend": [
+      {"name": "React.js", "years": "4"},
+      {"name": "Vue.js", "years": 2}
+    ],
+    "backend": [...],
+    "databases": [...],
+    "tools": [...],
+    "specialties": [...]
+  }
+}
+```
+
+3. **Work Experience** - List your professional experience:
+```json
+{
+  "experience": [
+    {
+      "role": "Software Engineer",
+      "company": "Company Name",
+      "location": "City, State", 
+      "startDate": "2020",
+      "endDate": "Present",
+      "achievements": [
+        "Built responsive web applications using React and TypeScript",
+        "Improved application performance by 40% through code optimization",
+        "Led a team of 3 developers on key product features"
+      ]
+    }
+  ]
+}
+```
+
+4. **Education** - Add your educational background:
+```json
+{
+  "education": [
+    {
+      "degree": "Bachelor of Science in Computer Science",
+      "institution": "University Name",
+      "location": "City, State",
+      "graduationDate": "2020",
+      "coursework": ["Data Structures", "Algorithms", "Web Development"]
+    }
+  ]
+}
+```
+
+### Pro Tips for Best Results
+
+- **Be Specific**: Include exact years of experience and specific technologies
+- **Use Industry Terms**: Match common job posting terminology
+- **Quantify Achievements**: Include numbers, percentages, and measurable outcomes
+- **Keep It Truthful**: The AI will only use what you provide - no fabrication
+- **Organize Skills**: Group similar skills together for better matching
+
+### Data Privacy
+
+Your personal `data.json` is yours to customize. The repository includes an anonymized example with placeholder data to protect privacy while demonstrating functionality.
+
+## 🔧 Configuration
 
 ### AI Behavior Customization
 The AI prompts can be customized in the API routes to adjust generation behavior:
