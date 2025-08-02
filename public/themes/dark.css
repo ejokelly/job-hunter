@@ -1,0 +1,99 @@
+/* Dark Theme Styles - Zinc-based palette */
+
+/* Base colors */
+.theme-bg-primary { background-color: #09090b; }
+.theme-bg-secondary { background-color: #18181b; }
+.theme-bg-tertiary { background-color: #27272a; }
+.theme-bg-gradient { background: linear-gradient(135deg, #09090b 0%, #18181b 100%); }
+
+.theme-text-primary { color: #fafafa; }
+.theme-text-secondary { color: #e4e4e7; }
+.theme-text-tertiary { color: #a1a1aa; }
+
+.theme-border { border-color: #3f3f46; }
+.theme-border-light { border-color: #27272a; }
+
+/* Button variants */
+.theme-btn-primary { 
+  background-color: #3b82f6 !important; 
+  color: #ffffff !important; 
+}
+.theme-btn-primary:hover { 
+  background-color: #2563eb !important; 
+}
+
+.theme-btn-secondary { 
+  background-color: #10b981 !important; 
+  color: #ffffff !important; 
+}
+.theme-btn-secondary:hover { 
+  background-color: #059669 !important; 
+}
+
+.theme-btn-ghost { 
+  background-color: transparent !important; 
+  color: #a1a1aa !important; 
+}
+.theme-btn-ghost:hover { 
+  background-color: #27272a !important; 
+  color: #e4e4e7 !important; 
+}
+
+.theme-btn-skill { 
+  background-color: #dc2626 !important; 
+  color: #ffffff !important; 
+}
+.theme-btn-skill:hover { 
+  background-color: #b91c1c !important; 
+}
+
+.theme-btn-disabled { 
+  background-color: #3f3f46 !important; 
+  color: #71717a !important;
+  cursor: not-allowed; 
+}
+
+/* Form elements */
+.theme-input { 
+  background-color: #18181b; 
+  color: #fafafa; 
+  border-color: #3f3f46; 
+}
+.theme-input:focus { 
+  border-color: #71717a; 
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.2); 
+}
+.theme-input:disabled { 
+  background-color: #27272a; 
+  color: #71717a;
+  cursor: not-allowed; 
+}
+
+/* Cards and containers */
+.theme-card { 
+  background-color: #18181b; 
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4); 
+}
+
+.theme-header { 
+  background-color: #09090b; 
+  border-color: #27272a; 
+}
+
+/* Skill tags */
+.theme-skill-missing { 
+  background-color: #dc2626; 
+  color: #ffffff; 
+}
+
+.theme-skill-matching { 
+  background-color: #10b981; 
+  color: #ffffff; 
+}
+
+/* Loading dots */
+.theme-dots { background-color: #71717a; }
+
+/* Icons */
+.theme-icon-primary { color: #a1a1aa; }
+.theme-icon-secondary { color: #71717a; }

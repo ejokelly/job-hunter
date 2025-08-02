@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
-import ActionButton from '@/components/ActionButton';
-import ThreeDotsLoader from '@/components/ThreeDotsLoader';
+import ActionButton from '@/components/action-button';
+import ThreeDotsLoader from '@/components/three-dots-loader';
+import Header from '@/components/header';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -262,21 +263,24 @@ export default function Home() {
 
   if (!showForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-lg shadow-xl p-8">
-            <FileText className="w-16 h-16 mx-auto mb-6 text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Job Hunter</h1>
-            <p className="text-gray-600 mb-8">
-              Create tailored resumes and cover letters using AI that match job descriptions perfectly.
-            </p>
-            <ActionButton
-              onClick={() => setShowForm(true)}
-              variant="primary"
-              className="w-full py-3 px-6 justify-center"
-            >
-              Start New Application
-            </ActionButton>
+      <div className="min-h-screen theme-bg-gradient">
+        <Header />
+        <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
+          <div className="max-w-md w-full text-center">
+            <div className="theme-card rounded-lg p-8">
+              <FileText className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
+              <h1 className="text-3xl font-bold theme-text-primary mb-4">Job Hunter</h1>
+              <p className="theme-text-secondary mb-8">
+                Create tailored resumes and cover letters using AI that match job descriptions perfectly.
+              </p>
+              <ActionButton
+                onClick={() => setShowForm(true)}
+                variant="primary"
+                className="w-full py-3 px-6 justify-center"
+              >
+                Start New Application
+              </ActionButton>
+            </div>
           </div>
         </div>
       </div>
@@ -286,21 +290,12 @@ export default function Home() {
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
     return (
-      <div className="min-h-screen bg-gray-100">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <ActionButton 
-                onClick={handleBack}
-                variant="ghost"
-                className="gap-2"
-              >
-                ← Back
-              </ActionButton>
-              <h1 className="text-xl font-semibold text-gray-900">Document Preview</h1>
-            </div>
-            <div className="flex gap-4">
+      <div className="min-h-screen theme-bg-secondary">
+        <Header 
+          title="Document Preview"
+          onBack={handleBack}
+          actions={
+            <>
               <ActionButton
                 onClick={handleGenerate}
                 variant="ghost"
@@ -308,7 +303,7 @@ export default function Home() {
               >
                 Regenerate
               </ActionButton>
-              <div className="border-l border-gray-300 mx-2" />
+              <div className="border-l theme-border mx-2" />
               <ActionButton
                 onClick={handleDownloadResume}
                 variant="primary"
@@ -325,36 +320,36 @@ export default function Home() {
               >
                 Download Cover Letter
               </ActionButton>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Preview Content */}
         <div className="max-w-7xl mx-auto p-6">
           {isGenerating && (!previewData || !coverLetterData) ? (
             <div className="grid grid-cols-2 gap-6">
               {/* Resume Loading Pane */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 border-b">
-                  <h3 className="text-sm font-semibold text-gray-700">Resume</h3>
+              <div className="theme-card rounded-lg overflow-hidden">
+                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light">
+                  <h3 className="text-sm font-semibold theme-text-secondary">Resume</h3>
                 </div>
                 <div className="flex items-center justify-center h-96">
                   <div className="text-center">
                     <ThreeDotsLoader className="mx-auto mb-4" />
-                    <p className="text-gray-600">Generating resume...</p>
+                    <p className="theme-text-tertiary">Generating resume...</p>
                   </div>
                 </div>
               </div>
               
               {/* Cover Letter Loading Pane */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 border-b">
-                  <h3 className="text-sm font-semibold text-gray-700">Cover Letter</h3>
+              <div className="theme-card rounded-lg overflow-hidden">
+                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light">
+                  <h3 className="text-sm font-semibold theme-text-secondary">Cover Letter</h3>
                 </div>
                 <div className="flex items-center justify-center h-96">
                   <div className="text-center">
                     <ThreeDotsLoader className="mx-auto mb-4" />
-                    <p className="text-gray-600">Generating cover letter...</p>
+                    <p className="theme-text-tertiary">Generating cover letter...</p>
                   </div>
                 </div>
               </div>
@@ -362,9 +357,9 @@ export default function Home() {
           ) : previewData && coverLetterData ? (
             <div className="grid grid-cols-2 gap-6">
               {/* Resume Preview */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
-                  <h3 className="text-sm font-semibold text-gray-700">Resume</h3>
+              <div className="theme-card rounded-lg overflow-hidden">
+                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light flex justify-between items-center">
+                  <h3 className="text-sm font-semibold theme-text-secondary">Resume</h3>
                   <ActionButton
                     onClick={handleRegenerateResume}
                     variant="ghost"
@@ -402,9 +397,9 @@ export default function Home() {
               </div>
               
               {/* Cover Letter Preview */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
-                  <h3 className="text-sm font-semibold text-gray-700">Cover Letter</h3>
+              <div className="theme-card rounded-lg overflow-hidden">
+                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light flex justify-between items-center">
+                  <h3 className="text-sm font-semibold theme-text-secondary">Cover Letter</h3>
                   <ActionButton
                     onClick={handleRegenerateCoverLetter}
                     variant="ghost"
@@ -448,22 +443,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Create Tailored Resume</h1>
-            <ActionButton
-              onClick={() => setShowForm(false)}
-              variant="ghost"
-            >
-              ← Back
-            </ActionButton>
-          </div>
+    <div className="min-h-screen theme-bg-gradient">
+      <Header 
+        title="Create Tailored Resume"
+        onBack={() => setShowForm(false)}
+      />
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="theme-card rounded-lg p-8">
 
           <div className="space-y-6">
             <div>
-              <label htmlFor="jobDescription" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
                 Job Description
               </label>
               <textarea
@@ -471,8 +461,8 @@ export default function Home() {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 disabled={skillGapReport !== null}
-                className={`w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-gray-900 ${
-                  skillGapReport ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                className={`w-full h-64 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none ${
+                  skillGapReport ? 'cursor-not-allowed' : ''
                 }`}
                 placeholder="Paste the job description here..."
                 spellCheck="false"
@@ -480,12 +470,12 @@ export default function Home() {
             </div>
 
             {skillGapReport && (
-              <div className="bg-gray-50 p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Skill Gap Analysis</h3>
+              <div className="theme-bg-tertiary p-6 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold theme-text-primary mb-4">Skill Gap Analysis</h3>
                 
                 {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="text-md font-medium text-red-600 mb-2">Missing Skills</h4>
+                    <h4 className="text-md font-medium theme-text-secondary mb-2">Missing Skills</h4>
                     <div className="flex flex-wrap gap-2">
                       {skillGapReport.missingSkills.map((skill, index) => (
                         <ActionButton
@@ -502,12 +492,12 @@ export default function Home() {
 
                 {skillGapReport.matchingSkills && skillGapReport.matchingSkills.length > 0 && (
                   <div>
-                    <h4 className="text-md font-medium text-green-600 mb-2">Matching Skills</h4>
+                    <h4 className="text-md font-medium theme-text-secondary mb-2">Matching Skills</h4>
                     <div className="flex flex-wrap gap-2">
                       {skillGapReport.matchingSkills.map((skill, index) => (
                         <span
                           key={index}
-                          className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                          className="theme-skill-matching px-3 py-1 rounded-full text-sm"
                         >
                           ✓ {skill}
                         </span>
