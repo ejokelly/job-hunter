@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData } from '@/lib/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/anthropic-client';
-import { extractJobDetails } from '@/lib/job-extraction';
-import { generateResumeHTML } from '@/lib/resume-html-generator';
+import { loadApplicantData } from '@/lib/data/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { extractJobDetails } from '@/lib/ai/job-extraction';
+import { generateResumeHTML } from '@/lib/generation/resume-html-generator';
 
 
 export async function POST(request: NextRequest) {

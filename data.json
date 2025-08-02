@@ -474,6 +474,18 @@
       {
         "name": "Material-UI",
         "years": 2
+      },
+      {
+        "name": "pdf-lib",
+        "years": 2
+      },
+      {
+        "name": "Axios",
+        "years": 2
+      },
+      {
+        "name": "Formik",
+        "years": 2
       }
     ],
     "specialties": [

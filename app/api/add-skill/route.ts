@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { loadApplicantData, saveApplicantData } from '@/lib/data/data-loader';
+import { categorizeSkill } from '@/lib/data/skill-categorization';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,45 +11,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Load current data
-    const dataPath = path.join(process.cwd(), 'data.json');
-    const applicantData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    const applicantData = loadApplicantData();
 
-    // Determine the best category for this skill based on common patterns
+    // Determine the best category for this skill
     const skillLower = skill.toLowerCase();
-    let targetCategory = 'tools'; // default category
-
-    // Language detection
-    if (['javascript', 'typescript', 'python', 'java', 'c#', 'c++', 'c', 'ruby', 'php', 'go', 'rust', 'kotlin', 'swift', 'sql', 'html', 'css'].some(lang => skillLower.includes(lang))) {
-      targetCategory = 'languages';
-    }
-    // Frontend detection
-    else if (['react', 'vue', 'angular', 'svelte', 'tailwind', 'bootstrap', 'sass', 'scss', 'webpack', 'vite', 'rollup'].some(fe => skillLower.includes(fe))) {
-      targetCategory = 'frontend';
-    }
-    // Backend detection
-    else if (['node', 'express', 'django', 'flask', 'rails', 'spring', 'laravel', '.net', 'asp.net', 'fastapi', 'graphql', 'rest', 'api'].some(be => skillLower.includes(be))) {
-      targetCategory = 'backend';
-    }
-    // Testing detection
-    else if (['jest', 'cypress', 'selenium', 'pytest', 'rspec', 'mocha', 'chai', 'jasmine', 'karma', 'playwright', 'enzyme'].some(test => skillLower.includes(test))) {
-      targetCategory = 'testing';
-    }
-    // Database detection
-    else if (['postgres', 'mysql', 'mongodb', 'redis', 'sqlite', 'oracle', 'cassandra', 'dynamodb', 'elasticsearch'].some(db => skillLower.includes(db))) {
-      targetCategory = 'databases';
-    }
-    // Cloud/AWS detection
-    else if (['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'jenkins', 'gitlab', 'github actions', 'ci/cd'].some(cloud => skillLower.includes(cloud))) {
-      if (['ec2', 's3', 'lambda', 'rds', 'cloudfront', 'sqs', 'sns', 'dynamodb', 'ecs', 'fargate'].some(aws => skillLower.includes(aws))) {
-        targetCategory = 'awsServices';
-      } else {
-        targetCategory = 'cloudDevops';
-      }
-    }
-    // AI/ML detection
-    else if (['machine learning', 'deep learning', 'tensorflow', 'pytorch', 'opencv', 'scikit', 'pandas', 'numpy', 'ai', 'neural'].some(ai => skillLower.includes(ai))) {
-      targetCategory = 'aiMl';
-    }
+    const targetCategory = categorizeSkill(skill);
 
     // Check if skill already exists
     const skillExists = Object.values(applicantData.skills).some((category: any) =>
@@ -73,7 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Write back to file
-    fs.writeFileSync(dataPath, JSON.stringify(applicantData, null, 2));
+    saveApplicantData(applicantData);
 
     return NextResponse.json({ 
       message: 'Skill added successfully',

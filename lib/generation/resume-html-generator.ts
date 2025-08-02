@@ -1,5 +1,5 @@
-import { ApplicantData, getAllSkillsFlat } from './data-loader';
-import { boldSkillsInText, shouldBoldSkill } from './skill-matching';
+import { ApplicantData, getAllSkillsFlat } from '../data/data-loader';
+import { boldSkillsInText, shouldBoldSkill } from '../utils/skill-matching';
 
 export function generateResumeHTML(data: ApplicantData, jobDescription: string): string {
   const allSkills = getAllSkillsFlat(data);

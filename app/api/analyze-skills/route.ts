@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData, getAllSkillsFlat } from '@/lib/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/anthropic-client';
+import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
 
 export async function POST(request: NextRequest) {
   try {

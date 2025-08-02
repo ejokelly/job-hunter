@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
-import { ApplicantData } from './data-loader';
-import { generateResumeHTML } from './resume-html-generator';
+import { ApplicantData } from '../data/data-loader';
+import { generateResumeHTML } from '../generation/resume-html-generator';
 
 export async function generateResumePDF(data: ApplicantData, jobDescription: string): Promise<Buffer> {
   const browser = await puppeteer.launch({

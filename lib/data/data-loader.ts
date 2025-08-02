@@ -68,6 +68,14 @@ export function getAllSkillsFlat(applicantData: ApplicantData): string[] {
   return allSkills;
 }
 
+export function saveApplicantData(data: ApplicantData): void {
+  const dataPath = path.join(process.cwd(), 'data.json');
+  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+  
+  // Clear cache so next load gets fresh data
+  cachedData = null;
+}
+
 export function clearCache(): void {
   cachedData = null;
 }
