@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadApplicantData } from '@/lib/data/api-data-loader';
 import { getAllSkillsFlat } from '@/lib/data/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { getServerAuthSession } from '@/lib/auth/server-auth';
 
 export async function POST(request: NextRequest) {
@@ -49,7 +49,12 @@ Return your analysis as JSON in this exact format:
 
 Focus on technical skills, tools, frameworks, and programming languages. Be specific and use the exact terminology from the job description.`;
 
-    const message = await callClaude(prompt, 2000);
+    const message = await TrackedAnthropic.createMessage(prompt, {
+      operation: 'analyze-skills',
+      userId: session.user.id,
+      jobDescription,
+      endpoint: 'analyze-skills'
+    }, 2000);
 
     let analysis;
     try {

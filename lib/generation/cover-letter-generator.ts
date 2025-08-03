@@ -1,5 +1,5 @@
 import { ApplicantData } from '../data/data-loader';
-import { callClaude } from '../ai/anthropic-client';
+import { TrackedAnthropic } from '../ai/tracked-anthropic';
 import { Logger } from '../utils/logger';
 
 export interface CoverLetterContent {
@@ -16,7 +16,13 @@ export interface JobDetails {
 export async function generateCoverLetterContent(
   applicantData: ApplicantData, 
   jobDescription: string,
-  jobDetails: JobDetails
+  jobDetails: JobDetails,
+  trackingOptions?: {
+    userId?: string
+    sessionId?: string
+    operation: string
+    endpoint: string
+  }
 ): Promise<CoverLetterContent> {
   const coverLetterPrompt = `Write a punchy, direct cover letter. CRITICAL: ONLY use information that exists in the provided data. DO NOT make up ANY experiences, skills, or achievements.
 
@@ -48,7 +54,11 @@ Write 3 SHORT paragraphs:
 Return only the paragraphs separated by ||| like this:
 Opening|||Body|||Closing`;
 
-  const coverLetterMessage = await callClaude(coverLetterPrompt, 1000);
+  const coverLetterMessage = await TrackedAnthropic.createMessage(coverLetterPrompt, 
+    trackingOptions || {
+      operation: 'generate-cover-letter-content',
+      endpoint: 'cover-letter-generator'
+    }, 1000);
 
   let coverLetterContent: CoverLetterContent = {
     opening: "I am writing to express my interest in this position.",

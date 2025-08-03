@@ -20,7 +20,7 @@ ${applicantData.summary}
 
 Return ONLY a JSON object with "title" and "summary" fields:
 - title: A professional title that matches this specific job
-- summary: Rewritten summary focused on this role, under 500 characters. MUST describe the candidate as an "AI Augmented" coder/developer and as "Cloud Native" with a "background in machine learning" (not describing the applications built, but the person's approach to development). Reference specific skills and experience that exceed job requirements.
+- summary: Rewritten summary focused on this role, under 500 characters. Write in a professional but friendly, conversational tone that sounds natural and human. Highlight relevant experience and skills that match or exceed job requirements. Mention the candidate's background in modern development practices and emerging technologies like AI/ML when relevant. Avoid robotic language, keyword stuffing, or overly technical jargon.
 
 Format: {"title": "Professional Title Here", "summary": "Tailored summary here..."}`;
 }

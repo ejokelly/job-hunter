@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateResumePDF } from '@/lib/utils/html-pdf-generator';
 import { loadApplicantData } from '@/lib/data/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generatePDFFilename } from '@/lib/utils/filename-utils';
 import { Logger } from '@/lib/utils/logger';
@@ -15,6 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
     }
 
+    // Get session information for usage tracking
+    const sessionId = TrackedAnthropic.getSessionId(request);
+    const userId = await TrackedAnthropic.getUserId(sessionId);
+
     // Load applicant data
     const applicantData = loadApplicantData();
 
@@ -26,7 +30,13 @@ export async function POST(request: NextRequest) {
     // Step 1: Tailor the summary and title
     Logger.step(1, 'Starting summary and title tailoring...');
     const summaryTitlePrompt = createSummaryTitlePrompt(jobDescription, applicantData);
-    const summaryTitleMessage = await callClaude(summaryTitlePrompt, 800);
+    const summaryTitleMessage = await TrackedAnthropic.createMessage(summaryTitlePrompt, {
+      operation: 'tailor-summary-title',
+      userId,
+      sessionId,
+      jobDescription,
+      endpoint: 'generate-resume'
+    }, 800);
 
     let tailoredSummary = applicantData.summary;
     let tailoredTitle = applicantData.personalInfo.title;
@@ -47,7 +57,13 @@ export async function POST(request: NextRequest) {
     // Step 2: Reorder and filter skills
     Logger.step(2, 'Starting skills reordering...');
     const skillsPrompt = createSkillsFilterPrompt(jobDescription, applicantData.skills);
-    const skillsMessage = await callClaude(skillsPrompt, 3000);
+    const skillsMessage = await TrackedAnthropic.createMessage(skillsPrompt, {
+      operation: 'filter-skills',
+      userId,
+      sessionId,
+      jobDescription,
+      endpoint: 'generate-resume'
+    }, 3000);
 
     let tailoredSkills;
     try {
@@ -71,7 +87,13 @@ export async function POST(request: NextRequest) {
     // Step 3: Reorder experience bullet points
     Logger.step(3, 'Starting experience bullet point reordering...');
     const experiencePrompt = createExperienceReorderPrompt(jobDescription, applicantData.experience);
-    const experienceMessage = await callClaude(experiencePrompt, 4000);
+    const experienceMessage = await TrackedAnthropic.createMessage(experiencePrompt, {
+      operation: 'reorder-experience',
+      userId,
+      sessionId,
+      jobDescription,
+      endpoint: 'generate-resume'
+    }, 4000);
 
     let tailoredExperience;
     try {

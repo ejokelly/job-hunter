@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadApplicantData } from '@/lib/data/api-data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generateResumeHTML } from '@/lib/generation/resume-html-generator';
 import { Logger } from '@/lib/utils/logger';
@@ -41,7 +41,11 @@ Respond with JSON in this format:
   ]
 }`;
 
-    const response = await callClaude(prompt, 1000);
+    const response = await TrackedAnthropic.createMessage(prompt, {
+      operation: 'categorize-skills',
+      userId,
+      endpoint: 'preview-resume'
+    }, 1000);
     const categorization = await extractJsonFromResponse(response);
     
     // Merge skills into appropriate categories
@@ -109,7 +113,12 @@ export async function POST(request: NextRequest) {
 
     // Tailor the summary and title
     const summaryTitlePrompt = createSummaryTitlePrompt(jobDescription, applicantData);
-    const summaryTitleMessage = await callClaude(summaryTitlePrompt, 800);
+    const summaryTitleMessage = await TrackedAnthropic.createMessage(summaryTitlePrompt, {
+      operation: 'tailor-summary-title',
+      userId: session.user.id,
+      jobDescription,
+      endpoint: 'preview-resume'
+    }, 800);
 
     let tailoredSummary = applicantData.summary;
     let tailoredTitle = applicantData.personalInfo.title;
@@ -124,7 +133,12 @@ export async function POST(request: NextRequest) {
 
     // Filter skills
     const skillsPrompt = createSkillsFilterPrompt(jobDescription, applicantData.skills);
-    const skillsMessage = await callClaude(skillsPrompt, 3000);
+    const skillsMessage = await TrackedAnthropic.createMessage(skillsPrompt, {
+      operation: 'filter-skills',
+      userId: session.user.id,
+      jobDescription,
+      endpoint: 'preview-resume'
+    }, 3000);
 
     let tailoredSkills = applicantData.skills;
     try {
@@ -136,7 +150,12 @@ export async function POST(request: NextRequest) {
 
     // Reorder experience bullet points
     const experiencePrompt = createExperienceReorderPrompt(jobDescription, applicantData.experience);
-    const experienceMessage = await callClaude(experiencePrompt, 4000);
+    const experienceMessage = await TrackedAnthropic.createMessage(experiencePrompt, {
+      operation: 'reorder-experience',
+      userId: session.user.id,
+      jobDescription,
+      endpoint: 'preview-resume'
+    }, 4000);
 
     let tailoredExperience = applicantData.experience;
     try {
