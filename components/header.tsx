@@ -1,7 +1,8 @@
 'use client';
 
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, User, LogOut } from 'lucide-react';
 import { useTheme } from './theme-provider';
+import { useSession, signOut } from 'next-auth/react';
 import ActionButton from './action-button';
 
 interface HeaderProps {
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export default function Header({ title = 'Job Hunter', onBack, actions }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
+  const { data: session } = useSession();
 
   return (
     <div className="theme-header shadow-sm border-b theme-border-light">
@@ -31,6 +33,24 @@ export default function Header({ title = 'Job Hunter', onBack, actions }: Header
         
         <div className="flex items-center gap-4">
           {actions}
+          
+          {/* User Info */}
+          {session && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 theme-text-secondary text-sm">
+                <User className="w-4 h-4" />
+                <span>{session.user?.email}</span>
+              </div>
+              <ActionButton
+                onClick={() => signOut()}
+                variant="ghost"
+                className="gap-2 text-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </ActionButton>
+            </div>
+          )}
           
           {/* Theme Toggle */}
           <div className="flex items-center theme-bg-tertiary rounded-full p-1">

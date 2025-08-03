@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData, saveApplicantData } from '@/lib/data/data-loader';
+import { loadApplicantData, saveApplicantData } from '@/lib/data/api-data-loader';
 import { categorizeSkill } from '@/lib/data/skill-categorization';
 
 export async function POST(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Load current data
-    const applicantData = loadApplicantData();
+    const applicantData = await loadApplicantData();
 
     // Determine the best category for this skill
     const skillLower = skill.toLowerCase();
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
       years: 2
     });
 
-    // Write back to file
-    saveApplicantData(applicantData);
+    // Write back to database
+    await saveApplicantData(applicantData);
 
     return NextResponse.json({ 
       message: 'Skill added successfully',
