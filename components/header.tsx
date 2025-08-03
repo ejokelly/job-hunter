@@ -2,7 +2,7 @@
 
 import { Sun, Moon, LogOut } from 'lucide-react';
 import { useTheme } from './theme-provider';
-import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import ActionButton from './action-button';
 import Brand from './brand';
 
@@ -14,7 +14,56 @@ interface HeaderProps {
 
 export default function Header({ title, onBack, actions }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { data: session } = useSession();
+  const [session, setSession] = useState<any>(null);
+
+  // Load session on component mount
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        console.log('Header session loaded:', data)
+        setSession(data.user || null)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        setSession(null)
+      }
+    }
+    
+    loadSession()
+  }, [])
+
+  // Poll for session changes every 5 seconds (simple but effective)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        const currentUser = data.user || null
+        
+        // Only update if session actually changed
+        if ((currentUser && !session) || (!currentUser && session) || 
+            (currentUser && session && currentUser.id !== session.id)) {
+          console.log('Header session changed:', currentUser)
+          setSession(currentUser)
+        }
+      } catch (error) {
+        // Ignore polling errors
+      }
+    }, 5000) // Check every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [session])
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' })
+      setSession(null)
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   return (
     <div className="theme-header shadow-sm border-b theme-border-light">
@@ -66,7 +115,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
           {/* Sign Out - Always rightmost */}
           {session && (
             <ActionButton
-              onClick={() => signOut()}
+              onClick={handleSignOut}
               variant="ghost"
               className="gap-2 text-sm"
             >

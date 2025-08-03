@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { Mail, CheckCircle } from 'lucide-react';
 import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
@@ -27,7 +26,8 @@ interface PreviewData {
 export default function VerifyPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
@@ -42,30 +42,40 @@ export default function VerifyPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  // Check session and redirect if not authenticated
+  // Load session on component mount
   useEffect(() => {
-    console.log('🔍 Verify page - session check:', session, 'status:', status);
-    
-    // Only redirect if session is fully loaded and is null (not just undefined/loading)
-    if (status === 'loading') {
-      console.log('🔍 Session still loading...');
-      return;
+    async function loadSession() {
+      try {
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        setSession(data.user || null)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        setSession(null)
+      } finally {
+        setSessionLoading(false)
+      }
     }
     
-    if (status === 'unauthenticated' || session === null) {
+    loadSession()
+  }, [])
+
+  // Check session and redirect if not authenticated
+  useEffect(() => {
+    if (sessionLoading) return;
+    
+    if (!session) {
       console.log('🔍 No session found, redirecting to home');
       router.push('/');
       return;
     } 
     
-    if (session) {
-      console.log('🔍 Session found:', session);
-    }
-  }, [session, status, router]);
+    console.log('🔍 Session found:', session);
+  }, [session, sessionLoading, router]);
 
   // Check email verification status
   useEffect(() => {
-    if (!session?.user?.email) return;
+    if (!session?.email) return;
     
     const checkEmailVerification = async () => {
       console.log('Checking verification for resume:', params.resumeId);
@@ -226,19 +236,20 @@ export default function VerifyPage() {
   };
 
   const handleResendEmail = async () => {
-    if (!session?.user?.email) return;
+    if (!session?.email) return;
     
     setIsResending(true);
     setResendMessage('');
     
     try {
-      const response = await fetch('/api/auth/resend-verification', {
+      const response = await fetch('/api/auth/send-magic-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: session.user.email
+          email: session.email,
+          callbackUrl: '/'
         }),
       });
 
@@ -266,10 +277,10 @@ export default function VerifyPage() {
             <Mail className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
             <h2 className="text-xl font-bold theme-text-primary mb-4">Check Your Email</h2>
             <p className="theme-text-secondary mb-6">
-              We've sent a verification link to your email address. Please click the link to verify your account and continue.
+              We&apos;ve sent a verification link to your email address. Please click the link to verify your account and continue.
             </p>
             <p className="theme-text-tertiary text-sm mb-6">
-              Don't see the email? Check your spam folder. We're checking automatically for verification...
+              Don&apos;t see the email? Check your spam folder. We&apos;re checking automatically for verification...
             </p>
             
             {resendMessage && (

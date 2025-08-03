@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import Resume from '@/lib/db/models/Resume';
-import { getServerAuthSession } from '@/lib/auth/auth-utils';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
 import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -19,14 +20,14 @@ export async function GET(
 
     await dbConnect();
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid resume ID' },
         { status: 400 }
       );
     }
 
-    const resume = await Resume.findOne({ _id: params.id, userId: session.user.id });
+    const resume = await Resume.findOne({ _id: id, userId: session.user.id });
     
     if (!resume) {
       return NextResponse.json(
@@ -47,9 +48,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -60,7 +62,7 @@ export async function PUT(
 
     await dbConnect();
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid resume ID' },
         { status: 400 }
@@ -69,7 +71,7 @@ export async function PUT(
 
     const data = await request.json();
     const resume = await Resume.findOneAndUpdate(
-      { _id: params.id, userId: session.user.id },
+      { _id: id, userId: session.user.id },
       data,
       { new: true, runValidators: true }
     );
@@ -93,9 +95,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -106,14 +109,14 @@ export async function DELETE(
 
     await dbConnect();
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid resume ID' },
         { status: 400 }
       );
     }
 
-    const resume = await Resume.findOneAndDelete({ _id: params.id, userId: session.user.id });
+    const resume = await Resume.findOneAndDelete({ _id: id, userId: session.user.id });
 
     if (!resume) {
       return NextResponse.json(

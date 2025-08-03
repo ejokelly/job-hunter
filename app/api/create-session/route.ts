@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
 
     await client.close();
 
-    // Set the NextAuth session cookie
+    // Set the session token cookie
     const response = NextResponse.json({ success: true });
-    response.cookies.set('next-auth.session-token', sessionToken, {
+    response.cookies.set('session-token', sessionToken, {
       path: '/',
       maxAge: 30 * 24 * 60 * 60, // 30 days
       httpOnly: true,

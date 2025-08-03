@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import Resume from '@/lib/db/models/Resume';
-import { getServerAuthSession } from '@/lib/auth/auth-utils';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
 import { promises as fs } from 'fs';
 import path from 'path';
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
@@ -25,7 +24,8 @@ interface PreviewData {
 
 export default function NewResumePage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   
   // Job description form states
   const [jobDescription, setJobDescription] = useState('');
@@ -42,13 +42,33 @@ export default function NewResumePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  // Load session on component mount
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        setSession(data.user || null)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        setSession(null)
+      } finally {
+        setSessionLoading(false)
+      }
+    }
+    
+    loadSession()
+  }, [])
+
   // Check session and redirect if not authenticated
   useEffect(() => {
-    if (session === null) {
+    if (sessionLoading) return;
+    
+    if (!session) {
       router.push('/');
       return;
     }
-  }, [session, router]);
+  }, [session, sessionLoading, router]);
 
   // Check for existing terms agreement
   useEffect(() => {

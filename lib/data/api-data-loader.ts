@@ -57,7 +57,7 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
       // Server-side: use the database directly
       const dbConnect = (await import('@/lib/db/mongodb')).default;
       const Resume = (await import('@/lib/db/models/Resume')).default;
-      const { getServerAuthSession } = await import('@/lib/auth/auth-utils');
+      const { getServerAuthSession } = await import('@/lib/auth/server-auth');
       
       await dbConnect();
       
@@ -100,7 +100,7 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
         skills: resume.skills,
         experience: resume.experience,
         education: resume.education,
-        activities: resume.activities?.map(activity => ({
+        activities: resume.activities?.map((activity: any) => ({
           role: activity,
           period: ''
         })) || []
@@ -126,13 +126,13 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
 
       const resume = resumes[0];
       const resumeData = {
-        _id: resume._id,
+        _id: resume._id?.toString(),
         personalInfo: resume.personalInfo,
         summary: resume.summary,
         skills: resume.skills,
         experience: resume.experience,
         education: resume.education,
-        activities: resume.activities?.map(activity => ({
+        activities: resume.activities?.map((activity: any) => ({
           role: activity,
           period: ''
         })) || []
@@ -164,7 +164,7 @@ export async function saveApplicantData(data: ApplicantData, userId?: string): P
       // Server-side: use the database directly
       const dbConnect = (await import('@/lib/db/mongodb')).default;
       const Resume = (await import('@/lib/db/models/Resume')).default;
-      const { getServerAuthSession } = await import('@/lib/auth/auth-utils');
+      const { getServerAuthSession } = await import('@/lib/auth/server-auth');
       
       await dbConnect();
       

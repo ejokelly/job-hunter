@@ -18,12 +18,12 @@ export default function VerifyRequest() {
           </h1>
           
           <p className="theme-text-secondary mb-6">
-            We've sent you a sign-in link. Please check your email and click the link to continue.
+            We&apos;ve sent you a sign-in link. Please check your email and click the link to continue.
           </p>
           
           <div className="space-y-4">
             <p className="text-sm theme-text-tertiary">
-              Make sure to check your spam folder if you don't see the email.
+              Make sure to check your spam folder if you don&apos;t see the email.
             </p>
             
             <ActionButton

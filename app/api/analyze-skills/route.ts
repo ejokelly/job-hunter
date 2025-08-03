@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadApplicantData } from '@/lib/data/api-data-loader';
 import { getAllSkillsFlat } from '@/lib/data/data-loader';
 import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
-import { getServerAuthSession } from '@/lib/auth/auth-utils';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
 
 export async function POST(request: NextRequest) {
   try {

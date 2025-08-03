@@ -5,7 +5,7 @@ import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generateResumeHTML } from '@/lib/generation/resume-html-generator';
 import { Logger } from '@/lib/utils/logger';
 import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/lib/ai/prompt-templates';
-import { getServerAuthSession } from '@/lib/auth/auth-utils';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
 import dbConnect from '@/lib/db/mongodb';
 import Resume from '@/lib/db/models/Resume';
 
@@ -18,13 +18,13 @@ async function categorizePendingSkills(userId: string, applicantData: any) {
       return; // No pending skills to process
     }
     
-    console.log('🔄 Processing pending skills:', resume.pendingSkills.map(s => s.name));
+    console.log('🔄 Processing pending skills:', resume.pendingSkills.map((s: any) => s.name));
     
     // Get existing categories
     const existingCategories = Object.keys(resume.skills || {});
     
     // Use Claude to categorize all pending skills at once
-    const skillsList = resume.pendingSkills.map(skill => skill.name).join(', ');
+    const skillsList = resume.pendingSkills.map((skill: any) => skill.name).join(', ');
     const categoriesString = existingCategories.length > 0 ? existingCategories.join(', ') : 'No existing categories';
     
     const prompt = `I have these skills that need to be categorized: ${skillsList}
@@ -47,7 +47,7 @@ Respond with JSON in this format:
     // Merge skills into appropriate categories
     for (const item of categorization.categorizedSkills) {
       const { skill, category } = item;
-      const pendingSkill = resume.pendingSkills.find(s => s.name.toLowerCase() === skill.toLowerCase());
+      const pendingSkill = resume.pendingSkills.find((s: any) => s.name.toLowerCase() === skill.toLowerCase());
       
       if (pendingSkill) {
         // Initialize category if it doesn't exist
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     const tailoredData = {
       ...applicantData,
       personalInfo: {
-        ...(applicantData.personalInfo.toObject ? applicantData.personalInfo.toObject() : applicantData.personalInfo),
+        ...(applicantData.personalInfo as any).toObject ? (applicantData.personalInfo as any).toObject() : applicantData.personalInfo,
         title: tailoredTitle
       },
       summary: tailoredSummary,

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Mail } from 'lucide-react'
 import ActionButton from '@/components/action-button'
@@ -18,15 +17,21 @@ export default function SignIn() {
     setMessage('')
 
     try {
-      const result = await signIn('email', {
-        email,
-        redirect: false,
+      const response = await fetch('/api/auth/send-magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          callbackUrl: '/'
+        }),
       })
 
-      if (result?.error) {
-        setMessage('Error sending email. Please try again.')
-      } else {
+      if (response.ok) {
         setMessage('Check your email for a sign-in link!')
+      } else {
+        setMessage('Error sending email. Please try again.')
       }
     } catch (error) {
       setMessage('Something went wrong. Please try again.')
@@ -74,7 +79,7 @@ export default function SignIn() {
             )}
 
             <ActionButton
-              type="submit"
+              onClick={() => handleSubmit(new Event('submit') as any)}
               busy={isLoading}
               disabled={!email || isLoading}
               className="w-full py-3 px-6 justify-center"

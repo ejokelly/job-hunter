@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
-import { useSession, signIn } from 'next-auth/react';
+// Using custom auth system instead of next-auth
 import { useRouter } from 'next/navigation';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
@@ -25,7 +25,8 @@ interface PreviewData {
 }
 
 export default function Home() {
-  const { data: session } = useSession();
+  const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const router = useRouter();
   const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -44,9 +45,30 @@ export default function Home() {
   const [parsedData, setParsedData] = useState<any>(null);
   const [signInEmail, setSignInEmail] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [hasFileSelected, setHasFileSelected] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifiedToken, setVerifiedToken] = useState<string | null>(null);
 
-  // No polling needed on homepage - that's only for verify page
+  // Load session on component mount
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        setSession(data.user || null)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        setSession(null)
+      } finally {
+        setSessionLoading(false)
+      }
+    }
+    
+    loadSession()
+  }, [])
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
@@ -319,16 +341,69 @@ export default function Home() {
     }
   };
 
-  const handleSignIn = async () => {
+  const handleSendCode = async () => {
     if (!signInEmail.trim()) return;
     
     setIsSigningIn(true);
     try {
-      await signIn('email', { email: signInEmail, callbackUrl: '/' });
+      const response = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: signInEmail
+        }),
+      });
+      
+      if (response.ok) {
+        console.log('Verification code sent successfully');
+        setCodeSent(true);
+      } else {
+        const errorData = await response.json();
+        console.error('Error sending code:', errorData);
+      }
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('Error sending code:', error);
     } finally {
       setIsSigningIn(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) return;
+    
+    setIsVerifyingCode(true);
+    try {
+      const response = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: signInEmail,
+          code: verificationCode
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Code verified successfully, user signed in');
+        setSession(data.user);
+        // Reset form state
+        setCodeSent(false);
+        setSignInEmail('');
+        setVerificationCode('');
+      } else {
+        const errorData = await response.json();
+        console.error('Code verification failed:', errorData);
+        alert(errorData.error || 'Invalid code. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      alert('Error verifying code. Please try again.');
+    } finally {
+      setIsVerifyingCode(false);
     }
   };
 
@@ -337,49 +412,170 @@ export default function Home() {
   };
 
 
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen theme-bg-gradient flex items-center justify-center">
+        <ThreeDotsLoader />
+      </div>
+    );
+  }
+
   if (!showForm && !session) {
     return (
       <div className="min-h-screen theme-bg-gradient">
         <Header />
         <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
-          <div className="max-w-2xl w-full">
-            {/* Flip Card Container */}
-            <div className="relative w-full perspective-1000">
-              <div 
-                className={`
-                  w-full transition-transform duration-700 transform-style-preserve-3d
-                  ${hasFileSelected ? 'rotate-y-180' : ''}
-                `}
-              >
-                {/* Front Side - Upload Form */}
-                <div className="w-full backface-hidden">
-                  <div className="theme-card rounded-lg p-8">
-                    <div className="text-center mb-8">
-                      <h1 className="text-3xl theme-text-primary mb-4"><Brand /></h1>
-                    </div>
-                    
-                    <ResumeUpload 
-                      onUploadSuccess={handleUploadSuccess}
-                      onUploadError={handleUploadError}
-                      onFileSelected={() => setHasFileSelected(true)}
-                    />
-                  </div>
-                </div>
+          <div className="max-w-6xl w-full">
+            {/* Brand Header */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl theme-text-primary mb-4"><Brand /></h1>
+            </div>
 
-                {/* Back Side - Processing */}
-                <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
-                  <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
-                    <div className="text-center space-y-6">
-                      <Brand className="text-3xl" />
-                      <p className="theme-text-secondary text-lg leading-relaxed">
-                        We are currently extracting the data from your resume. Once that is done we can make it super easy to create a customized resume and cover letter for your job application!
-                      </p>
-                      <ThreeDotsLoader className="mx-auto" />
+            {/* Main Content - Side by side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              {/* Upload Section */}
+              <div className="relative perspective-1000">
+                <div 
+                  className={`
+                    w-full transition-transform duration-700 transform-style-preserve-3d
+                    ${hasFileSelected ? 'rotate-y-180' : ''}
+                  `}
+                >
+                  {/* Front Side - Upload Form */}
+                  <div className="w-full backface-hidden">
+                    <div className="theme-card rounded-lg p-8">
+                      <div className="text-center mb-6">
+                        <h3 className="text-xl font-medium theme-text-primary mb-2">No account? Start here</h3>
+                        <p className="theme-text-secondary">Upload your resume to get started</p>
+                      </div>
+                      <ResumeUpload 
+                        onUploadSuccess={handleUploadSuccess}
+                        onUploadError={handleUploadError}
+                        onFileSelected={() => setHasFileSelected(true)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Back Side - Processing */}
+                  <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
+                    <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
+                      <div className="text-center space-y-6">
+                        <p className="theme-text-secondary text-lg leading-relaxed">
+                          We are currently extracting the data from your resume. Once that is done we can make it super easy to create a customized resume and cover letter for your job application!
+                        </p>
+                        <ThreeDotsLoader className="mx-auto" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Sign In Section */}
+              {!hasFileSelected && (
+                <div className="theme-card rounded-lg p-8">
+                  {!codeSent ? (
+                    <>
+                      <div className="text-center mb-6">
+                        <h3 className="text-xl font-medium theme-text-primary mb-2">Already have an account?</h3>
+                        <p className="theme-text-secondary">Enter your email to get a sign-in code</p>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <input
+                          type="email"
+                          value={signInEmail}
+                          onChange={(e) => setSignInEmail(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && signInEmail.trim() && !isSigningIn) {
+                              handleSendCode()
+                            }
+                          }}
+                          className="w-full p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Enter your email"
+                          disabled={isSigningIn}
+                        />
+                        <ActionButton
+                          onClick={handleSendCode}
+                          variant="outline"
+                          className="w-full py-4 justify-center"
+                          busy={isSigningIn}
+                          disabled={!signInEmail.trim() || isSigningIn}
+                        >
+                          {isSigningIn ? 'Sending Code...' : 'Send Code'}
+                        </ActionButton>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <h3 className="text-xl font-medium theme-text-primary mb-2">Enter Your Code</h3>
+                        <p className="theme-text-secondary">
+                          We sent a code to<br />
+                          <span className="font-medium">{signInEmail}</span>
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          value={verificationCode}
+                          onChange={(e) => setVerificationCode(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && verificationCode.trim() && !isVerifyingCode) {
+                              handleVerifyCode()
+                            }
+                          }}
+                          className="w-full p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-lg font-mono"
+                          placeholder="happy-tiger"
+                          disabled={isVerifyingCode}
+                          autoFocus
+                        />
+                        <ActionButton
+                          onClick={handleVerifyCode}
+                          variant="primary"
+                          className="w-full py-4 justify-center"
+                          busy={isVerifyingCode}
+                          disabled={!verificationCode.trim() || isVerifyingCode}
+                        >
+                          {isVerifyingCode ? 'Verifying...' : 'Sign In'}
+                        </ActionButton>
+                        <div className="flex gap-2">
+                          <ActionButton
+                            onClick={() => {
+                              setCodeSent(false);
+                              setVerificationCode('');
+                            }}
+                            variant="ghost"
+                            className="flex-1 py-2 justify-center text-sm"
+                          >
+                            Try Different Email
+                          </ActionButton>
+                          <ActionButton
+                            onClick={handleSendCode}
+                            variant="ghost"
+                            className="flex-1 py-2 justify-center text-sm"
+                            busy={isSigningIn}
+                            disabled={isSigningIn}
+                          >
+                            {isSigningIn ? 'Sending...' : 'Send New Code'}
+                          </ActionButton>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Processing State */}
+              {hasFileSelected && (
+                <div className="theme-card rounded-lg p-8 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="theme-text-secondary text-lg">Processing your resume...</p>
+                  </div>
+                </div>
+              )}
             </div>
+
 
             <style jsx>{`
               .perspective-1000 {
@@ -395,39 +591,6 @@ export default function Home() {
                 transform: rotateY(180deg);
               }
             `}</style>
-            
-            {!isSigningIn && !hasFileSelected && (
-              <div className="mt-8">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-medium theme-text-primary">Already have an account?</h3>
-                  <p className="theme-text-secondary text-sm">Enter your email to sign in</p>
-                </div>
-                
-                <div className="flex gap-3">
-                  <input
-                    type="email"
-                    value={signInEmail}
-                    onChange={(e) => setSignInEmail(e.target.value)}
-                    className="flex-1 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Enter your email"
-                  />
-                  
-                  <ActionButton
-                    onClick={handleSignIn}
-                    variant="outline"
-                    className="py-4 px-6"
-                  >
-                    Sign in
-                  </ActionButton>
-                </div>
-              </div>
-            )}
-
-            {isSigningIn && (
-              <div className="mt-8 text-center">
-                <p className="theme-text-secondary">Sending sign-in link to {signInEmail}...</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -474,7 +637,7 @@ export default function Home() {
               <div>
                 <h3 className="text-xl font-semibold theme-text-primary mb-6">2. Paste Job Description</h3>
                 <p className="theme-text-secondary leading-relaxed text-base">
-                  Paste in a job description of a position you want - we'll analyze what they're looking for
+                  Paste in a job description of a position you want - we&apos;ll analyze what they&apos;re looking for
                 </p>
               </div>
               
