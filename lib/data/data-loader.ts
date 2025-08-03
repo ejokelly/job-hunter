@@ -61,9 +61,21 @@ export function loadApplicantData(): ApplicantData {
 export function getAllSkillsFlat(applicantData: ApplicantData): string[] {
   const allSkills: string[] = [];
   Object.values(applicantData.skills).forEach((skillCategory) => {
-    skillCategory.forEach((skill) => {
-      allSkills.push(skill.name);
-    });
+    // Handle both array and object formats
+    if (Array.isArray(skillCategory)) {
+      skillCategory.forEach((skill) => {
+        allSkills.push(skill.name);
+      });
+    } else if (skillCategory && typeof skillCategory === 'object') {
+      // Handle case where skillCategory might be an object with nested arrays
+      Object.values(skillCategory).forEach((subCategory) => {
+        if (Array.isArray(subCategory)) {
+          subCategory.forEach((skill) => {
+            allSkills.push(skill.name);
+          });
+        }
+      });
+    }
   });
   return allSkills;
 }

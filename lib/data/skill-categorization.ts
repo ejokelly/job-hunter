@@ -1,45 +1,58 @@
-export function categorizeSkill(skill: string): string {
+import { callClaude } from '@/lib/ai/anthropic-client';
+
+export async function categorizeSkill(skill: string, existingCategories: string[] = []): Promise<string> {
+  // If there are existing categories, try to match with AI
+  if (existingCategories.length > 0) {
+    const prompt = `Given the skill "${skill}" and these existing categories: ${existingCategories.join(', ')}, 
+    which category would be the best fit? If none fit well, suggest a new category name.
+    
+    Respond with just the category name (either existing or new), nothing else.`;
+    
+    try {
+      const response = await callClaude(prompt, 100);
+      const category = response.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // Check if it matches an existing category (case insensitive)
+      const matchingCategory = existingCategories.find(cat => 
+        cat.toLowerCase().replace(/[^a-z0-9]/g, '') === category
+      );
+      
+      return matchingCategory || category;
+    } catch (error) {
+      console.error('Error categorizing skill with AI:', error);
+    }
+  }
+  
+  // Fallback to basic categorization
   const skillLower = skill.toLowerCase();
   
-  // Language detection
   if (['javascript', 'typescript', 'python', 'java', 'c#', 'c++', 'c', 'ruby', 'php', 'go', 'rust', 'kotlin', 'swift', 'sql', 'html', 'css'].some(lang => skillLower.includes(lang))) {
     return 'languages';
   }
   
-  // Frontend detection
   if (['react', 'vue', 'angular', 'svelte', 'tailwind', 'bootstrap', 'sass', 'scss', 'webpack', 'vite', 'rollup'].some(fe => skillLower.includes(fe))) {
     return 'frontend';
   }
   
-  // Backend detection
   if (['node', 'express', 'django', 'flask', 'rails', 'spring', 'laravel', '.net', 'asp.net', 'fastapi', 'graphql', 'rest', 'api'].some(be => skillLower.includes(be))) {
     return 'backend';
   }
   
-  // Testing detection
   if (['jest', 'cypress', 'selenium', 'pytest', 'rspec', 'mocha', 'chai', 'jasmine', 'karma', 'playwright', 'enzyme'].some(test => skillLower.includes(test))) {
     return 'testing';
   }
   
-  // Database detection
   if (['postgres', 'mysql', 'mongodb', 'redis', 'sqlite', 'oracle', 'cassandra', 'dynamodb', 'elasticsearch'].some(db => skillLower.includes(db))) {
     return 'databases';
   }
   
-  // Cloud/AWS detection
   if (['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'jenkins', 'gitlab', 'github actions', 'ci/cd'].some(cloud => skillLower.includes(cloud))) {
-    if (['ec2', 's3', 'lambda', 'rds', 'cloudfront', 'sqs', 'sns', 'dynamodb', 'ecs', 'fargate'].some(aws => skillLower.includes(aws))) {
-      return 'awsServices';
-    } else {
-      return 'cloudDevops';
-    }
+    return 'cloud';
   }
   
-  // AI/ML detection
   if (['machine learning', 'deep learning', 'tensorflow', 'pytorch', 'opencv', 'scikit', 'pandas', 'numpy', 'ai', 'neural'].some(ai => skillLower.includes(ai))) {
-    return 'aiMl';
+    return 'ai';
   }
   
-  // Default category
   return 'tools';
 }

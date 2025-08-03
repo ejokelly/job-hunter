@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ActionButton from '@/components/action-button';
@@ -355,7 +355,6 @@ export default function Home() {
                 <div className="w-full backface-hidden">
                   <div className="theme-card rounded-lg p-8">
                     <div className="text-center mb-8">
-                      <FileText className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
                       <h1 className="text-3xl theme-text-primary mb-4"><Brand /></h1>
                     </div>
                     
@@ -439,22 +438,59 @@ export default function Home() {
     return (
       <div className="min-h-screen theme-bg-gradient">
         <Header />
-        <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
-          <div className="max-w-md w-full text-center">
-            <div className="theme-card rounded-lg p-8">
-              <FileText className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
-              <h1 className="text-3xl theme-text-primary mb-4"><Brand /></h1>
-              <p className="theme-text-secondary mb-8">
-                Create tailored resumes and cover letters using AI that match job descriptions perfectly.
+        <div className="flex items-center justify-center px-8 py-16" style={{ minHeight: 'calc(100vh - 80px)' }}>
+          <div className="max-w-6xl w-full">
+            {/* Hero Section */}
+            <div className="text-center mb-20">
+              <div className="mb-6">
+                <Brand className="!w-auto !flex !justify-center !items-center text-6xl" />
+              </div>
+              <h1 className="text-5xl md:text-6xl font-bold theme-text-primary mb-6 leading-tight">
+                AI-Powered Resume Builder
+              </h1>
+              <p className="text-xl theme-text-secondary mb-20 max-w-3xl mx-auto leading-relaxed">
+                Create tailored resumes and cover letters using AI that match job descriptions perfectly. Upload your resume and let our AI do the rest.
               </p>
               
-              <ActionButton
-                onClick={() => setShowForm(true)}
-                variant="primary"
-                className="w-full py-3 px-6 justify-center"
-              >
-                Start New Application
-              </ActionButton>
+              <div className="flex justify-center mb-20">
+                <ActionButton
+                  onClick={() => router.push('/resume/new')}
+                  className="text-xl py-6 px-12 text-white theme-bg-accent hover:opacity-90 rounded-lg font-semibold shadow-lg"
+                >
+                  Start Building Your Resume
+                </ActionButton>
+              </div>
+            </div>
+            
+            {/* How It Works */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
+              <div>
+                <h3 className="text-xl font-semibold theme-text-primary mb-6">1. Upload Your Resume</h3>
+                <p className="theme-text-secondary leading-relaxed text-base">
+                  We will do the work to extract it - just drop your PDF and our AI handles the rest
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-semibold theme-text-primary mb-6">2. Paste Job Description</h3>
+                <p className="theme-text-secondary leading-relaxed text-base">
+                  Paste in a job description of a position you want - we'll analyze what they're looking for
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-semibold theme-text-primary mb-6">3. Address Skill Gaps</h3>
+                <p className="theme-text-secondary leading-relaxed text-base">
+                  We make it easy to address skill gaps - add missing skills with one click
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-semibold theme-text-primary mb-6">4. Get Custom Documents</h3>
+                <p className="theme-text-secondary leading-relaxed text-base">
+                  You get a custom cover letter and resume with exactly the skills the hiring manager wants
+                </p>
+              </div>
             </div>
           </div>
         </div>

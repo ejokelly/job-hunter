@@ -96,3 +96,8 @@
 /* Icons */
 .theme-icon-primary { color: #4f46e5; }
 .theme-icon-secondary { color: #374151; }
+
+/* Accent color */
+.theme-accent { color: #3b82f6; }
+.theme-bg-accent { background-color: #3b82f6; }
+.theme-border-accent { border-color: #3b82f6; }

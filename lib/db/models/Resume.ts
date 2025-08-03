@@ -16,17 +16,7 @@ export interface IPersonalInfo {
 }
 
 export interface ISkills {
-  languages: ISkill[];
-  frontend: ISkill[];
-  backend: ISkill[];
-  testing: ISkill[];
-  aiMl: ISkill[];
-  awsServices: ISkill[];
-  cloudDevops: ISkill[];
-  databases: ISkill[];
-  tools: ISkill[];
-  specialties: ISkill[];
-  softSkills: ISkill[];
+  [category: string]: ISkill[];
 }
 
 export interface IExperience {
@@ -52,9 +42,11 @@ export interface IResume extends Document {
   personalInfo: IPersonalInfo;
   summary: string;
   skills: ISkills;
+  pendingSkills: ISkill[]; // Skills added via form, to be categorized during generation
   experience: IExperience[];
   education: IEducation[];
   activities: string[];
+  termsAgreedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,18 +66,9 @@ const PersonalInfoSchema = new Schema({
   title: { type: String, required: true }
 });
 
-const SkillsSchema = new Schema({
-  languages: [SkillSchema],
-  frontend: [SkillSchema],
-  backend: [SkillSchema],
-  testing: [SkillSchema],
-  aiMl: [SkillSchema],
-  awsServices: [SkillSchema],
-  cloudDevops: [SkillSchema],
-  databases: [SkillSchema],
-  tools: [SkillSchema],
-  specialties: [SkillSchema],
-  softSkills: [SkillSchema]
+const SkillsSchema = new Schema({}, { 
+  strict: false,
+  type: Schema.Types.Mixed
 });
 
 const ExperienceSchema = new Schema({
@@ -111,9 +94,11 @@ const ResumeSchema = new Schema({
   personalInfo: { type: PersonalInfoSchema, required: true },
   summary: { type: String, required: true },
   skills: { type: SkillsSchema, required: true },
+  pendingSkills: { type: [SkillSchema], default: [] },
   experience: [ExperienceSchema],
   education: [EducationSchema],
-  activities: [{ type: String }]
+  activities: [{ type: String }],
+  termsAgreedAt: { type: Date }
 }, {
   timestamps: true
 });

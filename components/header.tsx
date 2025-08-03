@@ -1,6 +1,6 @@
 'use client';
 
-import { Sun, Moon, User, LogOut } from 'lucide-react';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import { useTheme } from './theme-provider';
 import { useSession, signOut } from 'next-auth/react';
 import ActionButton from './action-button';
@@ -18,7 +18,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
 
   return (
     <div className="theme-header shadow-sm border-b theme-border-light">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
         <div className="flex items-center gap-4">
           {onBack && (
             <ActionButton 
@@ -34,18 +34,8 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
           </h1>
         </div>
         
-        <div className="flex items-center gap-4">
-          {actions}
-          
-          {/* User Info */}
-          {session && (
-            <div className="flex items-center gap-2 theme-text-secondary text-sm">
-              <User className="w-4 h-4" />
-              <span>{session.user?.email}</span>
-            </div>
-          )}
-          
-          {/* Theme Toggle */}
+        {/* Theme Toggle - Center */}
+        <div className="flex-1 flex justify-center">
           <div className="flex items-center theme-bg-tertiary rounded-full p-1">
             <button
               onClick={() => theme === 'dark' && toggleTheme()}
@@ -68,6 +58,10 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
               <Moon className="w-4 h-4" />
             </button>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {actions}
           
           {/* Sign Out - Always rightmost */}
           {session && (

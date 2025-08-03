@@ -6,6 +6,8 @@ import { useSession } from 'next-auth/react';
 import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
+import PageContainer from '@/components/page-container';
+import PreviewPane from '@/components/preview-pane';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -24,7 +26,6 @@ interface PreviewData {
 export default function NewResumePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   
   // Job description form states
   const [jobDescription, setJobDescription] = useState('');
@@ -32,6 +33,8 @@ export default function NewResumePage() {
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [isRegeneratingResume, setIsRegeneratingResume] = useState(false);
   const [isRegeneratingCoverLetter, setIsRegeneratingCoverLetter] = useState(false);
+  const [isDownloadingResume, setIsDownloadingResume] = useState(false);
+  const [isDownloadingCoverLetter, setIsDownloadingCoverLetter] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [skillGapReport, setSkillGapReport] = useState<SkillGapReport | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -47,30 +50,33 @@ export default function NewResumePage() {
     }
   }, [session, router]);
 
-  // Check email verification status and redirect if not verified
+  // Check for existing terms agreement
   useEffect(() => {
-    if (!session?.user?.email) return;
-    
-    const checkEmailVerification = async () => {
-      try {
-        const response = await fetch('/api/auth/check-verification');
-        if (response.ok) {
-          const data = await response.json();
-          setEmailVerified(data.emailVerified);
-          
-          // If not verified, redirect to verification flow
-          if (!data.emailVerified) {
-            router.push('/');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Error checking verification status:', error);
+    const checkTermsAgreement = () => {
+      // Check localStorage first
+      const localAgreement = localStorage.getItem('termsAccepted');
+      if (localAgreement) {
+        setAcceptedTerms(true);
+        return;
+      }
+
+      // Check cookie
+      const cookieAgreement = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('termsAccepted='));
+      
+      if (cookieAgreement) {
+        setAcceptedTerms(true);
+        // Sync to localStorage
+        localStorage.setItem('termsAccepted', 'true');
       }
     };
 
-    checkEmailVerification();
-  }, [session, router]);
+    checkTermsAgreement();
+  }, []);
+
+  // Note: Email verification is handled by the verify page flow
+  // Users only reach this page after verification is complete
 
   // Job description handlers
   const handleAnalyze = async () => {
@@ -180,7 +186,7 @@ export default function NewResumePage() {
   const handleDownloadResume = async () => {
     if (!jobDescription.trim()) return;
     
-    setIsGenerating(true);
+    setIsDownloadingResume(true);
     try {
       const response = await fetch('/api/generate-resume', {
         method: 'POST',
@@ -204,14 +210,14 @@ export default function NewResumePage() {
     } catch (error) {
       console.error('Error generating resume:', error);
     } finally {
-      setIsGenerating(false);
+      setIsDownloadingResume(false);
     }
   };
 
   const handleDownloadCoverLetter = async () => {
     if (!jobDescription.trim()) return;
     
-    setIsGeneratingCoverLetter(true);
+    setIsDownloadingCoverLetter(true);
     try {
       const response = await fetch('/api/generate-cover-letter', {
         method: 'POST',
@@ -235,7 +241,7 @@ export default function NewResumePage() {
     } catch (error) {
       console.error('Error generating cover letter:', error);
     } finally {
-      setIsGeneratingCoverLetter(false);
+      setIsDownloadingCoverLetter(false);
     }
   };
 
@@ -304,157 +310,41 @@ export default function NewResumePage() {
   if (showPreview || isGenerating) {
     return (
       <div className="min-h-screen theme-bg-secondary">
-        <Header 
-          actions={
-            <>
-              <ActionButton
-                onClick={handleGenerate}
-                variant="ghost"
-                busy={isGenerating}
-              >
-                Regenerate
-              </ActionButton>
-              <div className="border-l theme-border mx-2" />
-              <ActionButton
-                onClick={handleDownloadResume}
-                variant="primary"
-                busy={previewData ? isGenerating : false}
-                disabled={!previewData}
-              >
-                Download Resume
-              </ActionButton>
-              <ActionButton
-                onClick={handleDownloadCoverLetter}
-                variant="secondary"
-                busy={coverLetterData ? (isGeneratingCoverLetter || (isGenerating && !coverLetterData)) : false}
-                disabled={!coverLetterData}
-              >
-                Download Cover Letter
-              </ActionButton>
-            </>
-          }
-        />
+        <Header />
 
         {/* Preview Content */}
         <div className="max-w-7xl mx-auto p-6">
-          <ActionButton
-            onClick={handleBack}
-            variant="ghost"
-            className="mb-6"
-          >
-            ← Back
-          </ActionButton>
-          {isGenerating && (!previewData || !coverLetterData) ? (
-            <div className="grid grid-cols-2 gap-6">
-              {/* Resume Loading Pane */}
-              <div className="theme-card rounded-lg overflow-hidden">
-                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light">
-                  <h3 className="text-sm font-semibold theme-text-secondary">Resume</h3>
-                </div>
-                <div className="flex items-center justify-center h-96">
-                  <div className="text-center">
-                    <ThreeDotsLoader className="mx-auto mb-4" />
-                    <p className="theme-text-tertiary">Generating resume...</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Cover Letter Loading Pane */}
-              <div className="theme-card rounded-lg overflow-hidden">
-                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light">
-                  <h3 className="text-sm font-semibold theme-text-secondary">Cover Letter</h3>
-                </div>
-                <div className="flex items-center justify-center h-96">
-                  <div className="text-center">
-                    <ThreeDotsLoader className="mx-auto mb-4" />
-                    <p className="theme-text-tertiary">Generating cover letter...</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : previewData && coverLetterData ? (
-            <div className="grid grid-cols-2 gap-6">
-              {/* Resume Preview */}
-              <div className="theme-card rounded-lg overflow-hidden">
-                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light flex justify-between items-center">
-                  <h3 className="text-sm font-semibold theme-text-secondary">Resume</h3>
-                  <ActionButton
-                    onClick={handleRegenerateResume}
-                    variant="ghost"
-                    busy={isRegeneratingResume}
-                    className="text-xs py-1 px-2"
-                  >
-                    Regenerate
-                  </ActionButton>
-                </div>
-                <iframe
-                  srcDoc={`
-                    <!DOCTYPE html>
-                    <html>
-                      <head>
-                        <meta charset="utf-8">
-                        <title>Resume Preview</title>
-                        <script src="https://cdn.tailwindcss.com"></script>
-                        <style>
-                          body { 
-                            font-family: 'Inter', sans-serif; 
-                            margin: 0; 
-                            padding: 0;
-                            background: white;
-                          }
-                        </style>
-                      </head>
-                      <body>
-                        ${previewData.html}
-                      </body>
-                    </html>
-                  `}
-                  className="w-full h-[800px] border-0"
-                  title="Resume Preview"
-                />
-              </div>
-              
-              {/* Cover Letter Preview */}
-              <div className="theme-card rounded-lg overflow-hidden">
-                <div className="theme-bg-tertiary px-4 py-2 border-b theme-border-light flex justify-between items-center">
-                  <h3 className="text-sm font-semibold theme-text-secondary">Cover Letter</h3>
-                  <ActionButton
-                    onClick={handleRegenerateCoverLetter}
-                    variant="ghost"
-                    busy={isRegeneratingCoverLetter}
-                    className="text-xs py-1 px-2"
-                  >
-                    Regenerate
-                  </ActionButton>
-                </div>
-                <iframe
-                  srcDoc={`
-                    <!DOCTYPE html>
-                    <html>
-                      <head>
-                        <meta charset="utf-8">
-                        <title>Cover Letter Preview</title>
-                        <script src="https://cdn.tailwindcss.com"></script>
-                        <style>
-                          body { 
-                            font-family: 'Inter', sans-serif; 
-                            margin: 0; 
-                            padding: 0;
-                            background: white;
-                          }
-                        </style>
-                      </head>
-                      <body>
-                        ${coverLetterData.html}
-                      </body>
-                    </html>
-                  `}
-                  className="w-full h-[800px] border-0"
-                  title="Cover Letter Preview"
-                />
-              </div>
-            </div>
-          ) : null}
+          <div className="flex items-center justify-start mb-6">
+            <ActionButton
+              onClick={handleBack}
+              variant="ghost"
+            >
+              ← Back
+            </ActionButton>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <PreviewPane
+              title="Resume"
+              html={previewData?.html}
+              onDownload={handleDownloadResume}
+              onRegenerate={handleRegenerateResume}
+              isRegenerating={isRegeneratingResume}
+              isDownloading={isDownloadingResume}
+              isLoading={isGenerating && !previewData}
+              loadingText="Generating resume..."
+            />
+            
+            <PreviewPane
+              title="Cover Letter"
+              html={coverLetterData?.html}
+              onDownload={handleDownloadCoverLetter}
+              onRegenerate={handleRegenerateCoverLetter}
+              isRegenerating={isRegeneratingCoverLetter}
+              isDownloading={isDownloadingCoverLetter}
+              isLoading={isGenerating && !coverLetterData}
+              loadingText="Generating cover letter..."
+            />
+          </div>
         </div>
       </div>
     );
@@ -463,7 +353,7 @@ export default function NewResumePage() {
   return (
     <div className="min-h-screen theme-bg-gradient">
       <Header />
-      <div className="max-w-4xl mx-auto p-8">
+      <PageContainer>
         <ActionButton
           onClick={() => router.push('/')}
           variant="ghost"
@@ -529,23 +419,58 @@ export default function NewResumePage() {
               </div>
             )}
 
-            {/* Terms of Service Checkbox */}
-            <div className="flex items-start gap-3 p-4 theme-bg-tertiary rounded-lg">
-              <input
-                type="checkbox"
-                id="acceptTerms"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <label htmlFor="acceptTerms" className="text-sm theme-text-secondary cursor-pointer">
-                I accept the{' '}
-                <span className="theme-text-primary hover:underline cursor-pointer">
-                  Terms of Service and Privacy Policy
-                </span>
-                {' '}(required to continue)
-              </label>
-            </div>
+            {/* Terms of Service */}
+            {skillGapReport ? (
+              <div className="text-xs theme-text-tertiary">
+                Agreed to the Terms of Service and Privacy Policy
+              </div>
+            ) : (
+              <div className="flex items-start gap-2 p-4 theme-bg-tertiary rounded-lg">
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  checked={acceptedTerms}
+                  onChange={async (e) => {
+                    const accepted = e.target.checked;
+                    setAcceptedTerms(accepted);
+                    
+                    if (accepted) {
+                      const timestamp = new Date().toISOString();
+                      
+                      // Store in localStorage
+                      localStorage.setItem('termsAccepted', 'true');
+                      localStorage.setItem('termsAcceptedDate', timestamp);
+                      
+                      // Store in cookie (30 days)
+                      const expires = new Date();
+                      expires.setDate(expires.getDate() + 30);
+                      document.cookie = `termsAccepted=true; expires=${expires.toUTCString()}; path=/`;
+                      document.cookie = `termsAcceptedDate=${timestamp}; expires=${expires.toUTCString()}; path=/`;
+                      
+                      // Store in MongoDB
+                      try {
+                        await fetch('/api/save-terms-agreement', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ agreedAt: timestamp }),
+                        });
+                      } catch (error) {
+                        console.error('Error saving terms agreement to database:', error);
+                      }
+                    }
+                  }}
+                  className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+                <label htmlFor="acceptTerms" className="text-sm theme-text-secondary cursor-pointer">
+                  I accept the{' '}
+                  <span className="theme-text-primary hover:underline cursor-pointer">
+                    Terms of Service and Privacy Policy
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div className="space-y-4">
               {!skillGapReport ? (
@@ -570,7 +495,7 @@ export default function NewResumePage() {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

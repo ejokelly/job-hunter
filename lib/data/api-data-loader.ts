@@ -70,9 +70,17 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
         finalUserId = session.user.id;
       }
       
-      let resume = await Resume.findOne({ userId: finalUserId }).sort({ updatedAt: -1 });
+      console.log('🔍 Looking for resume with userId:', finalUserId);
+      const { ObjectId } = await import('mongodb');
+      const userObjectId = new ObjectId(finalUserId);
+      let resume = await Resume.findOne({ userId: userObjectId }).sort({ updatedAt: -1 });
+      console.log('🔍 Found resume:', !!resume, resume?._id);
       
       if (!resume) {
+        console.log('🔍 No resume found, checking all resumes...');
+        const allResumes = await Resume.find({}).limit(5);
+        console.log('🔍 All resumes userIds:', allResumes.map(r => ({ userId: r.userId, name: r.personalInfo?.name })));
+        
         // Auto-create resume from default data.json for new users
         const fs = await import('fs');
         const path = await import('path');
@@ -80,7 +88,7 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
         const rawData = fs.readFileSync(dataPath, 'utf8');
         const defaultData = JSON.parse(rawData);
         
-        resume = new Resume({ ...defaultData, userId: finalUserId });
+        resume = new Resume({ ...defaultData, userId: userObjectId });
         await resume.save();
         console.log('Auto-created resume for user:', finalUserId);
       }

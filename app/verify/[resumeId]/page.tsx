@@ -8,6 +8,7 @@ import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import Brand from '@/components/brand';
+import PageContainer from '@/components/page-container';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -291,107 +292,17 @@ export default function VerifyPage() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="theme-card rounded-lg p-8">
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
-                Job Description
-              </label>
-              <textarea
-                id="jobDescription"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                disabled={!emailVerified}
-                className={`w-full h-64 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none ${
-                  !emailVerified ? 'cursor-not-allowed opacity-50' : ''
-                }`}
-                placeholder="Paste the job description here..."
-                spellCheck="false"
-              />
-            </div>
-
-            {skillGapReport && (
-              <div className="theme-bg-tertiary p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold theme-text-primary mb-4">Skill Gap Analysis</h3>
-                
-                {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium theme-text-secondary mb-2">Missing Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skillGapReport.missingSkills.map((skill, index) => (
-                        <ActionButton
-                          key={index}
-                          onClick={() => handleAddSkill(skill)}
-                          variant="skill"
-                        >
-                          + {skill}
-                        </ActionButton>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {skillGapReport.matchingSkills && skillGapReport.matchingSkills.length > 0 && (
-                  <div>
-                    <h4 className="text-md font-medium theme-text-secondary mb-2">Matching Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skillGapReport.matchingSkills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="theme-skill-matching px-3 py-1 rounded-full text-sm"
-                        >
-                          ✓ {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Terms of Service Checkbox */}
-            <div className="flex items-start gap-3 p-4 theme-bg-tertiary rounded-lg">
-              <input
-                type="checkbox"
-                id="acceptTerms"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <label htmlFor="acceptTerms" className="text-sm theme-text-secondary cursor-pointer">
-                I accept the{' '}
-                <span className="theme-text-primary hover:underline cursor-pointer">
-                  Terms of Service and Privacy Policy
-                </span>
-                {' '}(required to continue)
-              </label>
-            </div>
-
-            <div className="space-y-4">
-              {!skillGapReport ? (
-                <ActionButton
-                  onClick={handleAnalyze}
-                  disabled={!jobDescription.trim() || !emailVerified || !acceptedTerms}
-                  busy={isAnalyzing}
-                  className="w-full py-3 px-6 justify-center"
-                >
-                  {isAnalyzing ? 'Analyzing Skills...' : 'Analyze Skill Gaps'}
-                </ActionButton>
-              ) : (
-                <ActionButton
-                  onClick={handleGenerate}
-                  disabled={!emailVerified || !acceptedTerms}
-                  busy={isGenerating}
-                  className="w-full py-3 px-6 justify-center"
-                >
-                  {isGenerating ? 'Generating Preview...' : 'Generate'}
-                </ActionButton>
-              )}
-            </div>
-          </div>
+      <PageContainer>
+        <div className="text-center">
+          <Brand className="mb-8" />
+          <h1 className="text-2xl font-bold theme-text-primary mb-4">
+            Please verify your email to continue
+          </h1>
+          <p className="theme-text-secondary">
+            Checking verification status...
+          </p>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

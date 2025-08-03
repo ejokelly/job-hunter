@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { categorizeSkill } from '@/lib/data/skill-categorization';
 import { getServerAuthSession } from '@/lib/auth/auth-utils';
 import dbConnect from '@/lib/db/mongodb';
 import Resume from '@/lib/db/models/Resume';
@@ -25,38 +24,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No resume found' }, { status: 404 });
     }
 
-    // Determine the best category for this skill
+    // Check if skill already exists in main skills or pending skills
     const skillLower = skill.toLowerCase();
-    const targetCategory = categorizeSkill(skill);
-
-    // Check if skill already exists
-    const skillExists = Object.values(resume.skills).some((category: any) =>
-      category.some((existingSkill: any) => 
+    
+    const existsInMainSkills = Object.values(resume.skills || {}).some((category: any) =>
+      Array.isArray(category) && category.some((existingSkill: any) => 
         existingSkill.name.toLowerCase() === skillLower
       )
     );
+    
+    const existsInPending = resume.pendingSkills?.some((existingSkill: any) => 
+      existingSkill.name.toLowerCase() === skillLower
+    );
 
-    if (skillExists) {
+    if (existsInMainSkills || existsInPending) {
       return NextResponse.json({ message: 'Skill already exists' });
     }
 
-    // Add skill to appropriate category with 2 years experience (new skill)
-    if (!resume.skills[targetCategory]) {
-      resume.skills[targetCategory] = [];
+    // Add skill to pending skills - will be categorized during resume generation
+    if (!resume.pendingSkills) {
+      resume.pendingSkills = [];
     }
 
-    resume.skills[targetCategory].push({
+    resume.pendingSkills.push({
       name: skill,
       years: 2
     });
 
-    // Mark the skills field as modified and save
-    resume.markModified('skills');
+    // Mark the pendingSkills field as modified and save
+    resume.markModified('pendingSkills');
     await resume.save();
 
     return NextResponse.json({ 
-      message: 'Skill added successfully',
-      category: targetCategory,
+      message: 'Skill added to pending list - will be categorized during resume generation',
       skill: skill
     });
 

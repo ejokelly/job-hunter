@@ -124,7 +124,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a resume - if so, update it instead of creating new
-    const existingResume = await Resume.findOne({ userId });
+    const { ObjectId } = await import('mongodb');
+    const userObjectId = new ObjectId(userId);
+    const existingResume = await Resume.findOne({ userId: userObjectId });
     
     let resume;
     if (existingResume) {
@@ -133,7 +135,7 @@ export async function POST(request: NextRequest) {
       resume = { _id: existingResume._id };
     } else {
       // Create new resume
-      const newResume = new Resume({ ...resumeData, userId });
+      const newResume = new Resume({ ...resumeData, userId: userObjectId });
       await newResume.save();
       resume = newResume;
     }
