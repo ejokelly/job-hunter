@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db/mongodb';
 import Resume from '@/lib/db/models/Resume';
 import { MongoClient } from 'mongodb';
 import * as postmark from 'postmark';
+import { randomUUID } from 'crypto';
 
 function cleanResumeText(text: string): string {
   // Remove excessive whitespace and normalize line breaks
@@ -103,9 +104,11 @@ export async function POST(request: NextRequest) {
     let userId;
     
     if (existingUser) {
+      console.log('🔍 Found existing user:', existingUser.email);
       userId = existingUser._id.toString();
     } else {
       // Create new user
+      console.log('🔍 Creating new user with email:', userEmail);
       const newUser = {
         email: userEmail,
         name: resumeData.personalInfo.name,
@@ -113,8 +116,11 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+      console.log('🔍 User data to insert:', newUser);
       const userResult = await db.collection('users').insertOne(newUser);
+      console.log('🔍 User creation result:', userResult);
       userId = userResult.insertedId.toString();
+      console.log('🔍 New user ID:', userId);
     }
 
     // Check if user already has a resume - if so, update it instead of creating new
@@ -133,30 +139,53 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Create NextAuth JWT token and session
-    const { encode } = await import('next-auth/jwt');
+    // If it's a new user, send verification email
+    if (!existingUser) {
+      console.log('🔍 Sending verification email to new user');
+      
+      try {
+        // Delete any existing verification tokens for this email
+        await db.collection('verification_tokens').deleteMany({
+          identifier: userEmail
+        });
+        
+        // Create new verification token
+        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        await db.collection('verification_tokens').insertOne({
+          identifier: userEmail,
+          token,
+          expires
+        });
+        
+        // Send email using Postmark
+        const verificationUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}&email=${encodeURIComponent(userEmail)}`;
+        
+        const emailClient = new postmark.ServerClient(process.env.POSTMARK_API_KEY!);
+        await emailClient.sendEmail({
+          From: process.env.EMAIL_FROM!,
+          To: process.env.DEV_EMAIL_OVERRIDE || userEmail,
+          Subject: 'Verify your resume❤️ account',
+          HtmlBody: `
+            <h2>Welcome to resume❤️, ${resumeData.personalInfo.name}!</h2>
+            <p>Your resume has been successfully uploaded and parsed. To start customizing your resume for job applications, please verify your email address:</p>
+            <p><a href="${verificationUrl}" style="background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Verify Email & Get Started</a></p>
+            <p>This link will expire in 24 hours.</p>
+            <p>If you didn't create this account, you can safely ignore this email.</p>
+          `,
+          TextBody: `Welcome to resume❤️, ${resumeData.personalInfo.name}!\n\nYour resume has been successfully uploaded and parsed. To start customizing your resume for job applications, please verify your email address:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nIf you didn't create this account, you can safely ignore this email.`,
+          MessageStream: "outbound"
+        });
+        
+        console.log('🔍 Verification email sent to:', userEmail);
+        
+      } catch (error) {
+        console.error('🔍 Error sending verification email:', error);
+      }
+    }
     
-    const token = await encode({
-      token: {
-        sub: userId,
-        email: userEmail,
-        name: resumeData.personalInfo.name,
-        emailVerified: existingUser ? existingUser.emailVerified : null,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
-      },
-      secret: process.env.NEXTAUTH_SECRET!,
-    });
-
-    // Also create database session for adapter compatibility
-    const sessionToken = crypto.randomUUID();
-    const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    
-    await db.collection('sessions').insertOne({
-      sessionToken,
-      userId: new (await import('mongodb')).ObjectId(userId),
-      expires: sessionExpires
-    });
+    console.log('🔍 User and resume created successfully');
 
     await client.close();
 
@@ -167,8 +196,6 @@ export async function POST(request: NextRequest) {
       email: userEmail,
       name: resumeData.personalInfo.name,
       message: 'Resume uploaded successfully!',
-      jwtToken: token,
-      sessionToken,
       emailVerified: existingUser ? !!existingUser.emailVerified : false
     };
 

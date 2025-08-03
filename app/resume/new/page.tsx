@@ -305,7 +305,6 @@ export default function NewResumePage() {
     return (
       <div className="min-h-screen theme-bg-secondary">
         <Header 
-          onBack={handleBack}
           actions={
             <>
               <ActionButton
@@ -338,6 +337,13 @@ export default function NewResumePage() {
 
         {/* Preview Content */}
         <div className="max-w-7xl mx-auto p-6">
+          <ActionButton
+            onClick={handleBack}
+            variant="ghost"
+            className="mb-6"
+          >
+            ← Back
+          </ActionButton>
           {isGenerating && (!previewData || !coverLetterData) ? (
             <div className="grid grid-cols-2 gap-6">
               {/* Resume Loading Pane */}
@@ -456,10 +462,15 @@ export default function NewResumePage() {
 
   return (
     <div className="min-h-screen theme-bg-gradient">
-      <Header 
-        onBack={() => router.push('/')}
-      />
+      <Header />
       <div className="max-w-4xl mx-auto p-8">
+        <ActionButton
+          onClick={() => router.push('/')}
+          variant="ghost"
+          className="mb-6"
+        >
+          ← Back
+        </ActionButton>
         <div className="theme-card rounded-lg p-8">
           <div className="space-y-6">
             <div>

@@ -39,19 +39,9 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
           
           {/* User Info */}
           {session && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 theme-text-secondary text-sm">
-                <User className="w-4 h-4" />
-                <span>{session.user?.email}</span>
-              </div>
-              <ActionButton
-                onClick={() => signOut()}
-                variant="ghost"
-                className="gap-2 text-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </ActionButton>
+            <div className="flex items-center gap-2 theme-text-secondary text-sm">
+              <User className="w-4 h-4" />
+              <span>{session.user?.email}</span>
             </div>
           )}
           
@@ -78,6 +68,18 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
               <Moon className="w-4 h-4" />
             </button>
           </div>
+          
+          {/* Sign Out - Always rightmost */}
+          {session && (
+            <ActionButton
+              onClick={() => signOut()}
+              variant="ghost"
+              className="gap-2 text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </ActionButton>
+          )}
         </div>
       </div>
     </div>

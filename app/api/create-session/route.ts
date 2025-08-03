@@ -1,44 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-utils';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const { userId, email, name } = await request.json();
 
-    // Since we use MongoDB adapter, create database session instead of JWT
-    const { MongoClient } = await import('mongodb');
+    const sessionToken = randomUUID();
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    const { MongoClient, ObjectId } = await import('mongodb');
     const client = new MongoClient(process.env.MONGODB_URI!);
     await client.connect();
     const db = client.db();
 
-    // Create session token
-    const sessionToken = crypto.randomUUID();
-    const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    // Insert session into database
+    // Insert session into MongoDB sessions collection
     await db.collection('sessions').insertOne({
       sessionToken,
-      userId: new (await import('mongodb')).ObjectId(userId),
-      expires: sessionExpires
+      userId: new ObjectId(userId),
+      expires
     });
 
     await client.close();
 
-    // Create response and set session token cookie
+    // Set the NextAuth session cookie
     const response = NextResponse.json({ success: true });
-    
-    // Set the session token cookie (not JWT for database sessions)
     response.cookies.set('next-auth.session-token', sessionToken, {
       path: '/',
-      maxAge: 30 * 24 * 60 * 60,
-      sameSite: 'lax',
-      secure: false, // for localhost
-      httpOnly: false // Allow client-side access for debugging
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
     });
 
-    console.log('🔥 Database session created with token:', sessionToken);
-
+    console.log('🔥 Database session created:', sessionToken);
     return response;
 
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/data-loader';
+import { loadApplicantData } from '@/lib/data/api-data-loader';
+import { getAllSkillsFlat } from '@/lib/data/data-loader';
 import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
 import { getServerAuthSession } from '@/lib/auth/auth-utils';
 
@@ -13,7 +14,14 @@ export async function POST(request: NextRequest) {
 
     // Check session
     const session = await getServerAuthSession();
+    console.log('🔍 analyze-skills session check:', {
+      session: !!session,
+      user: !!session?.user,
+      userId: session?.user?.id,
+      email: session?.user?.email
+    });
     if (!session?.user?.id) {
+      console.error('🔍 No session found in analyze-skills');
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
