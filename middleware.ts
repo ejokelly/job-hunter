@@ -5,6 +5,11 @@ import { getToken } from 'next-auth/jwt'
 let isInitialized = false
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for public parse-resume endpoint
+  if (request.nextUrl.pathname === '/api/parse-resume') {
+    return NextResponse.next()
+  }
+
   // Auto-initialize database
   if (!isInitialized && (
     request.nextUrl.pathname.startsWith('/api/resumes') ||
@@ -26,7 +31,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protected API routes
+  // Protected API routes (parse-resume is public for sign-up flow)
   const protectedApiRoutes = [
     '/api/resumes',
     '/api/add-skill',
@@ -55,8 +60,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protected pages
-  if (request.nextUrl.pathname === '/' && !request.nextUrl.pathname.startsWith('/auth')) {
+  // Protected pages - allow homepage for sign-up flow
+  // Only redirect to sign-in if they're trying to access app functionality without auth
+  const isAppPath = request.nextUrl.pathname === '/' && request.nextUrl.searchParams.get('mode') === 'app'
+  
+  if (isAppPath) {
     const token = await getToken({ 
       req: request, 
       secret: process.env.NEXTAUTH_SECRET 
@@ -79,6 +87,7 @@ export const config = {
     '/api/generate-resume',
     '/api/generate-cover-letter',
     '/api/preview-resume',
-    '/api/preview-cover-letter'
+    '/api/preview-cover-letter',
+    '/api/parse-resume'
   ],
 }

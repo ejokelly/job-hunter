@@ -1,14 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FileText, Upload } from 'lucide-react';
-import { useSession, signIn } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
-import Header from '@/components/header';
-import ResumeUpload from '@/components/resume-upload';
-import Brand from '@/components/brand';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -24,30 +21,58 @@ interface PreviewData {
   };
 }
 
-export default function Home() {
-  const { data: session } = useSession();
+export default function NewResumePage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+  
+  // Job description form states
   const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [isRegeneratingResume, setIsRegeneratingResume] = useState(false);
   const [isRegeneratingCoverLetter, setIsRegeneratingCoverLetter] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [skillGapReport, setSkillGapReport] = useState<SkillGapReport | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [coverLetterData, setCoverLetterData] = useState<PreviewData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [skillGapReport, setSkillGapReport] = useState<SkillGapReport | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
-  // Simple states for resume upload demo
-  const [showUpload, setShowUpload] = useState(false);
-  const [parsedData, setParsedData] = useState<any>(null);
-  const [signInEmail, setSignInEmail] = useState('');
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [hasFileSelected, setHasFileSelected] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  // No polling needed on homepage - that's only for verify page
+  // Check session and redirect if not authenticated
+  useEffect(() => {
+    if (session === null) {
+      router.push('/');
+      return;
+    }
+  }, [session, router]);
 
+  // Check email verification status and redirect if not verified
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    
+    const checkEmailVerification = async () => {
+      try {
+        const response = await fetch('/api/auth/check-verification');
+        if (response.ok) {
+          const data = await response.json();
+          setEmailVerified(data.emailVerified);
+          
+          // If not verified, redirect to verification flow
+          if (!data.emailVerified) {
+            router.push('/');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      }
+    };
+
+    checkEmailVerification();
+  }, [session, router]);
+
+  // Job description handlers
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
     
@@ -266,7 +291,6 @@ export default function Home() {
     setShowPreview(false);
     setPreviewData(null);
     setCoverLetterData(null);
-    setShowForm(false);
     setJobDescription('');
     setSkillGapReport(null);
     setIsAnalyzing(false);
@@ -274,200 +298,13 @@ export default function Home() {
     setIsGeneratingCoverLetter(false);
     setIsRegeneratingResume(false);
     setIsRegeneratingCoverLetter(false);
-    setShowUpload(false);
-    setParsedData(null);
   };
-
-  const handleUploadSuccess = async (userData: { userId: string; email: string; name: string; message: string; resumeId: string; sessionToken: string; jwtToken: string; emailVerified: boolean }) => {
-    console.log('🔥🔥🔥 UPLOAD SUCCESS HANDLER CALLED!!! 🔥🔥🔥');
-    console.log('🔥 Upload success, full data:', userData);
-    
-    // Use dedicated session creation API
-    console.log('🔥 About to create session for:', userData.userId, userData.email);
-    try {
-      console.log('🔥 Making request to /api/create-session...');
-      const sessionResponse = await fetch('/api/create-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userData.userId,
-          email: userData.email,
-          name: userData.name
-        }),
-      });
-
-      console.log('🔥 Session response status:', sessionResponse.status);
-      const responseData = await sessionResponse.json();
-      console.log('🔥 Session response data:', responseData);
-
-      if (sessionResponse.ok) {
-        console.log('🔥 Session created successfully!');
-        
-        // Check if cookie was actually set
-        setTimeout(() => {
-          console.log('🔥 All cookies after session creation:', document.cookie);
-          // Force page reload to pick up session
-          window.location.href = `/verify/${userData.resumeId}`;
-        }, 100);
-      } else {
-        console.error('🔥 Failed to create session:', responseData);
-      }
-    } catch (error) {
-      console.error('🔥 Error creating session:', error);
-    }
-  };
-
-  const handleSignIn = async () => {
-    if (!signInEmail.trim()) return;
-    
-    setIsSigningIn(true);
-    try {
-      await signIn('email', { email: signInEmail, callbackUrl: '/' });
-    } catch (error) {
-      console.error('Sign in error:', error);
-    } finally {
-      setIsSigningIn(false);
-    }
-  };
-
-  const handleUploadError = (error: string) => {
-    console.error('Upload error:', error);
-  };
-
-
-  if (!showForm && !session) {
-    return (
-      <div className="min-h-screen theme-bg-gradient">
-        <Header />
-        <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
-          <div className="max-w-2xl w-full">
-            {/* Flip Card Container */}
-            <div className="relative w-full perspective-1000">
-              <div 
-                className={`
-                  w-full transition-transform duration-700 transform-style-preserve-3d
-                  ${hasFileSelected ? 'rotate-y-180' : ''}
-                `}
-              >
-                {/* Front Side - Upload Form */}
-                <div className="w-full backface-hidden">
-                  <div className="theme-card rounded-lg p-8">
-                    <div className="text-center mb-8">
-                      <FileText className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
-                      <h1 className="text-3xl theme-text-primary mb-4"><Brand /></h1>
-                    </div>
-                    
-                    <ResumeUpload 
-                      onUploadSuccess={handleUploadSuccess}
-                      onUploadError={handleUploadError}
-                      onFileSelected={() => setHasFileSelected(true)}
-                    />
-                  </div>
-                </div>
-
-                {/* Back Side - Processing */}
-                <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
-                  <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
-                    <div className="text-center space-y-6">
-                      <Brand className="text-3xl" />
-                      <p className="theme-text-secondary text-lg leading-relaxed">
-                        We are currently extracting the data from your resume. Once that is done we can make it super easy to create a customized resume and cover letter for your job application!
-                      </p>
-                      <ThreeDotsLoader className="mx-auto" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <style jsx>{`
-              .perspective-1000 {
-                perspective: 1000px;
-              }
-              .transform-style-preserve-3d {
-                transform-style: preserve-3d;
-              }
-              .backface-hidden {
-                backface-visibility: hidden;
-              }
-              .rotate-y-180 {
-                transform: rotateY(180deg);
-              }
-            `}</style>
-            
-            {!isSigningIn && !hasFileSelected && (
-              <div className="mt-8">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-medium theme-text-primary">Already have an account?</h3>
-                  <p className="theme-text-secondary text-sm">Enter your email to sign in</p>
-                </div>
-                
-                <div className="flex gap-3">
-                  <input
-                    type="email"
-                    value={signInEmail}
-                    onChange={(e) => setSignInEmail(e.target.value)}
-                    className="flex-1 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Enter your email"
-                  />
-                  
-                  <ActionButton
-                    onClick={handleSignIn}
-                    variant="outline"
-                    className="py-4 px-6"
-                  >
-                    Sign in
-                  </ActionButton>
-                </div>
-              </div>
-            )}
-
-            {isSigningIn && (
-              <div className="mt-8 text-center">
-                <p className="theme-text-secondary">Sending sign-in link to {signInEmail}...</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!showForm && session) {
-    return (
-      <div className="min-h-screen theme-bg-gradient">
-        <Header />
-        <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
-          <div className="max-w-md w-full text-center">
-            <div className="theme-card rounded-lg p-8">
-              <FileText className="w-16 h-16 mx-auto mb-6 theme-icon-primary" />
-              <h1 className="text-3xl theme-text-primary mb-4"><Brand /></h1>
-              <p className="theme-text-secondary mb-8">
-                Create tailored resumes and cover letters using AI that match job descriptions perfectly.
-              </p>
-              
-              <ActionButton
-                onClick={() => setShowForm(true)}
-                variant="primary"
-                className="w-full py-3 px-6 justify-center"
-              >
-                Start New Application
-              </ActionButton>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
     return (
       <div className="min-h-screen theme-bg-secondary">
         <Header 
-          title="Document Preview"
           onBack={handleBack}
           actions={
             <>
@@ -620,12 +457,10 @@ export default function Home() {
   return (
     <div className="min-h-screen theme-bg-gradient">
       <Header 
-        title="Create Tailored Resume"
-        onBack={handleBack}
+        onBack={() => router.push('/')}
       />
       <div className="max-w-4xl mx-auto p-8">
         <div className="theme-card rounded-lg p-8">
-
           <div className="space-y-6">
             <div>
               <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
@@ -683,13 +518,29 @@ export default function Home() {
               </div>
             )}
 
-
+            {/* Terms of Service Checkbox */}
+            <div className="flex items-start gap-3 p-4 theme-bg-tertiary rounded-lg">
+              <input
+                type="checkbox"
+                id="acceptTerms"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <label htmlFor="acceptTerms" className="text-sm theme-text-secondary cursor-pointer">
+                I accept the{' '}
+                <span className="theme-text-primary hover:underline cursor-pointer">
+                  Terms of Service and Privacy Policy
+                </span>
+                {' '}(required to continue)
+              </label>
+            </div>
 
             <div className="space-y-4">
               {!skillGapReport ? (
                 <ActionButton
                   onClick={handleAnalyze}
-                  disabled={!jobDescription.trim()}
+                  disabled={!jobDescription.trim() || !acceptedTerms}
                   busy={isAnalyzing}
                   className="w-full py-3 px-6 justify-center"
                 >
@@ -698,7 +549,7 @@ export default function Home() {
               ) : (
                 <ActionButton
                   onClick={handleGenerate}
-                  disabled={false}
+                  disabled={!acceptedTerms}
                   busy={isGenerating}
                   className="w-full py-3 px-6 justify-center"
                 >

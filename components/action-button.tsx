@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 interface ActionButtonProps {
   onClick: () => void;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'skill';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'skill' | 'outline';
   busy?: boolean;
   disabled?: boolean;
   className?: string;
@@ -38,7 +38,8 @@ export default function ActionButton({
   const variantClasses = {
     primary: "theme-btn-primary",
     secondary: "theme-btn-secondary",
-    ghost: "theme-btn-ghost"
+    ghost: "theme-btn-ghost",
+    outline: "border-2 theme-border theme-text-primary hover:theme-bg-tertiary"
   };
   
   return (

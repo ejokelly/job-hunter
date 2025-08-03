@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/data-loader';
 import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { getServerAuthSession } from '@/lib/auth/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,8 +11,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
     }
 
-    // Load applicant data
-    const applicantData = loadApplicantData();
+    // Check session
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Load applicant data using session
+    const applicantData = await loadApplicantData();
     const allSkills = getAllSkillsFlat(applicantData);
 
     const prompt = `Analyze this job description and compare it to the candidate's skills.

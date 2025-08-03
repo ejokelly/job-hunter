@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData, saveApplicantData } from '@/lib/data/api-data-loader';
 import { categorizeSkill } from '@/lib/data/skill-categorization';
+import { getServerAuthSession } from '@/lib/auth/auth-utils';
+import dbConnect from '@/lib/db/mongodb';
+import Resume from '@/lib/db/models/Resume';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,15 +12,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid skill name is required' }, { status: 400 });
     }
 
-    // Load current data
-    const applicantData = await loadApplicantData();
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    await dbConnect();
+
+    // Find user's resume
+    const resume = await Resume.findOne({ userId: session.user.id }).sort({ updatedAt: -1 });
+    if (!resume) {
+      return NextResponse.json({ error: 'No resume found' }, { status: 404 });
+    }
 
     // Determine the best category for this skill
     const skillLower = skill.toLowerCase();
     const targetCategory = categorizeSkill(skill);
 
     // Check if skill already exists
-    const skillExists = Object.values(applicantData.skills).some((category: any) =>
+    const skillExists = Object.values(resume.skills).some((category: any) =>
       category.some((existingSkill: any) => 
         existingSkill.name.toLowerCase() === skillLower
       )
@@ -29,17 +41,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Add skill to appropriate category with 2 years experience (new skill)
-    if (!applicantData.skills[targetCategory]) {
-      applicantData.skills[targetCategory] = [];
+    if (!resume.skills[targetCategory]) {
+      resume.skills[targetCategory] = [];
     }
 
-    applicantData.skills[targetCategory].push({
+    resume.skills[targetCategory].push({
       name: skill,
       years: 2
     });
 
-    // Write back to database
-    await saveApplicantData(applicantData);
+    // Mark the skills field as modified and save
+    resume.markModified('skills');
+    await resume.save();
 
     return NextResponse.json({ 
       message: 'Skill added successfully',

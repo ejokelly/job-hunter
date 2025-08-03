@@ -4,6 +4,7 @@ import { Sun, Moon, User, LogOut } from 'lucide-react';
 import { useTheme } from './theme-provider';
 import { useSession, signOut } from 'next-auth/react';
 import ActionButton from './action-button';
+import Brand from './brand';
 
 interface HeaderProps {
   title?: string;
@@ -11,7 +12,7 @@ interface HeaderProps {
   actions?: React.ReactNode;
 }
 
-export default function Header({ title = 'Job Hunter', onBack, actions }: HeaderProps) {
+export default function Header({ title, onBack, actions }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
 
@@ -28,7 +29,9 @@ export default function Header({ title = 'Job Hunter', onBack, actions }: Header
               ← Back
             </ActionButton>
           )}
-          <h1 className="text-xl font-semibold theme-text-primary">{title}</h1>
+          <h1 className="text-xl theme-text-primary">
+            {title ? title : <Brand />}
+          </h1>
         </div>
         
         <div className="flex items-center gap-4">

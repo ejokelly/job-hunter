@@ -46,8 +46,8 @@ export interface ApplicantData {
 
 let cachedData: ApplicantData | null = null;
 
-export async function loadApplicantData(): Promise<ApplicantData> {
-  if (cachedData) {
+export async function loadApplicantData(userId?: string): Promise<ApplicantData> {
+  if (cachedData && !userId) {
     return cachedData;
   }
 
@@ -57,16 +57,26 @@ export async function loadApplicantData(): Promise<ApplicantData> {
       // Server-side: use the database directly
       const dbConnect = (await import('@/lib/db/mongodb')).default;
       const Resume = (await import('@/lib/db/models/Resume')).default;
+      const { getServerAuthSession } = await import('@/lib/auth/auth-utils');
       
       await dbConnect();
-      const resumes = await Resume.find({}).sort({ updatedAt: -1 });
       
-      if (resumes.length === 0) {
-        throw new Error('No resumes found');
+      let finalUserId = userId;
+      if (!finalUserId) {
+        const session = await getServerAuthSession();
+        if (!session?.user?.id) {
+          throw new Error('No user session found');
+        }
+        finalUserId = session.user.id;
+      }
+      
+      const resume = await Resume.findOne({ userId: finalUserId }).sort({ updatedAt: -1 });
+      
+      if (!resume) {
+        throw new Error('No resume found for user');
       }
 
-      const resume = resumes[0];
-      cachedData = {
+      const resumeData = {
         _id: resume._id?.toString(),
         personalInfo: resume.personalInfo,
         summary: resume.summary,
@@ -78,8 +88,14 @@ export async function loadApplicantData(): Promise<ApplicantData> {
           period: ''
         })) || []
       };
+
+      if (!userId) {
+        cachedData = resumeData;
+      }
+      
+      return resumeData;
     } else {
-      // Client-side: use fetch
+      // Client-side: use fetch (user-specific data)
       const response = await fetch('/api/resumes');
       if (!response.ok) {
         throw new Error('Failed to fetch resumes');
@@ -92,7 +108,7 @@ export async function loadApplicantData(): Promise<ApplicantData> {
       }
 
       const resume = resumes[0];
-      cachedData = {
+      const resumeData = {
         _id: resume._id,
         personalInfo: resume.personalInfo,
         summary: resume.summary,
@@ -104,34 +120,54 @@ export async function loadApplicantData(): Promise<ApplicantData> {
           period: ''
         })) || []
       };
+
+      cachedData = resumeData;
+      return resumeData;
     }
-    
-    return cachedData;
   } catch (error) {
     console.error('Error loading applicant data:', error);
     
-    const fs = await import('fs');
-    const path = await import('path');
-    const dataPath = path.join(process.cwd(), 'data.json');
-    const rawData = fs.readFileSync(dataPath, 'utf8');
-    cachedData = JSON.parse(rawData) as ApplicantData;
-    return cachedData;
+    // Fallback to data.json only if no user context
+    if (!userId && typeof window === 'undefined') {
+      const fs = await import('fs');
+      const path = await import('path');
+      const dataPath = path.join(process.cwd(), 'data.json');
+      const rawData = fs.readFileSync(dataPath, 'utf8');
+      cachedData = JSON.parse(rawData) as ApplicantData;
+      return cachedData;
+    }
+    
+    throw error;
   }
 }
 
-export async function saveApplicantData(data: ApplicantData): Promise<void> {
+export async function saveApplicantData(data: ApplicantData, userId?: string): Promise<void> {
   try {
     if (typeof window === 'undefined') {
       // Server-side: use the database directly
       const dbConnect = (await import('@/lib/db/mongodb')).default;
       const Resume = (await import('@/lib/db/models/Resume')).default;
+      const { getServerAuthSession } = await import('@/lib/auth/auth-utils');
       
       await dbConnect();
       
+      let finalUserId = userId;
+      if (!finalUserId) {
+        const session = await getServerAuthSession();
+        if (!session?.user?.id) {
+          throw new Error('No user session found');
+        }
+        finalUserId = session.user.id;
+      }
+      
       if (data._id) {
-        await Resume.findByIdAndUpdate(data._id, data, { new: true, runValidators: true });
+        await Resume.findOneAndUpdate(
+          { _id: data._id, userId: finalUserId }, 
+          data, 
+          { new: true, runValidators: true }
+        );
       } else {
-        const resume = new Resume(data);
+        const resume = new Resume({ ...data, userId: finalUserId });
         await resume.save();
       }
     } else {

@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Job Hunter - AI-Powered Resume & Cover Letter Generator",
-  description: "Create tailored resumes and cover letters that match job descriptions perfectly using AI. Filter and optimize your existing experience for each application.",
-  keywords: "resume generator, cover letter generator, job application, AI resume, tailored resume, job hunting",
+  title: "resume❤️ - AI-Powered Resume Parser & Generator",
+  description: "Upload your resume and extract information using AI. Create tailored resumes and cover letters that match job descriptions perfectly.",
+  keywords: "resume parser, resume generator, AI resume, resume extraction, job application",
   authors: [{ name: "EJ O'Kelly" }],
   openGraph: {
-    title: "Job Hunter - AI Resume & Cover Letter Generator",
-    description: "Create tailored resumes and cover letters using AI",
+    title: "resume❤️ - AI Resume Parser & Generator",
+    description: "Upload your resume and extract information using AI",
     type: "website",
   },
 };
