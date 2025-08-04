@@ -209,11 +209,11 @@ export class SubscriptionManager {
       canCreateResume,
       monthlyCount,
       monthlyLimit,
-      subscriptionStatus,
+      subscriptionStatus: subscriptionStatus || 'free', // Ensure we always return a valid status
       needsUpgrade: !canCreateResume,
-      upgradeToTier: subscriptionStatus === 'starter' ? 'unlimited' : 'starter',
-      upgradePrice: subscriptionStatus === 'starter' ? 250 : 25,
-      stripePriceId: subscriptionStatus === 'starter' ? 
+      upgradeToTier: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 'unlimited' : 'starter',
+      upgradePrice: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 250 : 25,
+      stripePriceId: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 
         process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID! : 
         process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID!,
       subscriptionExpires: user.subscriptionExpires,

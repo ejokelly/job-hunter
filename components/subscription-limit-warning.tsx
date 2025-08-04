@@ -179,6 +179,8 @@ interface LimitExceededModalProps {
 export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceededModalProps) {
   if (!isOpen) return null
 
+  console.log('🔍 LimitExceededModal limitData:', limitData);
+
   const planName = limitData.upgradeToTier === 'starter' ? 'Starter' : 'Crazy Job Market'
   const planPrice = limitData.upgradePrice || 25
   const currentCount = limitData.monthlyCount || 0

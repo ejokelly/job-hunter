@@ -256,13 +256,34 @@ export default function NewResumePage() {
         body: JSON.stringify({ jobDescription }),
       });
 
+      console.log('Response status:', resumeResponse.status);
+      
       if (resumeResponse.ok) {
         const resumeResult = await resumeResponse.json();
         setPreviewData(resumeResult);
         setShowPreview(true);
+      } else if (resumeResponse.status === 429) {
+        // Subscription limit exceeded
+        console.log('429 response received, showing limit modal');
+        try {
+          const errorData = await resumeResponse.json();
+          console.log('Error data:', errorData);
+          console.log('upgradeToTier:', errorData.upgradeToTier);
+          console.log('subscriptionStatus:', errorData.subscriptionStatus);
+          setLimitData(errorData);
+        } catch (e) {
+          console.log('Failed to parse 429 response JSON, using default data');
+          setLimitData({ message: 'Subscription limit exceeded' });
+        }
+        console.log('Setting showLimitModal to true');
+        setShowLimitModal(true);
+        console.log('showLimitModal state should now be true');
+      } else {
+        console.error('Error generating resume:', resumeResponse.statusText);
       }
     } catch (error) {
       console.error('Error generating preview:', error);
+      console.error('Caught error, checking if it\'s a 429 issue');
     } finally {
       setIsGenerating(false);
     }
@@ -795,6 +816,13 @@ Include role title, company, requirements, responsibilities, and qualifications 
                 )}
               </div>
 
+            {/* Debug indicator */}
+            {showLimitModal && (
+              <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded z-50">
+                Modal should be showing!
+              </div>
+            )}
+            
             <LimitExceededModal
               isOpen={showLimitModal}
               onClose={() => setShowLimitModal(false)}
