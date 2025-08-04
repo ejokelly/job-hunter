@@ -47,6 +47,8 @@ export default function NewResumePage() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitData, setLimitData] = useState<any>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'resume' | 'cover-letter'>('resume');
+  const [hasGeneratedCoverLetter, setHasGeneratedCoverLetter] = useState(false);
 
   // Load session on component mount
   useEffect(() => {
@@ -245,35 +247,60 @@ export default function NewResumePage() {
 
     setIsGenerating(true);
     try {
-      // Generate both resume and cover letter previews in parallel
-      const [resumeResponse, coverLetterResponse] = await Promise.all([
-        fetch('/api/preview-resume', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ jobDescription }),
-        }),
-        fetch('/api/preview-cover-letter', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ jobDescription }),
-        })
-      ]);
+      // Generate only resume initially
+      const resumeResponse = await fetch('/api/preview-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ jobDescription }),
+      });
 
-      if (resumeResponse.ok && coverLetterResponse.ok) {
+      if (resumeResponse.ok) {
         const resumeResult = await resumeResponse.json();
-        const coverLetterResult = await coverLetterResponse.json();
         setPreviewData(resumeResult);
-        setCoverLetterData(coverLetterResult);
         setShowPreview(true);
       }
     } catch (error) {
       console.error('Error generating preview:', error);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateCoverLetter = async () => {
+    if (!jobDescription.trim()) return;
+
+    setIsGeneratingCoverLetter(true);
+    try {
+      const response = await fetch('/api/preview-cover-letter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          jobDescription,
+          isFirstGeneration: !hasGeneratedCoverLetter 
+        }),
+      });
+
+      if (response.ok) {
+        const coverLetterResult = await response.json();
+        setCoverLetterData(coverLetterResult);
+        setHasGeneratedCoverLetter(true);
+        setActiveTab('cover-letter'); // Switch to cover letter tab on mobile
+      } else if (response.status === 429) {
+        // Subscription limit exceeded
+        const errorData = await response.json();
+        setLimitData(errorData);
+        setShowLimitModal(true);
+      } else {
+        console.error('Error generating cover letter:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error generating cover letter:', error);
+    } finally {
+      setIsGeneratingCoverLetter(false);
     }
   };
 
@@ -403,33 +430,166 @@ export default function NewResumePage() {
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
     return (
-      <div className="min-h-screen theme-bg-secondary flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Header />
 
         {/* Preview Content */}
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="grid grid-cols-2 gap-6 max-w-7xl w-full">
-            <PreviewPane
-              title="Resume"
-              html={previewData?.html}
-              onDownload={handleDownloadResume}
-              onRegenerate={handleRegenerateResume}
-              isRegenerating={isRegeneratingResume}
-              isDownloading={isDownloadingResume}
-              isLoading={isGenerating && !previewData}
-              loadingText="Generating resume..."
-            />
+        <div className="flex-1 flex flex-col p-4 lg:p-6">
+          {/* Mobile Tabs - only show if cover letter exists */}
+          {coverLetterData && (
+            <div className="lg:hidden mb-4">
+              <div className="flex border-b theme-border-light">
+                <button
+                  onClick={() => setActiveTab('resume')}
+                  className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'resume'
+                      ? 'border-[var(--accent-color)] theme-text-accent'
+                      : 'border-transparent theme-text-secondary hover:theme-text-primary'
+                  }`}
+                >
+                  Resume
+                </button>
+                <button
+                  onClick={() => setActiveTab('cover-letter')}
+                  className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'cover-letter'
+                      ? 'border-[var(--accent-color)] theme-text-accent'
+                      : 'border-transparent theme-text-secondary hover:theme-text-primary'
+                  }`}
+                >
+                  Cover Letter
+                </button>
+              </div>
+            </div>
+          )}
 
-            <PreviewPane
-              title="Cover Letter"
-              html={coverLetterData?.html}
-              onDownload={handleDownloadCoverLetter}
-              onRegenerate={handleRegenerateCoverLetter}
-              isRegenerating={isRegeneratingCoverLetter}
-              isDownloading={isDownloadingCoverLetter}
-              isLoading={isGenerating && !coverLetterData}
-              loadingText="Generating cover letter..."
-            />
+          {/* Mobile Content */}
+          <div className="flex-1 lg:hidden">
+            {coverLetterData ? (
+              // Show tabs and tab content when cover letter exists
+              <>
+                {activeTab === 'resume' && (
+                  <PreviewPane
+                    title="Resume"
+                    html={previewData?.html}
+                    onDownload={handleDownloadResume}
+                    onRegenerate={handleRegenerateResume}
+                    isRegenerating={isRegeneratingResume}
+                    isDownloading={isDownloadingResume}
+                    isLoading={isGenerating && !previewData}
+                    loadingText="Generating resume..."
+                    actionButton={
+                      <ActionButton
+                        onClick={handleGenerateCoverLetter}
+                        variant="ghost"
+                        busy={isGeneratingCoverLetter}
+                        className="text-xs px-2 py-1"
+                      >
+                        Regenerate Cover Letter
+                      </ActionButton>
+                    }
+                  />
+                )}
+                {activeTab === 'cover-letter' && (
+                  <PreviewPane
+                    title="Cover Letter"
+                    html={coverLetterData?.html}
+                    onDownload={handleDownloadCoverLetter}
+                    onRegenerate={handleRegenerateCoverLetter}
+                    isRegenerating={isRegeneratingCoverLetter}
+                    isDownloading={isDownloadingCoverLetter}
+                    isLoading={false}
+                    loadingText="Generating cover letter..."
+                  />
+                )}
+              </>
+            ) : (
+              // Show only resume when no cover letter exists
+              <PreviewPane
+                title="Resume"
+                html={previewData?.html}
+                onDownload={handleDownloadResume}
+                onRegenerate={handleRegenerateResume}
+                isRegenerating={isRegeneratingResume}
+                isDownloading={isDownloadingResume}
+                isLoading={isGenerating && !previewData}
+                loadingText="Generating resume..."
+                actionButton={
+                  <ActionButton
+                    onClick={handleGenerateCoverLetter}
+                    variant="ghost"
+                    busy={isGeneratingCoverLetter}
+                    className="text-xs px-2 py-1"
+                  >
+                    Generate Cover Letter
+                  </ActionButton>
+                }
+              />
+            )}
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1">
+            {coverLetterData ? (
+              // Two-column layout when cover letter exists
+              <div className="grid grid-cols-2 gap-6 w-full max-w-7xl">
+                <PreviewPane
+                  title="Resume"
+                  html={previewData?.html}
+                  onDownload={handleDownloadResume}
+                  onRegenerate={handleRegenerateResume}
+                  isRegenerating={isRegeneratingResume}
+                  isDownloading={isDownloadingResume}
+                  isLoading={isGenerating && !previewData}
+                  loadingText="Generating resume..."
+                  actionButton={
+                    <ActionButton
+                      onClick={handleGenerateCoverLetter}
+                      variant="ghost"
+                      busy={isGeneratingCoverLetter}
+                      className="text-xs px-2 py-1"
+                    >
+                      Regenerate Cover Letter
+                    </ActionButton>
+                  }
+                />
+
+                <PreviewPane
+                  title="Cover Letter"
+                  html={coverLetterData?.html}
+                  onDownload={handleDownloadCoverLetter}
+                  onRegenerate={handleRegenerateCoverLetter}
+                  isRegenerating={isRegeneratingCoverLetter}
+                  isDownloading={isDownloadingCoverLetter}
+                  isLoading={false}
+                  loadingText="Generating cover letter..."
+                />
+              </div>
+            ) : (
+              // Single resume layout when no cover letter exists - maintain paper ratio
+              <div className="w-full max-w-2xl">
+                <PreviewPane
+                  title="Resume"
+                  html={previewData?.html}
+                  onDownload={handleDownloadResume}
+                  onRegenerate={handleRegenerateResume}
+                  isRegenerating={isRegeneratingResume}
+                  isDownloading={isDownloadingResume}
+                  isLoading={isGenerating && !previewData}
+                  loadingText="Generating resume..."
+                  actionButton={
+                    <ActionButton
+                      onClick={handleGenerateCoverLetter}
+                      variant="ghost"
+                      busy={isGeneratingCoverLetter}
+                      className="text-xs px-2 py-1"
+                    >
+                      Generate Cover Letter
+                    </ActionButton>
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
         <Footer />
@@ -441,16 +601,15 @@ export default function NewResumePage() {
     <div className="min-h-screen theme-bg-gradient">
       <Header />
       <PageContainer>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold theme-text-primary mb-2">Create Your Resume</h1>
-            <p className="theme-text-secondary">Paste a job description to get a tailored resume and cover letter</p>
+        <div className="w-full">
+          <div className="text-center mb-4 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Create Your Resume</h1>
+            <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
           </div>
 
-          <div className="theme-card rounded-xl p-8 shadow-lg">
-            <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
               <div>
-                <label htmlFor="jobDescription" className="block text-lg font-semibold theme-text-primary mb-3">
+                <label htmlFor="jobDescription" className="block text-base md:text-lg font-semibold theme-text-primary mb-2 md:mb-3">
                   📄 Job Description
                 </label>
                 <div className="relative">
@@ -459,7 +618,7 @@ export default function NewResumePage() {
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
                     disabled={skillGapReport !== null}
-                    className={`w-full h-72 p-6 border-2 theme-border rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 ${skillGapReport ? 'cursor-not-allowed opacity-50' : 'focus:shadow-lg'
+                    className={`w-full h-80 md:h-72 p-3 md:p-6 border-2 theme-border rounded-lg md:rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 ${skillGapReport ? 'cursor-not-allowed opacity-50' : 'focus:shadow-lg'
                       }`}
                     style={{}}
                     placeholder="Paste the complete job description here...
@@ -476,14 +635,14 @@ Include role title, company, requirements, responsibilities, and qualifications 
               </div>
 
               {skillGapReport && (
-                <div className="theme-card p-8 rounded-xl">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 text-lg">🎯</span>
+                <div className="theme-card p-4 md:p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 text-base md:text-lg">🎯</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold theme-text-primary">Skill Gap Analysis</h3>
-                      <p className="text-sm theme-text-secondary">Review and optimize your skills for this role</p>
+                      <h3 className="text-lg md:text-xl font-bold theme-text-primary">Skill Gap Analysis</h3>
+                      <p className="text-xs md:text-sm theme-text-secondary">Review and optimize your skills for this role</p>
                     </div>
                   </div>
 
@@ -535,7 +694,7 @@ Include role title, company, requirements, responsibilities, and qualifications 
                   Agreed to the Terms of Service and Privacy Policy
                 </div>
               ) : (
-                <div className="theme-card p-6 rounded-xl">
+                <div className="theme-card p-4 md:p-6 rounded-xl">
                   <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
@@ -635,7 +794,6 @@ Include role title, company, requirements, responsibilities, and qualifications 
                   </div>
                 )}
               </div>
-            </div>
 
             <LimitExceededModal
               isOpen={showLimitModal}

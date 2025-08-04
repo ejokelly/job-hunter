@@ -1,6 +1,6 @@
 'use client';
 
-import { Sun, Moon, LogOut, User, FileText } from 'lucide-react';
+import { Sun, Moon, LogOut, User, FileText, Menu, X } from 'lucide-react';
 import { useTheme } from './theme-provider';
 import { useState, useEffect } from 'react';
 import ActionButton from './action-button';
@@ -15,6 +15,7 @@ interface HeaderProps {
 export default function Header({ title, onBack, actions }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [session, setSession] = useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Load session on component mount
   useEffect(() => {
@@ -67,81 +68,166 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
 
   return (
     <div className="theme-header shadow-sm border-b theme-border-light">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
-        <div className="flex items-center gap-4">
-          {onBack && (
-            <ActionButton 
-              onClick={onBack}
-              variant="ghost"
-              className="gap-2"
-            >
-              ← Back
-            </ActionButton>
-          )}
-          <h1 className="text-xl theme-text-primary">
-            {title ? title : <Brand />}
-          </h1>
-        </div>
-        
-        {/* Theme Toggle - Center */}
-        <div className="flex-1 flex justify-center">
-          <div className="flex items-center theme-bg-tertiary rounded-full p-1">
-            <button
-              onClick={() => theme === 'dark' && toggleTheme()}
-              className={`p-2 rounded-full transition-colors ${
-                theme === 'light' 
-                  ? 'theme-bg-primary shadow-sm text-yellow-500' 
-                  : 'theme-text-tertiary hover:theme-text-secondary'
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => theme === 'light' && toggleTheme()}
-              className={`p-2 rounded-full transition-colors ${
-                theme === 'dark' 
-                  ? 'theme-bg-primary shadow-sm text-blue-400' 
-                  : 'theme-text-tertiary hover:theme-text-secondary'
-              }`}
-            >
-              <Moon className="w-4 h-4" />
-            </button>
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {onBack && (
+              <ActionButton 
+                onClick={onBack}
+                variant="ghost"
+                className="gap-2"
+              >
+                ← Back
+              </ActionButton>
+            )}
+            <h1 className="text-xl theme-text-primary">
+              {title ? title : <Brand />}
+            </h1>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {actions}
           
-          {/* New Resume, Account and Sign Out */}
-          {session && (
-            <>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Theme Toggle - Center */}
+            <div className="flex items-center theme-bg-tertiary rounded-full p-1">
+              <button
+                onClick={() => theme === 'dark' && toggleTheme()}
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'light' 
+                    ? 'theme-bg-primary shadow-sm text-yellow-500' 
+                    : 'theme-text-tertiary hover:theme-text-secondary'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => theme === 'light' && toggleTheme()}
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' 
+                    ? 'theme-bg-primary shadow-sm text-blue-400' 
+                    : 'theme-text-tertiary hover:theme-text-secondary'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {actions}
+            
+            {/* New Resume, Account and Sign Out */}
+            {session && (
+              <>
+                <ActionButton
+                  onClick={() => window.location.href = '/resume/new'}
+                  variant="ghost"
+                  className="gap-2 text-sm"
+                >
+                  <FileText className="w-4 h-4" />
+                  New Resume
+                </ActionButton>
+                <ActionButton
+                  onClick={() => window.location.href = '/account'}
+                  variant="ghost"
+                  className="gap-2 text-sm"
+                >
+                  <User className="w-4 h-4" />
+                  Account
+                </ActionButton>
+                <ActionButton
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  className="gap-2 text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </ActionButton>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Always show New Resume on mobile */}
+            {session && (
               <ActionButton
                 onClick={() => window.location.href = '/resume/new'}
                 variant="ghost"
-                className="gap-2 text-sm"
+                className="gap-1 text-xs px-2 py-1"
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="w-3 h-3" />
                 New Resume
               </ActionButton>
-              <ActionButton
-                onClick={() => window.location.href = '/account'}
-                variant="ghost"
-                className="gap-2 text-sm"
-              >
-                <User className="w-4 h-4" />
-                Account
-              </ActionButton>
-              <ActionButton
-                onClick={handleSignOut}
-                variant="ghost"
-                className="gap-2 text-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </ActionButton>
-            </>
-          )}
+            )}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="theme-text-primary hover:theme-text-accent transition-colors p-2"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4 pt-4 border-t theme-border-light">
+            <div className="flex flex-col gap-4">
+              {/* Theme Toggle for Mobile */}
+              <div className="flex items-center justify-center">
+                <div className="flex items-center theme-bg-tertiary rounded-full p-1">
+                  <button
+                    onClick={() => theme === 'dark' && toggleTheme()}
+                    className={`p-2 rounded-full transition-colors ${
+                      theme === 'light' 
+                        ? 'theme-bg-primary shadow-sm text-yellow-500' 
+                        : 'theme-text-tertiary hover:theme-text-secondary'
+                    }`}
+                  >
+                    <Sun className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => theme === 'light' && toggleTheme()}
+                    className={`p-2 rounded-full transition-colors ${
+                      theme === 'dark' 
+                        ? 'theme-bg-primary shadow-sm text-blue-400' 
+                        : 'theme-text-tertiary hover:theme-text-secondary'
+                    }`}
+                  >
+                    <Moon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {actions}
+              
+              {/* Mobile Navigation Items */}
+              {session && (
+                <>
+                  <ActionButton
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      window.location.href = '/account';
+                    }}
+                    variant="ghost"
+                    className="gap-2 text-sm justify-center"
+                  >
+                    <User className="w-4 h-4" />
+                    Account
+                  </ActionButton>
+                  <ActionButton
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    variant="ghost"
+                    className="gap-2 text-sm justify-center"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </ActionButton>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

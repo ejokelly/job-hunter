@@ -10,6 +10,7 @@ interface PreviewPaneProps {
   isDownloading?: boolean;
   isLoading?: boolean;
   loadingText?: string;
+  actionButton?: React.ReactNode;
 }
 
 export default function PreviewPane({ 
@@ -20,7 +21,8 @@ export default function PreviewPane({
   isRegenerating = false,
   isDownloading = false,
   isLoading = false,
-  loadingText = 'Generating...'
+  loadingText = 'Generating...',
+  actionButton
 }: PreviewPaneProps) {
   if (isLoading) {
     return (
@@ -41,7 +43,12 @@ export default function PreviewPane({
 
   return (
     <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating ? 'opacity-50' : 'opacity-100'} relative`}>
-      <div className="theme-bg-tertiary px-4 py-1 border-b theme-border-light flex justify-end items-center">
+      <div className="theme-bg-tertiary px-4 py-1 border-b theme-border-light flex justify-between items-center">
+        {actionButton && (
+          <div className="flex-1">
+            {actionButton}
+          </div>
+        )}
         <div className="flex gap-1">
           <IconButton onClick={onDownload} busy={isDownloading} disabled={isRegenerating}>
             ⬇
@@ -67,7 +74,41 @@ export default function PreviewPane({
                   margin: 0; 
                   padding: 0;
                   background: white;
+                  font-size: 11px;
+                  line-height: 1.3;
                 }
+                h1, h2, h3, h4, h5, h6 { 
+                  font-size: 14px; 
+                  margin: 8px 0 4px 0;
+                  font-weight: 600;
+                }
+                h1 { font-size: 16px; margin-bottom: 6px; }
+                h2 { font-size: 14px; }
+                h3 { font-size: 12px; }
+                p, li, div { 
+                  font-size: 11px; 
+                  margin: 2px 0;
+                }
+                .text-sm { font-size: 10px !important; }
+                .text-xs { font-size: 9px !important; }
+                .text-lg { font-size: 12px !important; }
+                .text-xl { font-size: 14px !important; }
+                .text-2xl { font-size: 16px !important; }
+                .text-3xl { font-size: 18px !important; }
+                ul, ol { margin: 4px 0; padding-left: 16px; }
+                li { margin: 1px 0; }
+                .mb-1 { margin-bottom: 2px !important; }
+                .mb-2 { margin-bottom: 4px !important; }
+                .mb-3 { margin-bottom: 6px !important; }
+                .mb-4 { margin-bottom: 8px !important; }
+                .mt-1 { margin-top: 2px !important; }
+                .mt-2 { margin-top: 4px !important; }
+                .mt-3 { margin-top: 6px !important; }
+                .mt-4 { margin-top: 8px !important; }
+                .py-1 { padding-top: 2px !important; padding-bottom: 2px !important; }
+                .py-2 { padding-top: 4px !important; padding-bottom: 4px !important; }
+                .px-1 { padding-left: 2px !important; padding-right: 2px !important; }
+                .px-2 { padding-left: 4px !important; padding-right: 4px !important; }
               </style>
             </head>
             <body>
@@ -75,7 +116,7 @@ export default function PreviewPane({
             </body>
           </html>
         `}
-        className="w-full h-[800px] border-0"
+        className="w-full aspect-[8.5/11] border-0"
         title={`${title} Preview`}
       />
       
