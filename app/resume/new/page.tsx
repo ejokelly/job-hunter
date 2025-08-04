@@ -819,7 +819,7 @@ Include role title, company, requirements, responsibilities, and qualifications 
                         </>
                       ) : (
                         <>
-                          Generate Resume & Cover Letter
+                          Generate Resume
                         </>
                       )}
                     </ActionButton>
