@@ -4,7 +4,7 @@
 .theme-bg-primary { background-color: #ffffff; }
 .theme-bg-secondary { background-color: #f9fafb; }
 .theme-bg-tertiary { background-color: #f3f4f6; }
-.theme-bg-gradient { background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); }
+.theme-bg-gradient { background: #f8f8f0; }
 
 .theme-text-primary { color: #111827; }
 .theme-text-secondary { color: #374151; }
