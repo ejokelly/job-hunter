@@ -5,6 +5,7 @@ import { Upload } from 'lucide-react';
 import Image from 'next/image';
 // Using custom auth system instead of next-auth
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import Header from '@/components/header';
@@ -87,6 +88,7 @@ export default function Home() {
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('skill_analysis_started');
     setIsAnalyzing(true);
     try {
       const response = await fetch('/api/analyze-skills', {
@@ -100,6 +102,10 @@ export default function Home() {
       if (response.ok) {
         const report = await response.json();
         setSkillGapReport(report);
+        posthog.capture('skill_analysis_completed', {
+          missing_skills_count: report.missingSkills?.length || 0,
+          matching_skills_count: report.matchingSkills?.length || 0
+        });
       } else if (response.status === 429) {
         // Subscription limit exceeded - show upgrade modal
         const errorData = await response.json();
@@ -123,6 +129,7 @@ export default function Home() {
   };
 
   const handleAddSkill = async (skill: string) => {
+    posthog.capture('skill_added', { skill: skill });
     // Optimistically update the UI immediately
     if (skillGapReport) {
       setSkillGapReport({
@@ -168,6 +175,7 @@ export default function Home() {
   const handleGenerate = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('resume_generation_started');
     setIsGenerating(true);
     try {
       // Generate both resume and cover letter previews in parallel
@@ -194,6 +202,10 @@ export default function Home() {
         setPreviewData(resumeResult);
         setCoverLetterData(coverLetterResult);
         setShowPreview(true);
+        posthog.capture('resume_generation_completed', {
+          has_resume: !!resumeResult,
+          has_cover_letter: !!coverLetterResult
+        });
       } else {
         // Check for rate limit errors
         if (resumeResponse.status === 429) {
@@ -234,6 +246,7 @@ export default function Home() {
   const handleDownloadResume = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('resume_download_started');
     setIsGenerating(true);
     try {
       const response = await fetch('/api/generate-resume', {
@@ -254,6 +267,10 @@ export default function Home() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        posthog.capture('resume_download_completed', {
+          file_type: 'pdf',
+          download_method: 'generated'
+        });
       } else if (response.status === 429) {
         const errorData = await response.json();
         setLimitInfo({ 
@@ -278,6 +295,7 @@ export default function Home() {
   const handleDownloadCoverLetter = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('cover_letter_download_started');
     setIsGeneratingCoverLetter(true);
     try {
       const response = await fetch('/api/generate-cover-letter', {
@@ -298,6 +316,10 @@ export default function Home() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        posthog.capture('cover_letter_download_completed', {
+          file_type: 'pdf',
+          download_method: 'generated'
+        });
       } else if (response.status === 429) {
         const errorData = await response.json();
         setLimitInfo({ 
@@ -322,6 +344,7 @@ export default function Home() {
   const handleRegenerateResume = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('resume_regeneration_started');
     setIsRegeneratingResume(true);
     try {
       const response = await fetch('/api/preview-resume', {
@@ -335,6 +358,7 @@ export default function Home() {
       if (response.ok) {
         const result = await response.json();
         setPreviewData(result);
+        posthog.capture('resume_regeneration_completed');
       }
     } catch (error) {
       console.error('Error regenerating resume:', error);
@@ -346,6 +370,7 @@ export default function Home() {
   const handleRegenerateCoverLetter = async () => {
     if (!jobDescription.trim()) return;
     
+    posthog.capture('cover_letter_regeneration_started');
     setIsRegeneratingCoverLetter(true);
     try {
       const response = await fetch('/api/preview-cover-letter', {
@@ -359,6 +384,7 @@ export default function Home() {
       if (response.ok) {
         const result = await response.json();
         setCoverLetterData(result);
+        posthog.capture('cover_letter_regeneration_completed');
       }
     } catch (error) {
       console.error('Error regenerating cover letter:', error);
@@ -368,6 +394,7 @@ export default function Home() {
   };
 
   const handleBack = () => {
+    posthog.capture('back_button_clicked');
     setShowPreview(false);
     setPreviewData(null);
     setCoverLetterData(null);
@@ -415,6 +442,7 @@ export default function Home() {
   const handleSendCode = async () => {
     if (!signInEmail.trim()) return;
     
+    posthog.capture('auth_code_requested', { email: signInEmail });
     setIsSigningIn(true);
     try {
       const response = await fetch('/api/auth/send-code', {
@@ -430,6 +458,7 @@ export default function Home() {
       if (response.ok) {
         console.log('Verification code sent successfully');
         setCodeSent(true);
+        posthog.capture('auth_code_sent', { email: signInEmail });
       } else {
         const errorData = await response.json();
         console.error('Error sending code:', errorData);
@@ -461,6 +490,11 @@ export default function Home() {
         const data = await response.json();
         console.log('Code verified successfully, user signed in');
         setSession(data.user);
+        posthog.capture('user_signed_in', { 
+          email: signInEmail,
+          user_id: data.user?.id 
+        });
+        posthog.identify(data.user?.id, { email: signInEmail });
         // Reset form state
         setCodeSent(false);
         setSignInEmail('');
@@ -625,6 +659,7 @@ export default function Home() {
                         <div className="flex gap-2">
                           <ActionButton
                             onClick={() => {
+                              posthog.capture('try_different_email_clicked');
                               setCodeSent(false);
                               setVerificationCode('');
                             }}
@@ -634,7 +669,10 @@ export default function Home() {
                             Try Different Email
                           </ActionButton>
                           <ActionButton
-                            onClick={handleSendCode}
+                            onClick={() => {
+                              posthog.capture('send_new_code_clicked');
+                              handleSendCode();
+                            }}
                             variant="ghost"
                             className="flex-1 py-2 justify-center text-sm"
                             busy={isSigningIn}
@@ -732,6 +770,7 @@ export default function Home() {
               <div className="flex justify-center mb-20">
                 <ActionButton
                   onClick={async () => {
+                    posthog.capture('start_building_resume_clicked');
                     // Check subscription status and pass it to the next page
                     if (session?.id) {
                       try {

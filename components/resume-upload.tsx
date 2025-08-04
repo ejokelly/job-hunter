@@ -5,6 +5,7 @@ import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
 import ActionButton from './action-button';
 import ThreeDotsLoader from './three-dots-loader';
 import Brand from './brand';
+import posthog from 'posthog-js';
 
 interface ResumeUploadProps {
   onUploadSuccess: (userData: { userId: string; email: string; name: string; message: string; resumeId: string; sessionToken: string; jwtToken: string; emailVerified: boolean }) => void;
@@ -44,6 +45,11 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
       setStatusMessage('');
       setIsFlipped(true);
       onFileSelected?.();
+      // Track file drop event
+      posthog.capture('resume_file_dropped', {
+        file_size: pdfFile.size,
+        file_name: pdfFile.name
+      });
       // Auto-parse on drop
       uploadAndParse(pdfFile);
     } else {
@@ -62,6 +68,11 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         setStatusMessage('');
         setIsFlipped(true);
         onFileSelected?.();
+        // Track file select event
+        posthog.capture('resume_file_selected', {
+          file_size: file.size,
+          file_name: file.name
+        });
         // Auto-parse on file select
         uploadAndParse(file);
       } else {
@@ -94,6 +105,12 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         console.log('🚀🚀🚀 CALLING onUploadSuccess!!!');
         setUploadStatus('success');
         setStatusMessage('Resume uploaded successfully! Redirecting...');
+        // Track successful upload
+        posthog.capture('resume_upload_success', {
+          user_id: result.userId,
+          resume_id: result.resumeId,
+          email_verified: result.emailVerified
+        });
         // Don't flip back, keep processing state and redirect immediately
         onUploadSuccess({
           userId: result.userId,
@@ -110,9 +127,18 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         setIsFlipped(false); // Reset flip state so user can see error message
         // Handle specific 400 error for corrupted resumes
         if (response.status === 400) {
+          posthog.capture('resume_upload_error', {
+            error_type: 'corrupted_file',
+            status_code: response.status
+          });
           setStatusMessage('The resume was corrupted and cannot be used. Try another.');
           onUploadError('The resume was corrupted and cannot be used. Try another.');
         } else {
+          posthog.capture('resume_upload_error', {
+            error_type: 'parsing_failed',
+            status_code: response.status,
+            error_message: result.error
+          });
           setStatusMessage(result.error || 'Failed to parse resume');
           onUploadError(result.error || 'Failed to parse resume');
         }

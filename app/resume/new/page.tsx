@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
@@ -292,6 +293,9 @@ export default function NewResumePage() {
   const handleGenerateCoverLetter = async () => {
     if (!jobDescription.trim()) return;
 
+    posthog.capture('cover_letter_generation_started', {
+      is_first_generation: !hasGeneratedCoverLetter
+    });
     setIsGeneratingCoverLetter(true);
     try {
       const response = await fetch('/api/preview-cover-letter', {
@@ -310,6 +314,9 @@ export default function NewResumePage() {
         setCoverLetterData(coverLetterResult);
         setHasGeneratedCoverLetter(true);
         setActiveTab('cover-letter'); // Switch to cover letter tab on mobile
+        posthog.capture('cover_letter_generation_completed', {
+          is_first_generation: !hasGeneratedCoverLetter
+        });
       } else if (response.status === 429) {
         // Subscription limit exceeded
         const errorData = await response.json();
@@ -390,6 +397,7 @@ export default function NewResumePage() {
   const handleRegenerateResume = async () => {
     if (!jobDescription.trim()) return;
 
+    posthog.capture('resume_regeneration_started');
     setIsRegeneratingResume(true);
     try {
       const response = await fetch('/api/preview-resume', {
@@ -403,6 +411,7 @@ export default function NewResumePage() {
       if (response.ok) {
         const result = await response.json();
         setPreviewData(result);
+        posthog.capture('resume_regeneration_completed');
       }
     } catch (error) {
       console.error('Error regenerating resume:', error);
@@ -414,6 +423,7 @@ export default function NewResumePage() {
   const handleRegenerateCoverLetter = async () => {
     if (!jobDescription.trim()) return;
 
+    posthog.capture('cover_letter_regeneration_started');
     setIsRegeneratingCoverLetter(true);
     try {
       const response = await fetch('/api/preview-cover-letter', {
@@ -427,6 +437,7 @@ export default function NewResumePage() {
       if (response.ok) {
         const result = await response.json();
         setCoverLetterData(result);
+        posthog.capture('cover_letter_regeneration_completed');
       }
     } catch (error) {
       console.error('Error regenerating cover letter:', error);
