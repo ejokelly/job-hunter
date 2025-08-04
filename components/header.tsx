@@ -5,6 +5,7 @@ import { useTheme } from './theme-provider';
 import { useState, useEffect } from 'react';
 import ActionButton from './action-button';
 import Brand from './brand';
+import posthog from 'posthog-js';
 
 interface HeaderProps {
   title?: string;
@@ -57,6 +58,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
   }, [session])
 
   const handleSignOut = async () => {
+    posthog.capture('user_signed_out');
     try {
       await fetch('/api/auth/signout', { method: 'POST' })
       setSession(null)
@@ -90,7 +92,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
             {/* Theme Toggle - Center */}
             <div className="flex items-center theme-bg-tertiary rounded-full p-1">
               <button
-                onClick={() => theme === 'dark' && toggleTheme()}
+                onClick={() => {
+                  if (theme === 'dark') {
+                    posthog.capture('theme_toggle_clicked', { from: 'dark', to: 'light' });
+                    toggleTheme();
+                  }
+                }}
                 className={`p-2 rounded-full transition-colors ${
                   theme === 'light' 
                     ? 'theme-bg-primary shadow-sm text-yellow-500' 
@@ -100,7 +107,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                 <Sun className="w-4 h-4" />
               </button>
               <button
-                onClick={() => theme === 'light' && toggleTheme()}
+                onClick={() => {
+                  if (theme === 'light') {
+                    posthog.capture('theme_toggle_clicked', { from: 'light', to: 'dark' });
+                    toggleTheme();
+                  }
+                }}
                 className={`p-2 rounded-full transition-colors ${
                   theme === 'dark' 
                     ? 'theme-bg-primary shadow-sm text-blue-400' 
@@ -117,7 +129,10 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
             {session && (
               <>
                 <ActionButton
-                  onClick={() => window.location.href = '/resume/new'}
+                  onClick={() => {
+                    posthog.capture('header_menu_clicked', { item: 'new_resume' });
+                    window.location.href = '/resume/new';
+                  }}
                   variant="ghost"
                   className="gap-2 text-sm"
                 >
@@ -125,7 +140,10 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                   New Resume
                 </ActionButton>
                 <ActionButton
-                  onClick={() => window.location.href = '/account'}
+                  onClick={() => {
+                    posthog.capture('header_menu_clicked', { item: 'account' });
+                    window.location.href = '/account';
+                  }}
                   variant="ghost"
                   className="gap-2 text-sm"
                 >
@@ -174,7 +192,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
               <div className="flex items-center justify-center">
                 <div className="flex items-center theme-bg-tertiary rounded-full p-1">
                   <button
-                    onClick={() => theme === 'dark' && toggleTheme()}
+                    onClick={() => {
+                      if (theme === 'dark') {
+                        posthog.capture('mobile_theme_toggle_clicked', { from: 'dark', to: 'light' });
+                        toggleTheme();
+                      }
+                    }}
                     className={`p-2 rounded-full transition-colors ${
                       theme === 'light' 
                         ? 'theme-bg-primary shadow-sm text-yellow-500' 
@@ -184,7 +207,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                     <Sun className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => theme === 'light' && toggleTheme()}
+                    onClick={() => {
+                      if (theme === 'light') {
+                        posthog.capture('mobile_theme_toggle_clicked', { from: 'light', to: 'dark' });
+                        toggleTheme();
+                      }
+                    }}
                     className={`p-2 rounded-full transition-colors ${
                       theme === 'dark' 
                         ? 'theme-bg-primary shadow-sm text-blue-400' 
@@ -203,6 +231,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                 <>
                   <ActionButton
                     onClick={() => {
+                      posthog.capture('mobile_menu_clicked', { item: 'account' });
                       setIsMobileMenuOpen(false);
                       window.location.href = '/account';
                     }}
@@ -214,6 +243,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                   </ActionButton>
                   <ActionButton
                     onClick={() => {
+                      posthog.capture('mobile_menu_clicked', { item: 'sign_out' });
                       setIsMobileMenuOpen(false);
                       handleSignOut();
                     }}

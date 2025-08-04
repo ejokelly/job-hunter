@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import posthog from 'posthog-js';
 
 type Theme = 'light' | 'dark';
 
@@ -44,7 +45,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, mounted]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    posthog.capture('theme_switched', {
+      from_theme: theme,
+      to_theme: newTheme
+    });
   };
 
   if (!mounted) {

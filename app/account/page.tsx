@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Crown, Calendar, FileText, CreditCard, AlertTriangle, Palette } from 'lucide-react';
+import posthog from 'posthog-js';
 import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import PageContainer from '@/components/page-container';
@@ -93,12 +94,22 @@ export default function AccountPage() {
 
   // Save accent color when it changes
   const handleAccentColorChange = (color: string) => {
+    const previousColor = accentColor;
     setAccentColor(color);
     document.documentElement.style.setProperty('--accent-color', color);
     localStorage.setItem('accentColor', color);
+    posthog.capture('accent_color_changed', {
+      from_color: previousColor,
+      to_color: color
+    });
   };
 
   const handleUpgrade = async (stripePriceId: string) => {
+    posthog.capture('subscription_upgrade_initiated', {
+      price_id: stripePriceId,
+      current_status: subscriptionData?.subscriptionStatus,
+      upgrade_to: subscriptionData?.upgradeToTier
+    });
     try {
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
@@ -114,6 +125,10 @@ export default function AccountPage() {
       }
       
       if (url) {
+        posthog.capture('subscription_checkout_started', {
+          price_id: stripePriceId,
+          checkout_url: url
+        });
         window.location.href = url;
       }
     } catch (error) {
