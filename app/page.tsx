@@ -995,26 +995,31 @@ export default function Home() {
         <div className="theme-card rounded-lg p-8">
 
           <div className="space-y-6">
-            <div>
-              <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
-                Job Description
-              </label>
-              <textarea
-                id="jobDescription"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                disabled={skillGapReport !== null}
-                className={`w-full h-64 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none ${
-                  skillGapReport ? 'cursor-not-allowed' : ''
-                }`}
-                placeholder="Paste the job description here..."
-                spellCheck="false"
-              />
-            </div>
+            {!skillGapReport && (
+              <div>
+                <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
+                  Job Description
+                </label>
+                <textarea
+                  id="jobDescription"
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  className="w-full h-64 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                  placeholder="Paste the job description here..."
+                  spellCheck="false"
+                />
+              </div>
+            )}
 
             {skillGapReport && (
               <div className="theme-bg-tertiary p-6 rounded-lg mb-6">
                 <h3 className="text-lg font-semibold theme-text-primary mb-4">Skill Gap Analysis</h3>
+                
+                <div className="mb-6 p-4 theme-bg-secondary rounded-lg">
+                  <p className="theme-text-secondary text-sm leading-relaxed">
+                    We accumulate all the skills that hiring managers actually use in their posts. Select the ones that apply to you and we will add them to your profile. When generating your resume, we&apos;ll automatically select the closest matching skills from your profile that align with this specific job.
+                  </p>
+                </div>
                 
                 {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
                   <div className="mb-6">
