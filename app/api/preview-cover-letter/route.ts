@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCoverLetterHTML } from '@/lib/generation/cover-letter-html-generator';
-import { loadApplicantData } from '@/lib/data/data-loader';
+import { loadApplicantData } from '@/lib/data/api-data-loader';
 import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generateCoverLetterContent } from '@/lib/generation/cover-letter-generator';
 import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    // Load applicant data
-    const applicantData = loadApplicantData();
+    // Load applicant data from database
+    const applicantData = await loadApplicantData();
 
     // Extract job title and company name
     const jobDetails = await extractJobDetails(jobDescription);

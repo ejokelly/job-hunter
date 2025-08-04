@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData } from '@/lib/data/api-data-loader';
-import { getAllSkillsFlat } from '@/lib/data/data-loader';
+import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/api-data-loader';
 import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { getServerAuthSession } from '@/lib/auth/server-auth';
 import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
