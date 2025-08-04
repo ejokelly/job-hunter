@@ -74,7 +74,10 @@ export class SubscriptionManager {
             subscriptionStatus,
             monthlyCount,
             monthlyLimit: subscriptionStatus === 'free' ? parseInt(process.env.FREE_MONTHLY_LIMIT!) : parseInt(process.env.STARTER_MONTHLY_LIMIT!),
-            needsUpgrade: false
+            needsUpgrade: false,
+            upgradeToTier: null,
+            upgradePrice: null,
+            stripePriceId: null
           }
         }
 
@@ -90,7 +93,10 @@ export class SubscriptionManager {
             subscriptionStatus,
             monthlyCount,
             monthlyLimit: subscriptionStatus === 'free' ? parseInt(process.env.FREE_MONTHLY_LIMIT!) : parseInt(process.env.STARTER_MONTHLY_LIMIT!),
-            needsUpgrade: false
+            needsUpgrade: false,
+            upgradeToTier: null,
+            upgradePrice: null,
+            stripePriceId: null
           }
         }
 
@@ -193,7 +199,7 @@ export class SubscriptionManager {
     const currentPlan = pricingData.plans[currentTier as keyof typeof pricingData.plans];
     
     // Determine monthly limit and access
-    let monthlyLimit = currentPlan?.monthlyLimit || pricingData.plans.free.monthlyLimit;
+    const monthlyLimit = currentPlan?.monthlyLimit || pricingData.plans.free.monthlyLimit;
     let canCreateResume = true;
     
     if (monthlyLimit !== null) {
@@ -235,10 +241,10 @@ export class SubscriptionManager {
     return {
       canCreateResume,
       monthlyCount,
-      monthlyLimit,
+      monthlyLimit: monthlyLimit || 0,
       subscriptionStatus: currentTier,
       needsUpgrade: !canCreateResume,
-      upgradeToTier,
+      upgradeToTier: upgradeToTier as 'starter' | 'unlimited' | null,
       upgradePrice,
       stripePriceId,
       subscriptionExpires: user.subscriptionExpires,
