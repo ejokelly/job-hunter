@@ -9,6 +9,7 @@ import PageContainer from '@/components/page-container';
 import PreviewPane from '@/components/preview-pane';
 import SkillPill from '@/components/skill-pill';
 import { LimitExceededModal } from '@/components/subscription-limit-warning';
+import Footer from '@/components/footer';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -431,6 +432,7 @@ export default function NewResumePage() {
             />
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -643,6 +645,7 @@ Include role title, company, requirements, responsibilities, and qualifications 
           </div>
         </div>
       </PageContainer>
+      <Footer />
     </div>
   );
 }

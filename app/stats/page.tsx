@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Header from '@/components/header'
+import Footer from '@/components/footer'
 import { BarChart, Users, FileText, DollarSign, Zap, TrendingUp } from 'lucide-react'
 
 interface AdminStats {
@@ -103,6 +104,7 @@ export default function StatsPage() {
             </div>
           </div>
         </div>
+        <Footer />
       </div>
     )
   }
@@ -371,6 +373,7 @@ export default function StatsPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

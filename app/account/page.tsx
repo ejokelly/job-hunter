@@ -7,6 +7,7 @@ import Header from '@/components/header';
 import ActionButton from '@/components/action-button';
 import PageContainer from '@/components/page-container';
 import { useTheme } from '@/components/theme-provider';
+import Footer from '@/components/footer';
 
 interface SubscriptionData {
   canCreateResume: boolean;
@@ -376,6 +377,7 @@ export default function AccountPage() {
 
         </div>
       </PageContainer>
+      <Footer />
     </div>
   );
 }

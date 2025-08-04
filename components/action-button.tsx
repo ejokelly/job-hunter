@@ -17,14 +17,14 @@ export default function ActionButton({
   disabled = false,
   className = ''
 }: ActionButtonProps) {
-  const isDisabled = disabled || busy;
+  const isDisabled = disabled;
   
   // Special handling for skill variant
   if (variant === 'skill') {
     return (
       <button
         onClick={onClick}
-        disabled={isDisabled}
+        disabled={isDisabled || busy}
         className={`theme-btn-skill px-3 py-1 rounded-full text-sm transition-colors flex items-center gap-2 ${isDisabled ? 'theme-btn-disabled' : ''} ${className}`}
       >
         {busy && <Loader2 className="w-3 h-3 animate-spin" />}
@@ -45,7 +45,7 @@ export default function ActionButton({
   return (
     <button
       onClick={onClick}
-      disabled={isDisabled}
+      disabled={isDisabled || busy}
       className={`${baseClasses} ${variantClasses[variant]} ${isDisabled ? 'theme-btn-disabled' : ''} ${className}`}
     >
       {busy && <Loader2 className="w-4 h-4 animate-spin" />}

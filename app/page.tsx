@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import Header from '@/components/header';
+import Footer from '@/components/footer';
 import ResumeUpload from '@/components/resume-upload';
 import Brand from '@/components/brand';
 import SubscriptionLimitWarning, { LimitExceededModal } from '@/components/subscription-limit-warning';
