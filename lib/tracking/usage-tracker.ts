@@ -61,10 +61,13 @@ export class UsageTracker {
       'gpt-4': { input: 0.03, output: 0.06 },
       'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
       
-      // Anthropic Claude models
-      'claude-3-5-sonnet-20241022': { input: 0.003, output: 0.015 },
-      'claude-3-5-haiku-20241022': { input: 0.0008, output: 0.004 },
-      'claude-3-opus-20240229': { input: 0.015, output: 0.075 }
+      // Anthropic Claude models (official pricing - base input/output tokens)
+      'claude-3-5-sonnet-20241022': { input: 0.003, output: 0.015 }, // $3/MTok input, $15/MTok output
+      'claude-3-5-haiku-20241022': { input: 0.0008, output: 0.004 }, // $0.80/MTok input, $4/MTok output
+      'claude-3-opus-20240229': { input: 0.015, output: 0.075 }, // $15/MTok input, $75/MTok output
+      'claude-haiku-3': { input: 0.00025, output: 0.00125 }, // $0.25/MTok input, $1.25/MTok output
+      'claude-sonnet-4': { input: 0.003, output: 0.015 }, // $3/MTok input, $15/MTok output
+      'claude-opus-4': { input: 0.015, output: 0.075 } // $15/MTok input, $75/MTok output
     }
     
     const modelPricing = pricing[model as keyof typeof pricing] || pricing['claude-3-5-sonnet-20241022']

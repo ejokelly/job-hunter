@@ -9,6 +9,7 @@ import ThreeDotsLoader from '@/components/three-dots-loader';
 import Header from '@/components/header';
 import ResumeUpload from '@/components/resume-upload';
 import Brand from '@/components/brand';
+import SubscriptionLimitWarning, { LimitExceededModal } from '@/components/subscription-limit-warning';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -51,6 +52,17 @@ export default function Home() {
   const [hasFileSelected, setHasFileSelected] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifiedToken, setVerifiedToken] = useState<string | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    weeklyCount?: number
+    weeklyLimit?: number
+    monthlyCount?: number
+    monthlyLimit?: number
+    subscriptionStatus?: string
+    upgradeToTier?: string
+    upgradePrice?: number
+    stripePriceId?: string
+  } | null>(null);
 
   // Load session on component mount
   useEffect(() => {
@@ -86,6 +98,20 @@ export default function Home() {
       if (response.ok) {
         const report = await response.json();
         setSkillGapReport(report);
+      } else if (response.status === 429) {
+        // Subscription limit exceeded - show upgrade modal
+        const errorData = await response.json();
+        setLimitInfo({ 
+          weeklyCount: errorData.weeklyCount || 0,
+          weeklyLimit: errorData.weeklyLimit || 15,
+          monthlyCount: errorData.monthlyCount || 0,
+          monthlyLimit: errorData.monthlyLimit || 100,
+          subscriptionStatus: errorData.subscriptionStatus || 'free',
+          upgradeToTier: errorData.upgradeToTier,
+          upgradePrice: errorData.upgradePrice,
+          stripePriceId: errorData.stripePriceId
+        });
+        setShowLimitModal(true);
       }
     } catch (error) {
       console.error('Error analyzing skills:', error);
@@ -166,6 +192,35 @@ export default function Home() {
         setPreviewData(resumeResult);
         setCoverLetterData(coverLetterResult);
         setShowPreview(true);
+      } else {
+        // Check for rate limit errors
+        if (resumeResponse.status === 429) {
+          const errorData = await resumeResponse.json();
+          setLimitInfo({ 
+            weeklyCount: errorData.weeklyCount || 0,
+            weeklyLimit: errorData.weeklyLimit || 15,
+            monthlyCount: errorData.monthlyCount || 0,
+            monthlyLimit: errorData.monthlyLimit || 100,
+            subscriptionStatus: errorData.subscriptionStatus || 'free',
+            upgradeToTier: errorData.upgradeToTier,
+            upgradePrice: errorData.upgradePrice,
+            stripePriceId: errorData.stripePriceId
+          });
+          setShowLimitModal(true);
+        } else if (coverLetterResponse.status === 429) {
+          const errorData = await coverLetterResponse.json();
+          setLimitInfo({ 
+            weeklyCount: errorData.weeklyCount || 0,
+            weeklyLimit: errorData.weeklyLimit || 15,
+            monthlyCount: errorData.monthlyCount || 0,
+            monthlyLimit: errorData.monthlyLimit || 100,
+            subscriptionStatus: errorData.subscriptionStatus || 'free',
+            upgradeToTier: errorData.upgradeToTier,
+            upgradePrice: errorData.upgradePrice,
+            stripePriceId: errorData.stripePriceId
+          });
+          setShowLimitModal(true);
+        }
       }
     } catch (error) {
       console.error('Error generating preview:', error);
@@ -197,6 +252,19 @@ export default function Home() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else if (response.status === 429) {
+        const errorData = await response.json();
+        setLimitInfo({ 
+          weeklyCount: errorData.weeklyCount || 0,
+          weeklyLimit: errorData.weeklyLimit || 15,
+          monthlyCount: errorData.monthlyCount || 0,
+          monthlyLimit: errorData.monthlyLimit || 100,
+          subscriptionStatus: errorData.subscriptionStatus || 'free',
+          upgradeToTier: errorData.upgradeToTier,
+          upgradePrice: errorData.upgradePrice,
+          stripePriceId: errorData.stripePriceId
+        });
+        setShowLimitModal(true);
       }
     } catch (error) {
       console.error('Error generating resume:', error);
@@ -228,6 +296,19 @@ export default function Home() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else if (response.status === 429) {
+        const errorData = await response.json();
+        setLimitInfo({ 
+          weeklyCount: errorData.weeklyCount || 0,
+          weeklyLimit: errorData.weeklyLimit || 15,
+          monthlyCount: errorData.monthlyCount || 0,
+          monthlyLimit: errorData.monthlyLimit || 100,
+          subscriptionStatus: errorData.subscriptionStatus || 'free',
+          upgradeToTier: errorData.upgradeToTier,
+          upgradePrice: errorData.upgradePrice,
+          stripePriceId: errorData.stripePriceId
+        });
+        setShowLimitModal(true);
       }
     } catch (error) {
       console.error('Error generating cover letter:', error);
@@ -611,13 +692,29 @@ export default function Home() {
               <h1 className="text-5xl md:text-6xl font-bold theme-text-primary mb-6 leading-tight">
                 AI-Powered Resume Builder
               </h1>
-              <p className="text-xl theme-text-secondary mb-20 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl theme-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
                 Create tailored resumes and cover letters using AI that match job descriptions perfectly. Upload your resume and let our AI do the rest.
               </p>
               
+              
               <div className="flex justify-center mb-20">
                 <ActionButton
-                  onClick={() => router.push('/resume/new')}
+                  onClick={async () => {
+                    // Check subscription status and pass it to the next page
+                    if (session?.id) {
+                      try {
+                        const response = await fetch('/api/subscription/status')
+                        if (response.ok) {
+                          const subscriptionData = await response.json()
+                          // Store in sessionStorage to pass to next page
+                          sessionStorage.setItem('subscriptionData', JSON.stringify(subscriptionData))
+                        }
+                      } catch (error) {
+                        console.error('Error fetching subscription status:', error)
+                      }
+                    }
+                    router.push('/resume/new')
+                  }}
                   className="text-xl py-6 px-12 text-white theme-bg-accent hover:opacity-90 rounded-lg font-semibold shadow-lg"
                 >
                   Start Building Your Resume
@@ -908,6 +1005,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Limit Exceeded Modal */}
+      {limitInfo && (
+        <LimitExceededModal
+          isOpen={showLimitModal}
+          onClose={() => setShowLimitModal(false)}
+          limitData={limitInfo}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import IconButton from './icon-button';
+import RegenerateButton from './regenerate-button';
 
 interface PreviewPaneProps {
   title: string;
@@ -39,15 +40,17 @@ export default function PreviewPane({
   }
 
   return (
-    <div className="theme-card rounded-lg overflow-hidden">
+    <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating ? 'opacity-50' : 'opacity-100'}`}>
       <div className="theme-bg-tertiary px-4 py-1 border-b theme-border-light flex justify-end items-center">
         <div className="flex gap-1">
           <IconButton onClick={onDownload} busy={isDownloading} disabled={isRegenerating}>
             ⬇
           </IconButton>
-          <IconButton onClick={onRegenerate} busy={isRegenerating} disabled={isDownloading}>
-            ↻
-          </IconButton>
+          <RegenerateButton 
+            onClick={onRegenerate} 
+            isRegenerating={isRegenerating} 
+            disabled={isDownloading} 
+          />
         </div>
       </div>
       <iframe

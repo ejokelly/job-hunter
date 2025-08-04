@@ -6,6 +6,7 @@ import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generatePDFFilename } from '@/lib/utils/filename-utils';
 import { Logger } from '@/lib/utils/logger';
 import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/lib/ai/prompt-templates';
+import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,26 @@ export async function POST(request: NextRequest) {
     // Get session information for usage tracking
     const sessionId = TrackedAnthropic.getSessionId(request);
     const userId = await TrackedAnthropic.getUserId(sessionId);
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Check monthly resume limit
+    const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(userId);
+    
+    if (!subscriptionStatus.canCreateResume) {
+      return NextResponse.json({ 
+        error: 'Monthly resume limit exceeded',
+        monthlyCount: subscriptionStatus.monthlyCount,
+        monthlyLimit: subscriptionStatus.monthlyLimit,
+        subscriptionStatus: subscriptionStatus.subscriptionStatus,
+        needsUpgrade: subscriptionStatus.needsUpgrade,
+        upgradeToTier: subscriptionStatus.upgradeToTier,
+        upgradePrice: subscriptionStatus.upgradePrice,
+        stripePriceId: subscriptionStatus.stripePriceId
+      }, { status: 429 });
+    }
 
     // Load applicant data
     const applicantData = loadApplicantData();

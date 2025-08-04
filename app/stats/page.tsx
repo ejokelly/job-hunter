@@ -66,7 +66,14 @@ export default function StatsPage() {
       }
     }
 
+    // Initial fetch
     fetchStats()
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchStats, 30000)
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
@@ -179,12 +186,8 @@ export default function StatsPage() {
           </div>
 
           <div className="theme-card rounded-lg p-6">
-            <h3 className="text-lg font-semibold theme-text-primary mb-4">Cover Letters</h3>
+            <h3 className="text-lg font-semibold theme-text-primary mb-4">Cover Letter Generation</h3>
             <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="theme-text-secondary">Total generated:</span>
-                <span className="font-medium theme-text-primary">{formatNumber(stats.coverLetters.allTime)}</span>
-              </div>
               <div className="flex justify-between">
                 <span className="theme-text-secondary">Avg tokens per letter:</span>
                 <span className="font-medium theme-text-primary">{formatNumber(stats.coverLetters.avgTokensPerLetter)}</span>
@@ -200,19 +203,20 @@ export default function StatsPage() {
             <h3 className="text-lg font-semibold theme-text-primary mb-4">Overall Metrics</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="theme-text-secondary">Avg tokens per call:</span>
-                <span className="font-medium theme-text-primary">{Math.round(stats.averages.tokensPerCall)}</span>
+                <span className="theme-text-secondary">Avg tokens (resume + cover letter):</span>
+                <span className="font-medium theme-text-primary">
+                  {formatNumber(stats.resumes.avgTokensPerResume + stats.coverLetters.avgTokensPerLetter)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="theme-text-secondary">Avg cost per call:</span>
-                <span className="font-medium theme-text-primary">{formatCurrency(stats.averages.costPerCall)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="theme-text-secondary">Success rate:</span>
-                <span className="font-medium theme-text-primary">{(stats.averages.successRate * 100).toFixed(1)}%</span>
+                <span className="theme-text-secondary">Avg cost (resume + cover letter):</span>
+                <span className="font-medium theme-text-primary">
+                  {formatCurrency(stats.resumes.avgCostPerResume + stats.coverLetters.avgCostPerLetter)}
+                </span>
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Operation Breakdown */}

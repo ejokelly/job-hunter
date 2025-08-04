@@ -7,6 +7,7 @@ import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import PageContainer from '@/components/page-container';
 import PreviewPane from '@/components/preview-pane';
+import { LimitExceededModal } from '@/components/subscription-limit-warning';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -41,6 +42,9 @@ export default function NewResumePage() {
   const [coverLetterData, setCoverLetterData] = useState<PreviewData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [limitData, setLimitData] = useState<any>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
 
   // Load session on component mount
   useEffect(() => {
@@ -95,6 +99,61 @@ export default function NewResumePage() {
     checkTermsAgreement();
   }, []);
 
+  // Check subscription status on component mount
+  useEffect(() => {
+    async function checkSubscriptionStatus() {
+      if (!session?.id) return;
+      
+      // First check if subscription data was passed from homepage (but skip if just subscribed)
+      const justSubscribed = new URLSearchParams(window.location.search).get('success') === 'true';
+      const cachedData = sessionStorage.getItem('subscriptionData');
+      
+      if (cachedData && !justSubscribed) {
+        try {
+          const status = JSON.parse(cachedData);
+          setSubscriptionStatus(status);
+          
+          // If user cannot create resume, show modal immediately
+          if (!status.canCreateResume) {
+            setLimitData(status);
+            setShowLimitModal(true);
+          }
+          // Clear the cached data after use
+          sessionStorage.removeItem('subscriptionData');
+          return;
+        } catch (error) {
+          console.error('Error parsing cached subscription data:', error);
+        }
+      }
+      
+      // Clear cached data if user just subscribed
+      if (justSubscribed) {
+        sessionStorage.removeItem('subscriptionData');
+      }
+      
+      // Fallback to API call if no cached data
+      try {
+        const response = await fetch('/api/subscription/status');
+        if (response.ok) {
+          const status = await response.json();
+          setSubscriptionStatus(status);
+          
+          // If user cannot create resume, show modal immediately
+          if (!status.canCreateResume) {
+            setLimitData(status);
+            setShowLimitModal(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+      }
+    }
+
+    if (session) {
+      checkSubscriptionStatus();
+    }
+  }, [session]);
+
   // Note: Email verification is handled by the verify page flow
   // Users only reach this page after verification is complete
 
@@ -115,6 +174,13 @@ export default function NewResumePage() {
       if (response.ok) {
         const report = await response.json();
         setSkillGapReport(report);
+      } else if (response.status === 429) {
+        // Subscription limit exceeded
+        const errorData = await response.json();
+        setLimitData(errorData);
+        setShowLimitModal(true);
+      } else {
+        console.error('Error analyzing skills:', response.statusText);
       }
     } catch (error) {
       console.error('Error analyzing skills:', error);
@@ -275,7 +341,7 @@ export default function NewResumePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ jobDescription }),
+        body: JSON.stringify({ jobDescription, isRegeneration: true }),
       });
 
       if (response.ok) {
@@ -299,7 +365,7 @@ export default function NewResumePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ jobDescription }),
+        body: JSON.stringify({ jobDescription, isRegeneration: true }),
       });
 
       if (response.ok) {
@@ -334,14 +400,6 @@ export default function NewResumePage() {
 
         {/* Preview Content */}
         <div className="max-w-7xl mx-auto p-6">
-          <div className="flex items-center justify-start mb-6">
-            <ActionButton
-              onClick={handleBack}
-              variant="ghost"
-            >
-              ← Back
-            </ActionButton>
-          </div>
           <div className="grid grid-cols-2 gap-6">
             <PreviewPane
               title="Resume"
@@ -374,13 +432,6 @@ export default function NewResumePage() {
     <div className="min-h-screen theme-bg-gradient">
       <Header />
       <PageContainer>
-        <ActionButton
-          onClick={() => router.push('/')}
-          variant="ghost"
-          className="mb-6"
-        >
-          ← Back
-        </ActionButton>
         <div className="theme-card rounded-lg p-8">
           <div className="space-y-6">
             <div>
@@ -516,6 +567,13 @@ export default function NewResumePage() {
           </div>
         </div>
       </PageContainer>
+      
+      {/* Subscription Limit Modal */}
+      <LimitExceededModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        limitData={limitData || {}}
+      />
     </div>
   );
 }

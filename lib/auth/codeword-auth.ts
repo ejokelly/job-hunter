@@ -39,6 +39,14 @@ export interface User {
   email: string
   name?: string
   emailVerified: boolean
+  subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled'
+  subscriptionId?: string
+  subscriptionExpires?: Date
+  weeklyResumeCount: number
+  monthlyResumeCount: number
+  lastResumeDate: Date
+  lastWeeklyReset: Date
+  lastMonthlyReset: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -137,6 +145,12 @@ export class CodewordAuth {
       const result = await db.collection('users').insertOne({
         email,
         emailVerified: true,
+        subscriptionStatus: 'free',
+        weeklyResumeCount: 0,
+        monthlyResumeCount: 0,
+        lastResumeDate: new Date('1970-01-01'), // Start with old date
+        lastWeeklyReset: new Date('1970-01-01'),
+        lastMonthlyReset: new Date('1970-01-01'),
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -145,6 +159,12 @@ export class CodewordAuth {
         _id: result.insertedId,
         email,
         emailVerified: true,
+        subscriptionStatus: 'free',
+        weeklyResumeCount: 0,
+        monthlyResumeCount: 0,
+        lastResumeDate: new Date('1970-01-01'),
+        lastWeeklyReset: new Date('1970-01-01'),
+        lastMonthlyReset: new Date('1970-01-01'),
         createdAt: new Date(),
         updatedAt: new Date()
       }

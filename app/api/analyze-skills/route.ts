@@ -3,6 +3,7 @@ import { loadApplicantData } from '@/lib/data/api-data-loader';
 import { getAllSkillsFlat } from '@/lib/data/data-loader';
 import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { getServerAuthSession } from '@/lib/auth/server-auth';
+import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +24,32 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       console.error('🔍 No session found in analyze-skills');
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Check subscription limits BEFORE making API call
+    // Create a session ID for this generation workflow
+    const generationSessionId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🔍 About to check subscription limits for user:', session.user.id, 'session:', generationSessionId);
+    const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(session.user.id, generationSessionId);
+    
+    console.log('🔍 Subscription status result:', {
+      canCreateResume: subscriptionStatus.canCreateResume,
+      monthlyCount: subscriptionStatus.monthlyCount,
+      monthlyLimit: subscriptionStatus.monthlyLimit,
+      needsUpgrade: subscriptionStatus.needsUpgrade
+    });
+    
+    if (!subscriptionStatus.canCreateResume) {
+      return NextResponse.json({ 
+        error: `Resume limit exceeded`,
+        monthlyCount: subscriptionStatus.monthlyCount,
+        monthlyLimit: subscriptionStatus.monthlyLimit,
+        subscriptionStatus: subscriptionStatus.subscriptionStatus,
+        needsUpgrade: subscriptionStatus.needsUpgrade,
+        upgradeToTier: subscriptionStatus.upgradeToTier,
+        upgradePrice: subscriptionStatus.upgradePrice,
+        stripePriceId: subscriptionStatus.stripePriceId
+      }, { status: 429 });
     }
 
     // Load applicant data using session

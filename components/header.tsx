@@ -1,6 +1,6 @@
 'use client';
 
-import { Sun, Moon, LogOut } from 'lucide-react';
+import { Sun, Moon, LogOut, User, FileText } from 'lucide-react';
 import { useTheme } from './theme-provider';
 import { useState, useEffect } from 'react';
 import ActionButton from './action-button';
@@ -112,16 +112,34 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
         <div className="flex items-center gap-4">
           {actions}
           
-          {/* Sign Out - Always rightmost */}
+          {/* New Resume, Account and Sign Out */}
           {session && (
-            <ActionButton
-              onClick={handleSignOut}
-              variant="ghost"
-              className="gap-2 text-sm"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </ActionButton>
+            <>
+              <ActionButton
+                onClick={() => window.location.href = '/resume/new'}
+                variant="ghost"
+                className="gap-2 text-sm"
+              >
+                <FileText className="w-4 h-4" />
+                New Resume
+              </ActionButton>
+              <ActionButton
+                onClick={() => window.location.href = '/account'}
+                variant="ghost"
+                className="gap-2 text-sm"
+              >
+                <User className="w-4 h-4" />
+                Account
+              </ActionButton>
+              <ActionButton
+                onClick={handleSignOut}
+                variant="ghost"
+                className="gap-2 text-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </ActionButton>
+            </>
           )}
         </div>
       </div>

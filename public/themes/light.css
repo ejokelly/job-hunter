@@ -15,11 +15,12 @@
 
 /* Button variants */
 .theme-btn-primary { 
-  background-color: #4f46e5 !important; 
+  background-color: var(--accent-color, #4f46e5) !important; 
   color: #ffffff !important; 
 }
 .theme-btn-primary:hover:not(:disabled) { 
-  background-color: #4338ca !important; 
+  background-color: var(--accent-color, #4338ca) !important; 
+  filter: brightness(0.9);
 }
 
 .theme-btn-secondary { 
@@ -76,7 +77,10 @@
 
 .theme-header { 
   background-color: #ffffff; 
-  border-color: #e5e7eb; 
+  border-color: #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 /* Skill tags */
@@ -98,6 +102,12 @@
 .theme-icon-secondary { color: #374151; }
 
 /* Accent color */
-.theme-accent { color: #3b82f6; }
-.theme-bg-accent { background-color: #3b82f6; }
-.theme-border-accent { border-color: #3b82f6; }
+.theme-accent { color: var(--accent-color, #3b82f6); }
+.theme-bg-accent { background-color: var(--accent-color, #3b82f6); }
+.theme-border-accent { border-color: var(--accent-color, #3b82f6); }
+.theme-text-accent { color: var(--accent-color, #3b82f6); }
+
+/* CSS Custom Properties */
+:root {
+  --accent-color: #3b82f6;
+}

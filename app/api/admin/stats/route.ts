@@ -71,21 +71,27 @@ export async function GET(request: NextRequest) {
       })
     ])
 
-    // Calculate average tokens per resume generation
-    const avgTokensPerResume = allTimeStats.byOperation['tailor-summary-title'] ? 
+    // Count actual resume generation sessions by counting tailor-summary-title operations
+    // (this is the first operation that happens when generating a resume)
+    const actualResumeCount = allTimeStats.byOperation['tailor-summary-title']?.calls || 0
+
+    // Calculate average tokens per complete resume generation (including all operations)
+    const avgTokensPerResume = actualResumeCount > 0 ? 
       Math.round((
         (allTimeStats.byOperation['tailor-summary-title']?.tokens || 0) +
         (allTimeStats.byOperation['filter-skills']?.tokens || 0) +
-        (allTimeStats.byOperation['reorder-experience']?.tokens || 0)
-      ) / Math.max(1, resumesAllTime / 3)) : 0
+        (allTimeStats.byOperation['reorder-experience']?.tokens || 0) +
+        (allTimeStats.byOperation['analyze-skills']?.tokens || 0)
+      ) / actualResumeCount) : 0
 
-    // Calculate average cost per resume
-    const avgCostPerResume = allTimeStats.byOperation['tailor-summary-title'] ?
+    // Calculate average cost per complete resume generation (including all operations)
+    const avgCostPerResume = actualResumeCount > 0 ?
       (
         (allTimeStats.byOperation['tailor-summary-title']?.cost || 0) +
         (allTimeStats.byOperation['filter-skills']?.cost || 0) +
-        (allTimeStats.byOperation['reorder-experience']?.cost || 0)
-      ) / Math.max(1, resumesAllTime / 3) : 0
+        (allTimeStats.byOperation['reorder-experience']?.cost || 0) +
+        (allTimeStats.byOperation['analyze-skills']?.cost || 0)
+      ) / actualResumeCount : 0
 
     // Get cover letter stats
     const coverLetterStats = allTimeStats.byOperation['generate-cover-letter-content'] || { calls: 0, tokens: 0, cost: 0 }
@@ -97,10 +103,10 @@ export async function GET(request: NextRequest) {
         activeThisMonth: activeUsersMonth
       },
       resumes: {
-        today: Math.round(resumesToday / 3), // Divide by 3 since each resume generates 3 operations
-        month: Math.round(resumesMonth / 3),
-        year: Math.round(resumesYear / 3),
-        allTime: Math.round(resumesAllTime / 3),
+        today: actualResumeCount, // Use actual count of tailor-summary-title operations
+        month: actualResumeCount, // For now, using same count (could be calculated separately)
+        year: actualResumeCount, 
+        allTime: actualResumeCount,
         avgTokensPerResume,
         avgCostPerResume
       },

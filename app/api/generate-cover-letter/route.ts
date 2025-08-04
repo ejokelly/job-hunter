@@ -5,6 +5,8 @@ import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generateCoverLetterContent } from '@/lib/generation/cover-letter-generator';
 import { generatePDFFilename } from '@/lib/utils/filename-utils';
 import { Logger } from '@/lib/utils/logger';
+import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +14,28 @@ export async function POST(request: NextRequest) {
 
     if (!jobDescription) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
+    }
+
+    // Check authentication
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Check monthly resume limit
+    const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(session.user.id);
+    
+    if (!subscriptionStatus.canCreateResume) {
+      return NextResponse.json({ 
+        error: 'Monthly resume limit exceeded',
+        monthlyCount: subscriptionStatus.monthlyCount,
+        monthlyLimit: subscriptionStatus.monthlyLimit,
+        subscriptionStatus: subscriptionStatus.subscriptionStatus,
+        needsUpgrade: subscriptionStatus.needsUpgrade,
+        upgradeToTier: subscriptionStatus.upgradeToTier,
+        upgradePrice: subscriptionStatus.upgradePrice,
+        stripePriceId: subscriptionStatus.stripePriceId
+      }, { status: 429 });
     }
 
     // Load applicant data
