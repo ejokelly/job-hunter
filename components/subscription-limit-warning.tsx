@@ -143,15 +143,15 @@ export default function SubscriptionLimitWarning({ className = '' }: Subscriptio
   }
 
   // Show info about remaining uses
-  if (status.dailyCount > 0) {
+  if (status.monthlyCount > 0) {
     return (
       <div className={`theme-card rounded-lg p-3 border-blue-200 bg-blue-50 dark:bg-blue-900/20 ${className}`}>
         <div className="flex items-center gap-3">
           <Check className="w-4 h-4 text-blue-600" />
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            {status.dailyCount}/{status.dailyLimit} daily resumes used
+            {status.monthlyCount}/{status.monthlyLimit} monthly resumes used
             <span className="ml-2 text-xs text-blue-600 dark:text-blue-300">
-              ({status.dailyLimit - status.dailyCount} remaining)
+              ({status.monthlyLimit - status.monthlyCount} remaining)
             </span>
           </p>
         </div>

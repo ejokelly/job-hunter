@@ -64,9 +64,51 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Extract text from PDF using pdf2json
-    const rawText = await extractTextFromPDF(buffer);
-    const cleanedText = cleanResumeText(rawText);
+    // Try to extract text from PDF - if that fails, use Anthropic to read it directly
+    console.log('🔍 About to extract text from PDF...');
+    let cleanedText = '';
+    
+    try {
+      const rawText = await extractTextFromPDF(buffer);
+      console.log('🔍 Raw text extracted, length:', rawText.length);
+      cleanedText = cleanResumeText(rawText);
+      console.log('🔍 Cleaned text length:', cleanedText.length);
+    } catch (pdfError) {
+      console.log('🔍 PDF extraction failed, trying Anthropic direct read...');
+      // Fallback: use Anthropic to read the PDF directly
+      const anthropic = new (await import('@anthropic-ai/sdk')).default({
+        apiKey: process.env.ANTHROPIC_API_KEY!,
+      });
+      
+      const message = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 4000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Extract all text content from this PDF resume. Return the raw text exactly as it appears.'
+            },
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: buffer.toString('base64')
+              }
+            }
+          ]
+        }]
+      });
+
+      if (message.content[0].type !== 'text') {
+        throw new Error('Failed to read PDF with Anthropic');
+      }
+      
+      cleanedText = message.content[0].text.trim();
+      console.log('🔍 Anthropic extracted text length:', cleanedText.length);
+    }
 
     // Validate extracted text
     if (cleanedText.length < 100) {
@@ -141,51 +183,7 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // If it's a new user, send verification email
-    if (!existingUser) {
-      console.log('🔍 Sending verification email to new user');
-      
-      try {
-        // Delete any existing verification tokens for this email
-        await db.collection('verification_tokens').deleteMany({
-          identifier: userEmail
-        });
-        
-        // Create new verification token
-        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-        
-        await db.collection('verification_tokens').insertOne({
-          identifier: userEmail,
-          token,
-          expires
-        });
-        
-        // Send email using Postmark
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}&email=${encodeURIComponent(userEmail)}`;
-        
-        const emailClient = new postmark.ServerClient(process.env.POSTMARK_API_KEY!);
-        await emailClient.sendEmail({
-          From: process.env.EMAIL_FROM!,
-          To: process.env.DEV_EMAIL_OVERRIDE || userEmail,
-          Subject: 'Verify your resume❤️ account',
-          HtmlBody: `
-            <h2>Welcome to resume❤️, ${resumeData.personalInfo.name}!</h2>
-            <p>Your resume has been successfully uploaded and parsed. To start customizing your resume for job applications, please verify your email address:</p>
-            <p><a href="${verificationUrl}" style="background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Verify Email & Get Started</a></p>
-            <p>This link will expire in 24 hours.</p>
-            <p>If you didn't create this account, you can safely ignore this email.</p>
-          `,
-          TextBody: `Welcome to resume❤️, ${resumeData.personalInfo.name}!\n\nYour resume has been successfully uploaded and parsed. To start customizing your resume for job applications, please verify your email address:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nIf you didn't create this account, you can safely ignore this email.`,
-          MessageStream: "outbound"
-        });
-        
-        console.log('🔍 Verification email sent to:', userEmail);
-        
-      } catch (error) {
-        console.error('🔍 Error sending verification email:', error);
-      }
-    }
+    // No email verification needed - users are auto-logged in
     
     console.log('🔍 User and resume created successfully');
 
@@ -198,7 +196,7 @@ export async function POST(request: NextRequest) {
       email: userEmail,
       name: resumeData.personalInfo.name,
       message: 'Resume uploaded successfully!',
-      emailVerified: existingUser ? !!existingUser.emailVerified : false
+      emailVerified: true
     };
 
     console.log('🚀 Sending response:', responseData);

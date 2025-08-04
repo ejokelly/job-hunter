@@ -135,8 +135,8 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
           ${isDragOver 
-            ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-950/20' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500'
+            ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10' 
+            : 'theme-border hover:border-[var(--accent-color)]/60'
           }
         `}
         onDragOver={handleDragOver}

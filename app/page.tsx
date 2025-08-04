@@ -385,10 +385,8 @@ export default function Home() {
     console.log('🔥🔥🔥 UPLOAD SUCCESS HANDLER CALLED!!! 🔥🔥🔥');
     console.log('🔥 Upload success, full data:', userData);
     
-    // Use dedicated session creation API
-    console.log('🔥 About to create session for:', userData.userId, userData.email);
+    // Create session so user stays logged in
     try {
-      console.log('🔥 Making request to /api/create-session...');
       const sessionResponse = await fetch('/api/create-session', {
         method: 'POST',
         headers: {
@@ -401,24 +399,14 @@ export default function Home() {
         }),
       });
 
-      console.log('🔥 Session response status:', sessionResponse.status);
-      const responseData = await sessionResponse.json();
-      console.log('🔥 Session response data:', responseData);
-
       if (sessionResponse.ok) {
-        console.log('🔥 Session created successfully!');
-        
-        // Check if cookie was actually set
-        setTimeout(() => {
-          console.log('🔥 All cookies after session creation:', document.cookie);
-          // Force page reload to pick up session
-          window.location.href = `/verify/${userData.resumeId}`;
-        }, 100);
+        // Redirect to resume builder page
+        window.location.href = `/resume/new`;
       } else {
-        console.error('🔥 Failed to create session:', responseData);
+        console.error('Failed to create session');
       }
     } catch (error) {
-      console.error('🔥 Error creating session:', error);
+      console.error('Error creating session:', error);
     }
   };
 
@@ -513,7 +501,7 @@ export default function Home() {
             </div>
 
             {/* Main Content - Side by side on desktop */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div className={`grid gap-8 lg:gap-12 ${hasFileSelected ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
               {/* Upload Section */}
               <div className="relative perspective-1000">
                 <div 

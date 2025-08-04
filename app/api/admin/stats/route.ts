@@ -96,6 +96,37 @@ export async function GET(request: NextRequest) {
     // Get cover letter stats
     const coverLetterStats = allTimeStats.byOperation['generate-cover-letter-content'] || { calls: 0, tokens: 0, cost: 0 }
 
+    // Get subscription stats
+    const [totalSubscriptions, activeSubscriptions, freeUsers, starterUsers, unlimitedUsers] = await Promise.all([
+      db.collection('users').countDocuments({ subscriptionStatus: { $ne: 'free' } }),
+      db.collection('users').countDocuments({ 
+        subscriptionStatus: { $in: ['starter', 'unlimited'] },
+        subscriptionExpires: { $gt: now }
+      }),
+      db.collection('users').countDocuments({ subscriptionStatus: 'free' }),
+      db.collection('users').countDocuments({ subscriptionStatus: 'starter' }),
+      db.collection('users').countDocuments({ subscriptionStatus: 'unlimited' })
+    ])
+
+    // Calculate subscription revenue based on actual plan prices
+    const starterMRR = starterUsers * 25 // $25/month (Starter Plan)
+    const unlimitedMRR = unlimitedUsers * 250 // $250/month (Unlimited Plan - if it exists)
+    const totalMRR = starterMRR + unlimitedMRR
+    const projectedARR = totalMRR * 12
+
+    // Debug logging
+    console.log('📊 Subscription Stats:', {
+      totalUsers,
+      freeUsers,
+      starterUsers,
+      unlimitedUsers,
+      totalSubscriptions,
+      activeSubscriptions,
+      starterMRR,
+      unlimitedMRR,
+      totalMRR
+    })
+
     const stats = {
       users: {
         total: totalUsers,
@@ -131,6 +162,21 @@ export async function GET(request: NextRequest) {
         tokensPerCall: allTimeStats.avgTokensPerCall,
         costPerCall: allTimeStats.avgCostPerCall,
         successRate: allTimeStats.successRate
+      },
+      subscriptions: {
+        total: totalSubscriptions,
+        active: activeSubscriptions,
+        free: freeUsers,
+        starter: starterUsers,
+        unlimited: unlimitedUsers,
+        conversionRate: totalUsers > 0 ? (totalSubscriptions / totalUsers * 100) : 0
+      },
+      revenue: {
+        mrr: totalMRR,
+        arr: projectedARR,
+        starterMRR,
+        unlimitedMRR,
+        avgRevenuePerUser: totalUsers > 0 ? (totalMRR / totalUsers) : 0
       },
       byOperation: allTimeStats.byOperation,
       byModel: allTimeStats.byModel,

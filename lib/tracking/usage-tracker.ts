@@ -81,8 +81,9 @@ export class UsageTracker {
       const totalTokens = event.inputTokens + event.outputTokens
       const estimatedCost = this.getTokenCost(event.model, event.inputTokens, event.outputTokens)
       
-      const usageEvent: UsageEvent = {
-        ...event,
+      const { _id, ...eventData } = event
+      const usageEvent = {
+        ...eventData,
         totalTokens,
         estimatedCost,
         timestamp: new Date()
@@ -234,7 +235,7 @@ export class UsageTracker {
       return events.map(event => ({
         ...event,
         _id: event._id.toString()
-      }))
+      })) as UsageEvent[]
     } catch (error) {
       console.error('Error getting recent usage:', error)
       throw error

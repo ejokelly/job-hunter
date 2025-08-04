@@ -40,6 +40,21 @@ interface AdminStats {
     costPerCall: number
     successRate: number
   }
+  subscriptions: {
+    total: number
+    active: number
+    free: number
+    starter: number
+    unlimited: number
+    conversionRate: number
+  }
+  revenue: {
+    mrr: number
+    arr: number
+    starterMRR: number
+    unlimitedMRR: number
+    avgRevenuePerUser: number
+  }
   byOperation: Record<string, { calls: number; tokens: number; cost: number }>
   byModel: Record<string, { calls: number; tokens: number; cost: number }>
   dailyStats: Array<{ date: string; calls: number; tokens: number; cost: number }>
@@ -83,7 +98,7 @@ export default function StatsPage() {
         <div className="max-w-7xl mx-auto p-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full border-4 border-indigo-500 border-t-transparent w-12 h-12 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full border-4 border-[var(--accent-color)] border-t-transparent w-12 h-12 mx-auto mb-4"></div>
               <p className="theme-text-secondary">Loading statistics...</p>
             </div>
           </div>
@@ -165,6 +180,69 @@ export default function StatsPage() {
               <p className="text-sm theme-text-secondary">
                 {formatNumber(stats.tokens.today)} today, {formatNumber(stats.tokens.month)} this month
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscription & Revenue Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="theme-card rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium theme-text-secondary">Subscriptions</h3>
+              <Users className="w-5 h-5 theme-text-tertiary" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-2xl font-bold theme-text-primary">{formatNumber(stats.subscriptions.total)}</p>
+              <p className="text-sm theme-text-secondary">
+                {stats.subscriptions.conversionRate.toFixed(1)}% conversion rate
+              </p>
+            </div>
+          </div>
+
+          <div className="theme-card rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium theme-text-secondary">Monthly Revenue</h3>
+              <DollarSign className="w-5 h-5 theme-text-tertiary" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-2xl font-bold theme-text-primary">${formatNumber(stats.revenue.mrr)}</p>
+              <p className="text-sm theme-text-secondary">
+                ${stats.revenue.avgRevenuePerUser.toFixed(2)} ARPU
+              </p>
+            </div>
+          </div>
+
+          <div className="theme-card rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium theme-text-secondary">Annual Revenue</h3>
+              <TrendingUp className="w-5 h-5 theme-text-tertiary" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-2xl font-bold theme-text-primary">${formatNumber(stats.revenue.arr)}</p>
+              <p className="text-sm theme-text-secondary">
+                Projected ARR
+              </p>
+            </div>
+          </div>
+
+          <div className="theme-card rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium theme-text-secondary">Plan Distribution</h3>
+              <BarChart className="w-5 h-5 theme-text-tertiary" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="theme-text-secondary">Free:</span>
+                <span className="theme-text-primary">{formatNumber(stats.subscriptions.free)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="theme-text-secondary">Starter:</span>
+                <span className="theme-text-primary">{formatNumber(stats.subscriptions.starter)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="theme-text-secondary">Unlimited:</span>
+                <span className="theme-text-primary">{formatNumber(stats.subscriptions.unlimited)}</span>
+              </div>
             </div>
           </div>
         </div>

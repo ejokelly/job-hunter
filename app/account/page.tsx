@@ -184,7 +184,7 @@ export default function AccountPage() {
         <PageContainer>
           <div className="flex justify-center items-center min-h-[400px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-color)] mx-auto mb-4"></div>
               <p className="theme-text-secondary">Loading account information...</p>
             </div>
           </div>
@@ -301,34 +301,45 @@ export default function AccountPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium theme-text-secondary">Usage This Month</span>
                     <span className="text-lg font-bold theme-text-primary">
-                      {subscriptionData.monthlyCount} / {subscriptionData.subscriptionStatus === 'unlimited' ? '∞' : subscriptionData.monthlyLimit}
+                      {subscriptionData?.monthlyCount || 0} / {subscriptionData?.subscriptionStatus === 'unlimited' ? '∞' : subscriptionData?.monthlyLimit || 0}
                     </span>
                   </div>
                   
-                  {subscriptionData.subscriptionStatus !== 'unlimited' && (
+                  {subscriptionData?.subscriptionStatus !== 'unlimited' && (
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-300 ${getUsageColor()}`}
                         style={{ 
-                          width: `${Math.min((subscriptionData.monthlyCount / subscriptionData.monthlyLimit) * 100, 100)}%` 
+                          width: `${Math.min(((subscriptionData?.monthlyCount || 0) / (subscriptionData?.monthlyLimit || 1)) * 100, 100)}%` 
                         }}
                       ></div>
                     </div>
                   )}
 
                   <p className="text-xs theme-text-tertiary">
-                    {subscriptionData.subscriptionStatus === 'unlimited' 
+                    {subscriptionData?.subscriptionStatus === 'unlimited' 
                       ? '🎉 Unlimited generations - create as many resumes as you need!'
-                      : subscriptionData.monthlyLimit - subscriptionData.monthlyCount > 0 
-                      ? `${subscriptionData.monthlyLimit - subscriptionData.monthlyCount} generations remaining this month`
+                      : (subscriptionData?.monthlyLimit || 0) - (subscriptionData?.monthlyCount || 0) > 0 
+                      ? `${(subscriptionData?.monthlyLimit || 0) - (subscriptionData?.monthlyCount || 0)} generations remaining this month`
                       : 'Monthly limit reached'
                     }
                   </p>
                 </div>
               </div>
 
-              {/* Show upgrade/reactivate buttons for canceled or free users */}
-              {(subscriptionData?.subscriptionStatus === 'canceled' || subscriptionData?.subscriptionStatus === 'free') && (
+              {/* Show starter plan for free users */}
+              {subscriptionData?.subscriptionStatus === 'free' && (
+                <ActionButton
+                  onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
+                  variant="primary"
+                  className="w-full py-3"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Starter Plan - $25/month
+                </ActionButton>
+              )}
+              {/* Show both plans for canceled users */}
+              {subscriptionData?.subscriptionStatus === 'canceled' && (
                 <div className="space-y-3">
                   <ActionButton
                     onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
@@ -336,7 +347,7 @@ export default function AccountPage() {
                     className="w-full py-3"
                   >
                     <Crown className="w-4 h-4 mr-2" />
-                    Get Starter Plan - $25/month
+                    Reactivate Starter Plan - $25/month
                   </ActionButton>
                   <ActionButton
                     onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}

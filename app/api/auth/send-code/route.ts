@@ -16,12 +16,21 @@ export async function POST(request: NextRequest) {
     
     console.log('📧 Sending codeword to:', email)
     
-    const result = await CodewordAuth.sendCodeword(email)
-    
-    return NextResponse.json({ 
-      success: true,
-      message: 'Codeword sent to your email'
-    })
+    try {
+      const result = await CodewordAuth.sendCodeword(email)
+      console.log('✅ Codeword sent successfully:', result)
+      
+      return NextResponse.json({ 
+        success: true,
+        message: 'Codeword sent to your email'
+      })
+    } catch (sendError) {
+      console.error('❌ Failed to send codeword:', sendError)
+      return NextResponse.json({ 
+        error: 'Failed to send email. Please try again.',
+        details: sendError instanceof Error ? sendError.message : 'Unknown error'
+      }, { status: 500 })
+    }
     
   } catch (error) {
     console.error('Error sending codeword:', error)

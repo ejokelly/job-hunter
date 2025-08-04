@@ -10,7 +10,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    console.log('🔍 Getting subscription status for user:', session.user.id, 'email:', session.user.email)
+    
     const status = await SubscriptionManager.getSubscriptionStatus(session.user.id)
+    
+    console.log('🔍 Subscription status result:', status)
     
     return NextResponse.json(status)
   } catch (error) {

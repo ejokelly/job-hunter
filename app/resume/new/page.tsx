@@ -7,6 +7,7 @@ import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import PageContainer from '@/components/page-container';
 import PreviewPane from '@/components/preview-pane';
+import SkillPill from '@/components/skill-pill';
 import { LimitExceededModal } from '@/components/subscription-limit-warning';
 
 interface SkillGapReport {
@@ -27,7 +28,7 @@ export default function NewResumePage() {
   const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
-  
+
   // Job description form states
   const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,6 +61,12 @@ export default function NewResumePage() {
         setSessionLoading(false)
       }
     }
+
+    // Load saved accent color
+    const savedAccentColor = localStorage.getItem('accentColor')
+    if (savedAccentColor) {
+      document.documentElement.style.setProperty('--accent-color', savedAccentColor)
+    }
     
     loadSession()
   }, [])
@@ -67,7 +74,7 @@ export default function NewResumePage() {
   // Check session and redirect if not authenticated
   useEffect(() => {
     if (sessionLoading) return;
-    
+
     if (!session) {
       router.push('/');
       return;
@@ -88,7 +95,7 @@ export default function NewResumePage() {
       const cookieAgreement = document.cookie
         .split('; ')
         .find(row => row.startsWith('termsAccepted='));
-      
+
       if (cookieAgreement) {
         setAcceptedTerms(true);
         // Sync to localStorage
@@ -103,16 +110,16 @@ export default function NewResumePage() {
   useEffect(() => {
     async function checkSubscriptionStatus() {
       if (!session?.id) return;
-      
+
       // First check if subscription data was passed from homepage (but skip if just subscribed)
       const justSubscribed = new URLSearchParams(window.location.search).get('success') === 'true';
       const cachedData = sessionStorage.getItem('subscriptionData');
-      
+
       if (cachedData && !justSubscribed) {
         try {
           const status = JSON.parse(cachedData);
           setSubscriptionStatus(status);
-          
+
           // If user cannot create resume, show modal immediately
           if (!status.canCreateResume) {
             setLimitData(status);
@@ -125,19 +132,19 @@ export default function NewResumePage() {
           console.error('Error parsing cached subscription data:', error);
         }
       }
-      
+
       // Clear cached data if user just subscribed
       if (justSubscribed) {
         sessionStorage.removeItem('subscriptionData');
       }
-      
+
       // Fallback to API call if no cached data
       try {
         const response = await fetch('/api/subscription/status');
         if (response.ok) {
           const status = await response.json();
           setSubscriptionStatus(status);
-          
+
           // If user cannot create resume, show modal immediately
           if (!status.canCreateResume) {
             setLimitData(status);
@@ -160,7 +167,7 @@ export default function NewResumePage() {
   // Job description handlers
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsAnalyzing(true);
     try {
       const response = await fetch('/api/analyze-skills', {
@@ -234,7 +241,7 @@ export default function NewResumePage() {
 
   const handleGenerate = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsGenerating(true);
     try {
       // Generate both resume and cover letter previews in parallel
@@ -271,7 +278,7 @@ export default function NewResumePage() {
 
   const handleDownloadResume = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsDownloadingResume(true);
     try {
       const response = await fetch('/api/generate-resume', {
@@ -302,7 +309,7 @@ export default function NewResumePage() {
 
   const handleDownloadCoverLetter = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsDownloadingCoverLetter(true);
     try {
       const response = await fetch('/api/generate-cover-letter', {
@@ -333,7 +340,7 @@ export default function NewResumePage() {
 
   const handleRegenerateResume = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsRegeneratingResume(true);
     try {
       const response = await fetch('/api/preview-resume', {
@@ -357,7 +364,7 @@ export default function NewResumePage() {
 
   const handleRegenerateCoverLetter = async () => {
     if (!jobDescription.trim()) return;
-    
+
     setIsRegeneratingCoverLetter(true);
     try {
       const response = await fetch('/api/preview-cover-letter', {
@@ -395,12 +402,12 @@ export default function NewResumePage() {
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
     return (
-      <div className="min-h-screen theme-bg-secondary">
+      <div className="min-h-screen theme-bg-secondary flex flex-col">
         <Header />
 
         {/* Preview Content */}
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="grid grid-cols-2 gap-6 max-w-7xl w-full">
             <PreviewPane
               title="Resume"
               html={previewData?.html}
@@ -411,7 +418,7 @@ export default function NewResumePage() {
               isLoading={isGenerating && !previewData}
               loadingText="Generating resume..."
             />
-            
+
             <PreviewPane
               title="Cover Letter"
               html={coverLetterData?.html}
@@ -432,148 +439,210 @@ export default function NewResumePage() {
     <div className="min-h-screen theme-bg-gradient">
       <Header />
       <PageContainer>
-        <div className="theme-card rounded-lg p-8">
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="jobDescription" className="block text-sm font-medium theme-text-secondary mb-2">
-                Job Description
-              </label>
-              <textarea
-                id="jobDescription"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                disabled={skillGapReport !== null}
-                className={`w-full h-64 p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none ${
-                  skillGapReport ? 'cursor-not-allowed' : ''
-                }`}
-                placeholder="Paste the job description here..."
-                spellCheck="false"
-              />
-            </div>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold theme-text-primary mb-2">Create Your Resume</h1>
+            <p className="theme-text-secondary">Paste a job description to get a tailored resume and cover letter</p>
+          </div>
 
-            {skillGapReport && (
-              <div className="theme-bg-tertiary p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold theme-text-primary mb-4">Skill Gap Analysis</h3>
-                
-                {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium theme-text-secondary mb-2">Missing Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skillGapReport.missingSkills.map((skill, index) => (
-                        <ActionButton
-                          key={index}
-                          onClick={() => handleAddSkill(skill)}
-                          variant="skill"
-                        >
-                          + {skill}
-                        </ActionButton>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {skillGapReport.matchingSkills && skillGapReport.matchingSkills.length > 0 && (
-                  <div>
-                    <h4 className="text-md font-medium theme-text-secondary mb-2">Matching Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skillGapReport.matchingSkills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="theme-skill-matching px-3 py-1 rounded-full text-sm"
-                        >
-                          ✓ {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Terms of Service */}
-            {skillGapReport ? (
-              <div className="text-xs theme-text-tertiary">
-                Agreed to the Terms of Service and Privacy Policy
-              </div>
-            ) : (
-              <div className="flex items-start gap-2 p-4 theme-bg-tertiary rounded-lg">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={acceptedTerms}
-                  onChange={async (e) => {
-                    const accepted = e.target.checked;
-                    setAcceptedTerms(accepted);
-                    
-                    if (accepted) {
-                      const timestamp = new Date().toISOString();
-                      
-                      // Store in localStorage
-                      localStorage.setItem('termsAccepted', 'true');
-                      localStorage.setItem('termsAcceptedDate', timestamp);
-                      
-                      // Store in cookie (30 days)
-                      const expires = new Date();
-                      expires.setDate(expires.getDate() + 30);
-                      document.cookie = `termsAccepted=true; expires=${expires.toUTCString()}; path=/`;
-                      document.cookie = `termsAcceptedDate=${timestamp}; expires=${expires.toUTCString()}; path=/`;
-                      
-                      // Store in MongoDB
-                      try {
-                        await fetch('/api/save-terms-agreement', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({ agreedAt: timestamp }),
-                        });
-                      } catch (error) {
-                        console.error('Error saving terms agreement to database:', error);
-                      }
-                    }
-                  }}
-                  className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <label htmlFor="acceptTerms" className="text-sm theme-text-secondary cursor-pointer">
-                  I accept the{' '}
-                  <span className="theme-text-primary hover:underline cursor-pointer">
-                    Terms of Service and Privacy Policy
-                  </span>
+          <div className="theme-card rounded-xl p-8 shadow-lg">
+            <div className="space-y-8">
+              <div>
+                <label htmlFor="jobDescription" className="block text-lg font-semibold theme-text-primary mb-3">
+                  📄 Job Description
                 </label>
-              </div>
-            )}
+                <div className="relative">
+                  <textarea
+                    id="jobDescription"
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    disabled={skillGapReport !== null}
+                    className={`w-full h-72 p-6 border-2 theme-border rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 ${skillGapReport ? 'cursor-not-allowed opacity-50' : 'focus:shadow-lg'
+                      }`}
+                    style={{}}
+                    placeholder="Paste the complete job description here...
 
-            <div className="space-y-4">
-              {!skillGapReport ? (
-                <ActionButton
-                  onClick={handleAnalyze}
-                  disabled={!jobDescription.trim() || !acceptedTerms}
-                  busy={isAnalyzing}
-                  className="w-full py-3 px-6 justify-center"
-                >
-                  {isAnalyzing ? 'Analyzing Skills...' : 'Analyze Skill Gaps'}
-                </ActionButton>
-              ) : (
-                <ActionButton
-                  onClick={handleGenerate}
-                  disabled={!acceptedTerms}
-                  busy={isGenerating}
-                  className="w-full py-3 px-6 justify-center"
-                >
-                  {isGenerating ? 'Generating Preview...' : 'Generate'}
-                </ActionButton>
+Include role title, company, requirements, responsibilities, and qualifications for the best results."
+                    spellCheck="false"
+                  />
+                  {skillGapReport && (
+                    <div className="absolute top-4 right-4 px-3 py-1 text-sm rounded-full theme-btn-primary">
+                      ✓ Analyzed
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {skillGapReport && (
+                <div className="theme-card p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 text-lg">🎯</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold theme-text-primary">Skill Gap Analysis</h3>
+                      <p className="text-sm theme-text-secondary">Review and optimize your skills for this role</p>
+                    </div>
+                  </div>
+
+                  {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
+                    <div className="mb-8">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="theme-text-accent font-medium">Missing Skills</span>
+                        <span className="text-sm theme-text-tertiary">Click to add to your profile</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {skillGapReport.missingSkills.map((skill, index) => (
+                          <SkillPill
+                            key={index}
+                            onClick={() => handleAddSkill(skill)}
+                            variant="missing"
+                          >
+                            + {skill}
+                          </SkillPill>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {skillGapReport.matchingSkills && skillGapReport.matchingSkills.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="font-medium theme-text-primary">Matching Skills</span>
+                        <span className="text-sm theme-text-tertiary">Great! These align with the job requirements</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {skillGapReport.matchingSkills.map((skill, index) => (
+                          <SkillPill
+                            key={index}
+                            variant="matching"
+                          >
+                            ✓ {skill}
+                          </SkillPill>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
+
+              {/* Terms of Service */}
+              {skillGapReport ? (
+                <div className="flex items-center gap-2 text-sm theme-text-tertiary theme-card p-3 rounded-lg">
+                  <span className="theme-text-accent">✓</span>
+                  Agreed to the Terms of Service and Privacy Policy
+                </div>
+              ) : (
+                <div className="theme-card p-6 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="acceptTerms"
+                      checked={acceptedTerms}
+                      onChange={async (e) => {
+                        const accepted = e.target.checked;
+                        setAcceptedTerms(accepted);
+
+                        if (accepted) {
+                          const timestamp = new Date().toISOString();
+
+                          // Store in localStorage
+                          localStorage.setItem('termsAccepted', 'true');
+                          localStorage.setItem('termsAcceptedDate', timestamp);
+
+                          // Store in cookie (30 days)
+                          const expires = new Date();
+                          expires.setDate(expires.getDate() + 30);
+                          document.cookie = `termsAccepted=true; expires=${expires.toUTCString()}; path=/`;
+                          document.cookie = `termsAcceptedDate=${timestamp}; expires=${expires.toUTCString()}; path=/`;
+
+                          // Store in MongoDB
+                          try {
+                            await fetch('/api/save-terms-agreement', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({ agreedAt: timestamp }),
+                            });
+                          } catch (error) {
+                            console.error('Error saving terms agreement to database:', error);
+                          }
+                        }
+                      }}
+                      className="mt-1 w-5 h-5 rounded border-2 border-gray-300 transition-colors"
+                      style={{
+                        accentColor: 'var(--accent-color)'
+                      }}
+                    />
+                    <div>
+                      <label htmlFor="acceptTerms" className="text-sm font-medium theme-text-primary cursor-pointer block mb-1">
+                        📋 Terms & Privacy Agreement
+                      </label>
+                      <p className="text-sm theme-text-secondary">
+                        I accept the{' '}
+                        <span className="theme-text-accent hover:underline cursor-pointer font-medium">
+                          Terms of Service and Privacy Policy
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                {!skillGapReport ? (
+                  <ActionButton
+                    onClick={handleAnalyze}
+                    disabled={!jobDescription.trim() || !acceptedTerms}
+                    busy={isAnalyzing}
+                    variant="primary"
+                    className="w-full py-4 px-8 justify-center text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    {isAnalyzing ? (
+                      'Analyzing Skills...'
+                    ) : (
+                      <>
+                        🔍 Analyze Skill Gaps
+                      </>
+                    )}
+                  </ActionButton>
+                ) : (
+                  <div className="text-center">
+                    <ActionButton
+                      onClick={handleGenerate}
+                      disabled={!acceptedTerms}
+                      busy={isGenerating}
+                      variant="primary"
+                      className="w-full py-4 px-8 justify-center text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                          Generating Preview...
+                        </>
+                      ) : (
+                        <>
+                          Generate Resume & Cover Letter
+                        </>
+                      )}
+                    </ActionButton>
+                    <p className="text-sm theme-text-tertiary mt-3">
+                      This will create a tailored resume and cover letter based on your skills and the job requirements
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+
+            <LimitExceededModal
+              isOpen={showLimitModal}
+              onClose={() => setShowLimitModal(false)}
+              limitData={limitData || {}}
+            />
           </div>
         </div>
       </PageContainer>
-      
-      {/* Subscription Limit Modal */}
-      <LimitExceededModal
-        isOpen={showLimitModal}
-        onClose={() => setShowLimitModal(false)}
-        limitData={limitData || {}}
-      />
     </div>
   );
 }

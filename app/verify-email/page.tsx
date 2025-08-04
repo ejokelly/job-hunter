@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
             {status === 'verifying' && (
               <>
                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-color)]"></div>
                 </div>
                 <h1 className="text-2xl font-bold theme-text-primary mb-4">Verifying Email</h1>
                 <p className="theme-text-secondary">Please wait while we verify your email address...</p>

@@ -3,7 +3,7 @@ import { getServerAuthSession } from '@/lib/auth/server-auth'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia'
+  apiVersion: (process.env.STRIPE_API_VERSION as any) || '2025-07-30.basil'
 })
 
 export async function POST(request: NextRequest) {
