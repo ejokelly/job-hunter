@@ -110,4 +110,17 @@
 /* CSS Custom Properties */
 :root {
   --accent-color: #3b82f6;
+  --background: #ffffff;
+  --foreground: #111827;
+}
+
+/* Override body background for light theme */
+body {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Modal overlay */
+.theme-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
 }
