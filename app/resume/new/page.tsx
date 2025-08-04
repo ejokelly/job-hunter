@@ -466,7 +466,7 @@ export default function NewResumePage() {
         <Header />
 
         {/* Preview Content */}
-        <div className="flex-1 flex flex-col p-4 lg:p-6 theme-bg-primary">
+        <div className="flex-1 flex flex-col p-4 lg:p-6 theme-bg-gradient">
           {/* Mobile Tabs - only show if cover letter exists */}
           {coverLetterData && (
             <div className="lg:hidden mb-4">
