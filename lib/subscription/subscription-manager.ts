@@ -1,5 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import Stripe from 'stripe'
+import { getPricingData, getUpgradeInfo } from '../pricing'
 
 const client = new MongoClient(process.env.MONGODB_URI!)
 const clientPromise = client.connect()
@@ -15,7 +16,7 @@ export interface SubscriptionStatus {
   subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled'
   needsUpgrade: boolean
   upgradeToTier: 'starter' | 'unlimited' | null
-  upgradePrice: number
+  upgradePrice: number | null
   stripePriceId: string | null
   subscriptionExpires?: Date
   stripeSubscriptionId?: string
@@ -186,36 +187,60 @@ export class SubscriptionManager {
       console.log(`⏭️ Skipping Stripe check for user ${userId} (next check: ${user.nextStripeCheck})`)
     }
     
-    // Determine monthly limit from environment variables
-    let monthlyLimit = parseInt(process.env.FREE_MONTHLY_LIMIT!)
+    // Get pricing data
+    const pricingData = getPricingData();
+    const currentTier = subscriptionStatus || 'free';
+    const currentPlan = pricingData.plans[currentTier as keyof typeof pricingData.plans];
     
-    if (process.env.FORCE_SUBSCRIPTION_AFTER) {
-      monthlyLimit = parseInt(process.env.FORCE_SUBSCRIPTION_AFTER)
+    // Determine monthly limit and access
+    let monthlyLimit = currentPlan?.monthlyLimit || pricingData.plans.free.monthlyLimit;
+    let canCreateResume = true;
+    
+    if (monthlyLimit !== null) {
+      canCreateResume = monthlyCount < monthlyLimit;
     }
     
-    if (subscriptionStatus === 'starter' && isActive) {
-      monthlyLimit = parseInt(process.env.STARTER_MONTHLY_LIMIT!)
-    }
-    let canCreateResume = monthlyCount < monthlyLimit
-    
-    if (subscriptionStatus === 'unlimited' && isActive) {
-      canCreateResume = true // No limit on unlimited
-    }
+    // Override for disabled subscriptions
     if (process.env.DISABLE_SUBSCRIPTIONS === 'true') {
-      canCreateResume = true // No limit when disabled
+      canCreateResume = true;
     }
+    
+    // Simple upgrade logic - no complex JSON dependencies
+    let upgradeToTier: string | null = null;
+    let upgradePrice: number | null = null;
+    let stripePriceId: string | null = null;
+    
+    if (currentTier === 'free') {
+      upgradeToTier = 'starter';
+      upgradePrice = 25;
+      stripePriceId = process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID!;
+    } else if (currentTier === 'starter') {
+      upgradeToTier = 'unlimited';
+      upgradePrice = 250;
+      stripePriceId = process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID!;
+    }
+    
+    console.log('🔍 Final subscription status:', {
+      canCreateResume,
+      monthlyCount,
+      monthlyLimit,
+      subscriptionStatus: currentTier,
+      needsUpgrade: !canCreateResume,
+      upgradeToTier,
+      upgradePrice,
+      stripePriceId,
+      DISABLE_SUBSCRIPTIONS: process.env.DISABLE_SUBSCRIPTIONS
+    });
     
     return {
       canCreateResume,
       monthlyCount,
       monthlyLimit,
-      subscriptionStatus: subscriptionStatus || 'free', // Ensure we always return a valid status
+      subscriptionStatus: currentTier,
       needsUpgrade: !canCreateResume,
-      upgradeToTier: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 'unlimited' : 'starter',
-      upgradePrice: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 250 : 25,
-      stripePriceId: (subscriptionStatus === 'starter' || subscriptionStatus === 'unlimited') ? 
-        process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID! : 
-        process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID!,
+      upgradeToTier,
+      upgradePrice,
+      stripePriceId,
       subscriptionExpires: user.subscriptionExpires,
       stripeSubscriptionId: user.stripeSubscriptionId
     }

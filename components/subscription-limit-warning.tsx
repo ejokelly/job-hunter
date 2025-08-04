@@ -11,7 +11,7 @@ interface SubscriptionStatus {
   subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled'
   needsUpgrade: boolean
   upgradeToTier: 'starter' | 'unlimited' | null
-  upgradePrice: number
+  upgradePrice: number | null
   stripePriceId: string | null
 }
 
@@ -179,12 +179,15 @@ interface LimitExceededModalProps {
 export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceededModalProps) {
   if (!isOpen) return null
 
-  console.log('🔍 LimitExceededModal limitData:', limitData);
+  console.log('🔍 LimitExceededModal limitData:', JSON.stringify(limitData, null, 2));
 
-  const planName = limitData.upgradeToTier === 'starter' ? 'Starter' : 'Crazy Job Market'
-  const planPrice = limitData.upgradePrice || 25
-  const currentCount = limitData.monthlyCount || 0
-  const currentLimit = limitData.monthlyLimit || 10
+  // HARDCODE FOR FREE USERS - FUCK THE API
+  const isFreeTier = !limitData.subscriptionStatus || limitData.subscriptionStatus === 'free'
+  const planName = isFreeTier ? 'Starter' : 'Crazy Job Market'  
+  const planPrice = isFreeTier ? 25 : 250
+  const realStripePriceId = isFreeTier ? 'price_1RsBWuDPG7USFCYcy3ZudU39' : 'price_1RsBXqDPG7USFCYcNF2P2uZF'
+  const currentCount = limitData.monthlyCount
+  const currentLimit = limitData.monthlyLimit
 
   // Calculate when they get more free uses (next month)
   const getNextResetDate = () => {
@@ -195,8 +198,8 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="theme-card rounded-lg max-w-lg w-full p-8">
+    <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
+      <div className="theme-card rounded-lg max-w-lg w-full p-8 shadow-2xl pointer-events-auto">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-6">
             <AlertTriangle className="w-8 h-8 text-amber-600" />
@@ -215,12 +218,12 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
           </p>
 
           <div className="theme-bg-tertiary border theme-border rounded-lg p-6 mb-6">
-            <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <Crown className="w-6 h-6 text-indigo-600" />
               <span className="font-semibold text-lg theme-text-primary">{planName} Plan</span>
             </div>
             <ul className="space-y-2 mb-4">
-              {limitData.upgradeToTier === 'starter' ? (
+              {isFreeTier ? (
                 <>
                   <li className="flex items-center gap-2 theme-text-secondary">
                     <span className="text-green-500">✓</span> 100 resumes per month
@@ -240,7 +243,7 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
                 </>
               )}
             </ul>
-            <div className="text-center">
+            <div className="text-left">
               <span className="text-3xl font-bold theme-text-primary">${planPrice}</span>
               <span className="text-base theme-text-secondary">/month</span>
             </div>
@@ -248,13 +251,13 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
 
           <ActionButton
             onClick={async () => {
-              if (!limitData.stripePriceId) return
+              if (!realStripePriceId) return
               
               try {
                 const response = await fetch('/api/stripe/create-checkout', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ priceId: limitData.stripePriceId })
+                  body: JSON.stringify({ priceId: realStripePriceId })
                 })
                 
                 const { url, error } = await response.json()
@@ -273,11 +276,25 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
               }
             }}
             variant="primary"
-            className="w-full py-3 text-base"
+            className="w-full py-3 text-base mb-4"
           >
             <Crown className="w-5 h-5 mr-2" />
             Upgrade to {planName}
           </ActionButton>
+          
+          {/* Stripe Logo */}
+          <div className="flex justify-end">
+            <img 
+              src="/stripe-light.svg" 
+              alt="Stripe" 
+              className="h-6 opacity-50 block dark:hidden"
+            />
+            <img 
+              src="/stripe-dark.svg" 
+              alt="Stripe" 
+              className="h-6 opacity-50 hidden dark:block"
+            />
+          </div>
         </div>
       </div>
     </div>

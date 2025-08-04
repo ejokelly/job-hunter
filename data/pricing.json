@@ -1,0 +1,35 @@
+{
+  "plans": {
+    "free": {
+      "name": "Free",
+      "price": 0,
+      "monthlyLimit": 10,
+      "features": [
+        "10 resumes per month",
+        "10 cover letters per month"
+      ],
+      "upgradeToTier": "starter"
+    },
+    "starter": {
+      "name": "Starter",
+      "price": 25,
+      "monthlyLimit": 100,
+      "stripePriceId": "price_1RsBWuDPG7USFCYcy3ZudU39",
+      "features": [
+        "100 resumes per month",
+        "100 cover letters per month"
+      ],
+      "upgradeToTier": "unlimited"
+    },
+    "unlimited": {
+      "name": "Crazy Job Market",
+      "price": 250,
+      "monthlyLimit": null,
+      "stripePriceId": "price_1RsBXqDPG7USFCYcNF2P2uZF",
+      "features": [
+        "Unlimited resume generations",
+        "Unlimited cover letters"
+      ]
+    }
+  }
+}

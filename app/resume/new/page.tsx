@@ -816,13 +816,6 @@ Include role title, company, requirements, responsibilities, and qualifications 
                 )}
               </div>
 
-            {/* Debug indicator */}
-            {showLimitModal && (
-              <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded z-50">
-                Modal should be showing!
-              </div>
-            )}
-            
             <LimitExceededModal
               isOpen={showLimitModal}
               onClose={() => setShowLimitModal(false)}
