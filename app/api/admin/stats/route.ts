@@ -96,17 +96,38 @@ export async function GET(request: NextRequest) {
     // Get cover letter stats
     const coverLetterStats = allTimeStats.byOperation['generate-cover-letter-content'] || { calls: 0, tokens: 0, cost: 0 }
 
-    // Get subscription stats
-    const [totalSubscriptions, activeSubscriptions, freeUsers, starterUsers, unlimitedUsers] = await Promise.all([
-      db.collection('users').countDocuments({ subscriptionStatus: { $ne: 'free' } }),
+    // Get subscription stats - only count users with active Stripe subscriptions
+    const [activeSubscriptions, freeUsers, starterUsers, unlimitedUsers] = await Promise.all([
+      // Active subscriptions: must have Stripe subscription ID, valid expiry, and paid status
       db.collection('users').countDocuments({ 
         subscriptionStatus: { $in: ['starter', 'unlimited'] },
-        subscriptionExpires: { $gt: now }
+        subscriptionExpires: { $gt: now },
+        stripeSubscriptionId: { $exists: true, $ne: null }
       }),
-      db.collection('users').countDocuments({ subscriptionStatus: 'free' }),
-      db.collection('users').countDocuments({ subscriptionStatus: 'starter' }),
-      db.collection('users').countDocuments({ subscriptionStatus: 'unlimited' })
+      // Free users: explicitly free status OR missing/null subscription status
+      db.collection('users').countDocuments({ 
+        $or: [
+          { subscriptionStatus: 'free' },
+          { subscriptionStatus: { $exists: false } },
+          { subscriptionStatus: null }
+        ]
+      }),
+      // Starter: must have active subscription with Stripe
+      db.collection('users').countDocuments({ 
+        subscriptionStatus: 'starter',
+        subscriptionExpires: { $gt: now },
+        stripeSubscriptionId: { $exists: true, $ne: null }
+      }),
+      // Unlimited: must have active subscription with Stripe  
+      db.collection('users').countDocuments({ 
+        subscriptionStatus: 'unlimited',
+        subscriptionExpires: { $gt: now },
+        stripeSubscriptionId: { $exists: true, $ne: null }
+      })
     ])
+    
+    // Total subscriptions = active subscriptions (not historical ones)
+    const totalSubscriptions = activeSubscriptions
 
     // Calculate subscription revenue based on actual plan prices
     const starterMRR = starterUsers * 25 // $25/month (Starter Plan)
