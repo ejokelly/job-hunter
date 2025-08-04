@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
+import Image from 'next/image';
 // Using custom auth system instead of next-auth
 import { useRouter } from 'next/navigation';
 import ActionButton from '@/components/action-button';
@@ -497,8 +498,18 @@ export default function Home() {
         <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
           <div className="max-w-6xl w-full">
             {/* Brand Header */}
-            <div className="text-center mb-12">
+            <div className="text-center mb-12 hidden md:block">
               <h1 className="text-4xl theme-text-primary mb-4"><Brand /></h1>
+            </div>
+
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-4 leading-tight">
+                AI-Powered Resume Builder
+              </h1>
+              <p className="text-lg md:text-xl theme-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
+                Get a customized resume with the skills that match the job post and a custom resume for every job you apply to!
+              </p>
             </div>
 
             {/* Main Content - Side by side on desktop */}
@@ -646,6 +657,36 @@ export default function Home() {
               )}
             </div>
 
+            {/* Value Proposition Section */}
+            <div className="mt-20 mb-12">
+              <div className="theme-card rounded-xl p-8 md:p-12 max-w-5xl mx-auto">
+                <div className="text-center space-y-8">
+                  <h2 className="text-3xl md:text-4xl font-bold theme-text-primary leading-tight">
+                    Stop sending the same resume to every job that is general and uninspiring.
+                  </h2>
+                  
+                  <div className="max-w-4xl mx-auto">
+                    <p className="text-xl theme-text-secondary leading-relaxed mb-6">
+                      Instead let <span className="inline-flex items-baseline mx-1"><Image src="/favicon-32x32.png" alt="resumelove" width={24} height={24} className="mr-1 align-text-bottom" /><span className="font-normal">resume</span><span className="font-bold">love</span></span> do the hard work of customizing your resume specifically for the skills the hiring manager is looking for!
+                    </p>
+                    <p className="text-lg theme-text-tertiary leading-relaxed">
+                      We use an ATS friendly resume template that is designed with data science to get the most views!
+                    </p>
+                  </div>
+                  
+                  {/* Pricing Card */}
+                  <div className="theme-bg-tertiary rounded-lg p-8 max-w-md mx-auto border theme-border">
+                    <div className="text-center">
+                      <div className="text-4xl md:text-5xl font-bold theme-text-primary mb-3">$25</div>
+                      <div className="text-xl theme-text-secondary mb-4">for 100 custom resumes a month</div>
+                      <p className="text-base theme-text-tertiary">
+                        Subscribe by uploading your resume and trying out <span className="inline-flex items-baseline mx-1"><Image src="/favicon-32x32.png" alt="resumelove" width={20} height={20} className="mr-1 align-text-bottom" /><span className="font-normal">resume</span><span className="font-bold">love</span></span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <style jsx>{`
               .perspective-1000 {
@@ -675,7 +716,7 @@ export default function Home() {
           <div className="max-w-6xl w-full">
             {/* Hero Section */}
             <div className="text-center mb-20">
-              <div className="mb-6">
+              <div className="mb-6 hidden md:block">
                 <Brand className="!w-auto !flex !justify-center !items-center text-6xl" />
               </div>
               <h1 className="text-5xl md:text-6xl font-bold theme-text-primary mb-6 leading-tight">
@@ -712,37 +753,38 @@ export default function Home() {
             </div>
             
             {/* How It Works */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-4xl mx-auto">
               <div>
-                <h3 className="text-xl font-semibold theme-text-primary mb-6">1. Upload Your Resume</h3>
-                <p className="theme-text-secondary leading-relaxed text-base">
+                <h3 className="text-lg md:text-xl font-semibold theme-text-primary mb-3 md:mb-6">1. Upload Your Resume</h3>
+                <p className="theme-text-secondary leading-relaxed text-sm md:text-base">
                   We will do the work to extract it - just drop your PDF and our AI handles the rest
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold theme-text-primary mb-6">2. Paste Job Description</h3>
-                <p className="theme-text-secondary leading-relaxed text-base">
+                <h3 className="text-lg md:text-xl font-semibold theme-text-primary mb-3 md:mb-6">2. Paste Job Description</h3>
+                <p className="theme-text-secondary leading-relaxed text-sm md:text-base">
                   Paste in a job description of a position you want - we&apos;ll analyze what they&apos;re looking for
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold theme-text-primary mb-6">3. Address Skill Gaps</h3>
-                <p className="theme-text-secondary leading-relaxed text-base">
+                <h3 className="text-lg md:text-xl font-semibold theme-text-primary mb-3 md:mb-6">3. Address Skill Gaps</h3>
+                <p className="theme-text-secondary leading-relaxed text-sm md:text-base">
                   We make it easy to address skill gaps - add missing skills with one click
                 </p>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold theme-text-primary mb-6">4. Get Custom Documents</h3>
-                <p className="theme-text-secondary leading-relaxed text-base">
+                <h3 className="text-lg md:text-xl font-semibold theme-text-primary mb-3 md:mb-6">4. Get Custom Documents</h3>
+                <p className="theme-text-secondary leading-relaxed text-sm md:text-base">
                   You get a custom cover letter and resume with exactly the skills the hiring manager wants
                 </p>
               </div>
             </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }

@@ -168,7 +168,7 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t theme-border-light">
+          <div className="md:hidden mt-4 pt-4 border-t theme-border-light relative z-[10000]">
             <div className="flex flex-col gap-4">
               {/* Theme Toggle for Mobile */}
               <div className="flex items-center justify-center">
