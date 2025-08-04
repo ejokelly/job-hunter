@@ -107,6 +107,7 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         });
       } else {
         setUploadStatus('error');
+        setIsFlipped(false); // Reset flip state so user can see error message
         // Handle specific 400 error for corrupted resumes
         if (response.status === 400) {
           setStatusMessage('The resume was corrupted and cannot be used. Try another.');
@@ -118,6 +119,7 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
       }
     } catch (error) {
       setUploadStatus('error');
+      setIsFlipped(false); // Reset flip state so user can see error message
       setStatusMessage('Network error. Please try again.');
       onUploadError('Network error. Please try again.');
     } finally {

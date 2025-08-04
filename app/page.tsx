@@ -479,7 +479,9 @@ export default function Home() {
   };
 
   const handleUploadError = (error: string) => {
-    console.error('Upload error:', error);
+    console.log('Upload error:', error);
+    // Reset file selection state so user can see the error message
+    setHasFileSelected(false);
   };
 
 
