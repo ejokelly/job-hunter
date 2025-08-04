@@ -107,8 +107,14 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
         });
       } else {
         setUploadStatus('error');
-        setStatusMessage(result.error || 'Failed to parse resume');
-        onUploadError(result.error || 'Failed to parse resume');
+        // Handle specific 400 error for corrupted resumes
+        if (response.status === 400) {
+          setStatusMessage('The resume was corrupted and cannot be used. Try another.');
+          onUploadError('The resume was corrupted and cannot be used. Try another.');
+        } else {
+          setStatusMessage(result.error || 'Failed to parse resume');
+          onUploadError(result.error || 'Failed to parse resume');
+        }
       }
     } catch (error) {
       setUploadStatus('error');
