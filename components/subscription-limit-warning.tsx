@@ -198,8 +198,8 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
-      <div className="theme-card rounded-lg max-w-lg w-full p-8 shadow-2xl pointer-events-auto">
+    <div className="fixed inset-0 theme-overlay flex items-center justify-center z-[9999] p-4">
+      <div className="theme-card rounded-lg max-w-lg w-full p-8 shadow-2xl">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/20 mb-6">
             <AlertTriangle className="w-8 h-8 text-amber-600" />
