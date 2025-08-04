@@ -1,12 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateResumePDF } from '@/lib/utils/html-pdf-generator';
-import { loadApplicantData } from '@/lib/data/data-loader';
+import { loadApplicantData } from '@/lib/data/api-data-loader';
 import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
 import { extractJobDetails } from '@/lib/ai/job-extraction';
 import { generatePDFFilename } from '@/lib/utils/filename-utils';
 import { Logger } from '@/lib/utils/logger';
 import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/lib/ai/prompt-templates';
 import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
+import { getServerAuthSession } from '@/lib/auth/server-auth';
+import dbConnect from '@/lib/db/mongodb';
+import Resume from '@/lib/db/models/Resume';
+
+async function categorizePendingSkills(userId: string, applicantData: any) {
+  try {
+    await dbConnect();
+    const resume = await Resume.findOne({ userId }).sort({ updatedAt: -1 });
+    
+    if (!resume || !resume.pendingSkills || resume.pendingSkills.length === 0) {
+      return; // No pending skills to process
+    }
+    
+    Logger.info('Processing pending skills', resume.pendingSkills.map((s: any) => s.name));
+    
+    // Get existing categories
+    const existingCategories = Object.keys(resume.skills || {});
+    
+    // Use Claude to categorize all pending skills at once
+    const skillsList = resume.pendingSkills.map((skill: any) => skill.name).join(', ');
+    const categoriesString = existingCategories.length > 0 ? existingCategories.join(', ') : 'No existing categories';
+    
+    const prompt = `I have these skills that need to be categorized: ${skillsList}
+
+Existing skill categories: ${categoriesString}
+
+For each skill, determine the best category. If an existing category fits well, use it. If not, suggest a new appropriate category name.
+
+Respond with JSON in this format:
+{
+  "categorizedSkills": [
+    {"skill": "React", "category": "frontend"},
+    {"skill": "Docker", "category": "devops"}
+  ]
+}`;
+
+    const response = await TrackedAnthropic.createMessage(prompt, {
+      operation: 'categorize-skills',
+      userId,
+      endpoint: 'generate-resume'
+    }, 1000);
+    const categorization = await extractJsonFromResponse(response);
+    
+    // Merge skills into appropriate categories
+    for (const item of categorization.categorizedSkills) {
+      const { skill, category } = item;
+      const pendingSkill = resume.pendingSkills.find((s: any) => s.name.toLowerCase() === skill.toLowerCase());
+      
+      if (pendingSkill) {
+        // Initialize category if it doesn't exist
+        if (!resume.skills[category]) {
+          resume.skills[category] = [];
+        }
+        
+        // Add skill to category
+        resume.skills[category].push({
+          name: pendingSkill.name,
+          years: pendingSkill.years
+        });
+        
+        Logger.info(`Added "${pendingSkill.name}" to "${category}" category`);
+      }
+    }
+    
+    // Clear pending skills and update applicantData
+    resume.pendingSkills = [];
+    resume.markModified('skills');
+    resume.markModified('pendingSkills');
+    await resume.save();
+    
+    // Update the applicantData object with new skills
+    applicantData.skills = resume.skills.toObject ? resume.skills.toObject() : resume.skills;
+    
+    Logger.info('All pending skills have been categorized and merged');
+    
+  } catch (error) {
+    Logger.error('Error categorizing pending skills', error);
+    // Don't fail the whole operation if skill categorization fails
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,8 +120,17 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    // Load applicant data
-    const applicantData = loadApplicantData();
+    // Get user session
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Load applicant data from database (which includes user's skills)
+    const applicantData = await loadApplicantData();
+    
+    // Process pending skills using the same categorization logic as preview-resume
+    await categorizePendingSkills(session.user.id, applicantData);
 
     // Step 0: Extract job title and company name
     Logger.step(0, 'Extracting job details...');
