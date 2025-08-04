@@ -636,35 +636,32 @@ export default function NewResumePage() {
         <div className="w-full">
           <div className="text-center mb-4 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Create Your Resume</h1>
-            <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
+            {!skillGapReport && (
+              <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
+            )}
           </div>
 
           <div className="space-y-6 md:space-y-8">
-              <div>
-                <label htmlFor="jobDescription" className="block text-base md:text-lg font-semibold theme-text-primary mb-2 md:mb-3">
-                  📄 Job Description
-                </label>
-                <div className="relative">
-                  <textarea
-                    id="jobDescription"
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    disabled={skillGapReport !== null}
-                    className={`w-full h-80 md:h-72 p-3 md:p-6 border-2 theme-border rounded-lg md:rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 ${skillGapReport ? 'cursor-not-allowed opacity-50' : 'focus:shadow-lg'
-                      }`}
-                    style={{}}
-                    placeholder="Paste the complete job description here...
+              {!skillGapReport && (
+                <div>
+                  <label htmlFor="jobDescription" className="block text-base md:text-lg font-semibold theme-text-primary mb-2 md:mb-3">
+                    📄 Job Description
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      id="jobDescription"
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="w-full h-80 md:h-72 p-3 md:p-6 border-2 theme-border rounded-lg md:rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 focus:shadow-lg"
+                      style={{}}
+                      placeholder="Paste the complete job description here...
 
 Include role title, company, requirements, responsibilities, and qualifications for the best results."
-                    spellCheck="false"
-                  />
-                  {skillGapReport && (
-                    <div className="absolute top-4 right-4 px-3 py-1 text-sm rounded-full theme-btn-primary">
-                      ✓ Analyzed
-                    </div>
-                  )}
+                      spellCheck="false"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {skillGapReport && (
                 <div className="theme-card p-4 md:p-8 rounded-xl">
@@ -676,6 +673,12 @@ Include role title, company, requirements, responsibilities, and qualifications 
                       <h3 className="text-lg md:text-xl font-bold theme-text-primary">Skill Gap Analysis</h3>
                       <p className="text-xs md:text-sm theme-text-secondary">Review and optimize your skills for this role</p>
                     </div>
+                  </div>
+
+                  <div className="mb-6 p-4 theme-bg-secondary rounded-lg">
+                    <p className="theme-text-secondary text-sm leading-relaxed">
+                      We accumulate all the skills that hiring managers actually use in their posts. Select the ones that apply to you and we will add them to your profile. When generating your resume, we&apos;ll automatically select the closest matching skills from your profile that align with this specific job.
+                    </p>
                   </div>
 
                   {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
