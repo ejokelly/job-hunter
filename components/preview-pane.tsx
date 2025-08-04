@@ -122,7 +122,7 @@ export default function PreviewPane({
       
       {/* Download overlay */}
       {isDownloading && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+        <div className="absolute inset-0 theme-overlay flex items-center justify-center z-10">
           <div className="theme-card p-6 rounded-lg text-center">
             <div className="flex justify-center space-x-2 mb-4">
               <div className="w-3 h-3 rounded-full animate-bounce" style={{ backgroundColor: 'var(--accent-color)' }}></div>
