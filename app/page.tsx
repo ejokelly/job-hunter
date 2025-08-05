@@ -531,219 +531,139 @@ export default function Home() {
     return (
       <div className="min-h-screen theme-bg-gradient">
         <Header />
-        <div className="flex items-center justify-center p-8" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        {/* Page 1 - Hero and Upload */}
+        <div className="h-screen flex items-center justify-center p-8">
           <div className="max-w-6xl w-full">
-            {/* Brand Header */}
-            <div className="text-center mb-12 hidden md:block">
-              <h1 className="text-4xl theme-text-primary mb-4"><Brand /></h1>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
+              {/* Left Side - Hero and Upload */}
+              <div className="space-y-8">
+                <div>
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-6 leading-tight">
+                    <strong>We take</strong> the hard work out of creating resumes tailored for the job!
+                  </h1>
+                </div>
 
-            {/* Hero Section */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-4 leading-tight">
-                AI-Powered Resume Builder
-              </h1>
-              <p className="text-lg md:text-xl theme-text-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
-                Get a customized resume with the skills that match the job post and a custom resume for every job you apply to!
-              </p>
-            </div>
-
-            {/* Main Content - Side by side on desktop */}
-            <div className={`grid gap-8 lg:gap-12 ${hasFileSelected ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-              {/* Upload Section */}
-              <div className="relative perspective-1000">
-                <div 
-                  className={`
-                    w-full transition-transform duration-700 transform-style-preserve-3d
-                    ${hasFileSelected ? 'rotate-y-180' : ''}
-                  `}
-                >
-                  {/* Front Side - Upload Form */}
-                  <div className="w-full backface-hidden">
-                    <div className="theme-card rounded-lg p-8">
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl font-medium theme-text-primary mb-2">No account? Start here</h3>
-                        <p className="theme-text-secondary">Upload your resume to get started</p>
-                      </div>
+                {/* Upload Section */}
+                <div className="relative perspective-1000">
+                  <div 
+                    className={`
+                      w-full transition-transform duration-700 transform-style-preserve-3d
+                      ${hasFileSelected ? 'rotate-y-180' : ''}
+                    `}
+                  >
+                    {/* Front Side - Upload Form */}
+                    <div className="w-full backface-hidden">
                       <ResumeUpload 
                         onUploadSuccess={handleUploadSuccess}
                         onUploadError={handleUploadError}
                         onFileSelected={() => setHasFileSelected(true)}
                       />
                     </div>
-                  </div>
 
-                  {/* Back Side - Processing */}
-                  <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
-                    <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
-                      <div className="text-center space-y-6">
-                        <p className="theme-text-secondary text-lg leading-relaxed">
-                          We are currently extracting the data from your resume. Once that is done we can make it super easy to create a customized resume and cover letter for your job application!
-                        </p>
-                        <ThreeDotsLoader className="mx-auto" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sign In Section */}
-              {!hasFileSelected && (
-                <div className="theme-card rounded-lg p-8">
-                  {!codeSent ? (
-                    <>
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl font-medium theme-text-primary mb-2">Already have an account?</h3>
-                        <p className="theme-text-secondary">Enter your email to get a sign-in code</p>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <input
-                          type="email"
-                          value={signInEmail}
-                          onChange={(e) => setSignInEmail(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && signInEmail.trim() && !isSigningIn) {
-                              handleSendCode()
-                            }
-                          }}
-                          className="w-full p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          placeholder="Enter your email"
-                          disabled={isSigningIn}
-                        />
-                        <ActionButton
-                          onClick={handleSendCode}
-                          variant="outline"
-                          className="w-full py-4 justify-center"
-                          busy={isSigningIn}
-                          disabled={!signInEmail.trim() || isSigningIn}
-                        >
-                          {isSigningIn ? 'Sending Code...' : 'Send Code'}
-                        </ActionButton>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl font-medium theme-text-primary mb-2">Enter Your Code</h3>
-                        <p className="theme-text-secondary">
-                          We sent a code to<br />
-                          <span className="font-medium">{signInEmail}</span>
-                        </p>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <input
-                          type="text"
-                          value={verificationCode}
-                          onChange={(e) => setVerificationCode(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && verificationCode.trim() && !isVerifyingCode) {
-                              handleVerifyCode()
-                            }
-                          }}
-                          className="w-full p-4 border theme-border rounded-lg theme-input focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-lg font-mono"
-                          placeholder="happy-tiger"
-                          disabled={isVerifyingCode}
-                          autoFocus
-                        />
-                        <ActionButton
-                          onClick={handleVerifyCode}
-                          variant="primary"
-                          className="w-full py-4 justify-center"
-                          busy={isVerifyingCode}
-                          disabled={!verificationCode.trim() || isVerifyingCode}
-                        >
-                          {isVerifyingCode ? 'Verifying...' : 'Sign In'}
-                        </ActionButton>
-                        <div className="flex gap-2">
-                          <ActionButton
-                            onClick={() => {
-                              posthog.capture('try_different_email_clicked');
-                              setCodeSent(false);
-                              setVerificationCode('');
-                            }}
-                            variant="ghost"
-                            className="flex-1 py-2 justify-center text-sm"
-                          >
-                            Try Different Email
-                          </ActionButton>
-                          <ActionButton
-                            onClick={() => {
-                              posthog.capture('send_new_code_clicked');
-                              handleSendCode();
-                            }}
-                            variant="ghost"
-                            className="flex-1 py-2 justify-center text-sm"
-                            busy={isSigningIn}
-                            disabled={isSigningIn}
-                          >
-                            {isSigningIn ? 'Sending...' : 'Send New Code'}
-                          </ActionButton>
+                    {/* Back Side - Processing */}
+                    <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
+                      <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
+                        <div className="text-center space-y-6">
+                          <p className="theme-text-secondary text-lg leading-relaxed">
+                            We are currently extracting the data from your resume. Once that is done we can make it super easy to create a customized resume and cover letter for your job application!
+                          </p>
+                          <ThreeDotsLoader className="mx-auto" />
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Processing State */}
-              {hasFileSelected && (
-                <div className="theme-card rounded-lg p-8 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="theme-text-secondary text-lg">Processing your resume...</p>
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Right Side - Resume Screenshot */}
+              <div className="flex justify-center lg:justify-end">
+                <Image 
+                  src="/screenshots/resume.png" 
+                  alt="Example of a customized resume showing technical skills and experience" 
+                  width={1200}
+                  height={1600}
+                  className=""
+                  priority
+                />
+              </div>
             </div>
+          </div>
+        </div>
 
-            {/* Value Proposition Section */}
-            <div className="mt-20 mb-12">
-              <div className="theme-card rounded-xl p-8 md:p-12 max-w-5xl mx-auto">
-                <div className="text-center space-y-8">
-                  <h2 className="text-3xl md:text-4xl font-bold theme-text-primary leading-tight">
-                    Stop sending the same resume to every job that is general and uninspiring.
-                  </h2>
-                  
-                  <div className="max-w-4xl mx-auto">
-                    <p className="text-xl theme-text-secondary leading-relaxed mb-6">
-                      Instead let <span className="inline-flex items-baseline mx-1"><Image src="/favicon-32x32.png" alt="resumelove" width={24} height={24} className="mr-1 align-text-bottom" /><span className="font-normal">resume</span><span className="font-bold">love</span></span> do the hard work of customizing your resume specifically for the skills the hiring manager is looking for!
+        {/* Page 2 - Skill Management */}
+        <div className="h-screen flex items-center justify-center p-8">
+          <div className="max-w-4xl w-full text-center space-y-8">
+            {/* Header */}
+            <h2 className="text-4xl md:text-5xl font-bold theme-text-primary leading-tight">
+              Smart Skill Management
+            </h2>
+            
+            {/* Image */}
+            <div className="flex justify-center">
+              <Image 
+                src="/screenshots/skill-gap.png" 
+                alt="Skill gap analysis interface showing missing and matching skills with one-click selection" 
+                width={904}
+                height={595}
+                className=""
+                priority
+              />
+            </div>
+            
+            {/* Text */}
+            <p className="text-xl theme-text-secondary leading-relaxed max-w-3xl mx-auto">
+              As you apply to more resumes, we keep track of the skills you selected. Not every hiring manager uses the same skills keywords the same way. We allow you to select the exact wording they ask for on each job, building a long list of your skills in many variations. Then when you apply, we those skills up front and bold them on your resume, improving your chance of matching the job.
+            </p>
+          </div>
+        </div>
+
+        {/* Page 3 - Value Proposition */}
+        <div className="h-screen flex items-center justify-center p-8">
+          <div className="max-w-5xl w-full">
+            <div className="theme-card rounded-xl p-8 md:p-12">
+              <div className="text-center space-y-8">
+                <h2 className="text-3xl md:text-4xl font-bold theme-text-primary leading-tight">
+                  Stop sending the same resume to every job that is general and uninspiring.
+                </h2>
+                
+                <div className="max-w-4xl mx-auto">
+                  <p className="text-xl theme-text-secondary leading-relaxed mb-6">
+                    Instead let resumelove do the hard work of customizing your resume specifically for the skills the hiring manager is looking for!
+                  </p>
+                  <p className="text-lg theme-text-tertiary leading-relaxed">
+                    We use an ATS friendly resume template that is designed with data science to get the most views!
+                  </p>
+                </div>
+                
+                {/* Pricing Card */}
+                <div className="theme-bg-tertiary rounded-lg p-8 max-w-md mx-auto border theme-border">
+                  <div className="text-center">
+                    <div className="text-4xl md:text-5xl font-bold theme-text-primary mb-3">$25</div>
+                    <div className="text-xl theme-text-secondary mb-4">for 100 custom resumes a month</div>
+                    <p className="text-base theme-text-tertiary">
+                      Subscribe by uploading your resume and trying out resumelove
                     </p>
-                    <p className="text-lg theme-text-tertiary leading-relaxed">
-                      We use an ATS friendly resume template that is designed with data science to get the most views!
-                    </p>
-                  </div>
-                  
-                  {/* Pricing Card */}
-                  <div className="theme-bg-tertiary rounded-lg p-8 max-w-md mx-auto border theme-border">
-                    <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-bold theme-text-primary mb-3">$25</div>
-                      <div className="text-xl theme-text-secondary mb-4">for 100 custom resumes a month</div>
-                      <p className="text-base theme-text-tertiary">
-                        Subscribe by uploading your resume and trying out <span className="inline-flex items-baseline mx-1"><Image src="/favicon-32x32.png" alt="resumelove" width={20} height={20} className="mr-1 align-text-bottom" /><span className="font-normal">resume</span><span className="font-bold">love</span></span>
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <style jsx>{`
-              .perspective-1000 {
-                perspective: 1000px;
-              }
-              .transform-style-preserve-3d {
-                transform-style: preserve-3d;
-              }
-              .backface-hidden {
-                backface-visibility: hidden;
-              }
-              .rotate-y-180 {
-                transform: rotateY(180deg);
-              }
-            `}</style>
           </div>
         </div>
+
+        <style jsx>{`
+          .perspective-1000 {
+            perspective: 1000px;
+          }
+          .transform-style-preserve-3d {
+            transform-style: preserve-3d;
+          }
+          .backface-hidden {
+            backface-visibility: hidden;
+          }
+          .rotate-y-180 {
+            transform: rotateY(180deg);
+          }
+        `}</style>
       </div>
     );
   }

@@ -125,6 +125,21 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
 
             {actions}
             
+            {/* Login Link for non-logged-in users */}
+            {!session && (
+              <ActionButton
+                onClick={() => {
+                  posthog.capture('header_login_clicked');
+                  // Redirect to sign-in page or trigger login flow
+                  window.location.href = '/auth/signin';
+                }}
+                variant="ghost"
+                className="text-sm whitespace-nowrap"
+              >
+                Already signed up? Click here to log in.
+              </ActionButton>
+            )}
+            
             {/* New Resume, Account and Sign Out */}
             {session && (
               <>
@@ -227,6 +242,20 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
               {actions}
               
               {/* Mobile Navigation Items */}
+              {!session && (
+                <ActionButton
+                  onClick={() => {
+                    posthog.capture('mobile_login_clicked');
+                    setIsMobileMenuOpen(false);
+                    window.location.href = '/auth/signin';
+                  }}
+                  variant="ghost"
+                  className="text-sm justify-center"
+                >
+                  Already signed up? Click here to log in.
+                </ActionButton>
+              )}
+              
               {session && (
                 <>
                   <ActionButton

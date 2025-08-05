@@ -125,8 +125,19 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
       } else {
         setUploadStatus('error');
         setIsFlipped(false); // Reset flip state so user can see error message
+        
+        // Handle specific 401 error for existing users who need to login
+        if (response.status === 401 && result.requiresLogin) {
+          posthog.capture('resume_upload_requires_login', {
+            email: result.email,
+            status_code: response.status
+          });
+          // Redirect to login page
+          window.location.href = '/auth/signin';
+          return;
+        }
         // Handle specific 400 error for corrupted resumes
-        if (response.status === 400) {
+        else if (response.status === 400) {
           posthog.capture('resume_upload_error', {
             error_type: 'corrupted_file',
             status_code: response.status
@@ -167,7 +178,7 @@ export default function ResumeUpload({ onUploadSuccess, onUploadError, onFileSel
       {/* Upload Area */}
       <div
         className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
+          relative border-2 border-dashed rounded-lg p-16 text-center transition-colors min-h-[300px] flex flex-col justify-center
           ${isDragOver 
             ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10' 
             : 'theme-border hover:border-[var(--accent-color)]/60'

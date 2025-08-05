@@ -118,35 +118,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse with Claude
+    // First, do a quick email extraction to check if user exists
+    const emailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    const extractedEmail = emailMatch ? emailMatch[0] : null;
+    
+    if (!extractedEmail) {
+      return NextResponse.json(
+        { error: 'Could not find email address in resume' },
+        { status: 400 }
+      );
+    }
+
+    // Use email override for development if available
+    const userEmail = process.env.DEV_EMAIL_OVERRIDE || extractedEmail;
+    
+    // Connect to database and check if user already exists BEFORE parsing
+    await dbConnect();
+    const client = new MongoClient(process.env.MONGODB_URI!);
+    await client.connect();
+    const db = client.db();
+    
+    const existingUser = await db.collection('users').findOne({ 
+      email: userEmail 
+    });
+    
+    if (existingUser) {
+      console.log('🔍 Found existing user:', existingUser.email);
+      
+      // Check if user is authenticated by looking for session
+      const sessionHeader = request.headers.get('Authorization');
+      const sessionCookie = request.headers.get('Cookie');
+      
+      // If user exists but no valid session, require login
+      if (!sessionHeader && !sessionCookie?.includes('session=')) {
+        await client.close();
+        return NextResponse.json(
+          { 
+            error: 'An account with this email already exists. Please log in first.',
+            requiresLogin: true,
+            email: userEmail
+          },
+          { status: 401 }
+        );
+      }
+    }
+
+    // Now do the full parsing with Claude
     const resumeData = await parseResumeWithClaude(cleanedText);
 
     // Validate essential fields
     if (!resumeData.personalInfo?.name || !resumeData.personalInfo?.email) {
+      await client.close();
       return NextResponse.json(
         { error: 'Could not extract essential information (name/email) from resume' },
         { status: 400 }
       );
     }
 
-    // Connect to database
-    await dbConnect();
-    const client = new MongoClient(process.env.MONGODB_URI!);
-    await client.connect();
-    const db = client.db();
-
-    // Use email override for development if available
-    const userEmail = process.env.DEV_EMAIL_OVERRIDE || resumeData.personalInfo.email;
-    
-    // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ 
-      email: userEmail 
-    });
-
     let userId;
     
     if (existingUser) {
-      console.log('🔍 Found existing user:', existingUser.email);
       userId = existingUser._id.toString();
     } else {
       // Create new user
