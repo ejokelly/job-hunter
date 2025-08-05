@@ -694,6 +694,11 @@ export default function Home() {
             </div>
             </div>
           </div>
+
+          {/* Page 5 - Footer */}
+          <div className="h-screen w-screen flex items-center justify-center theme-bg-gradient relative z-10">
+            <Footer />
+          </div>
         </ReactPageScroller>
 
         <style jsx>{`
