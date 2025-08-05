@@ -87,7 +87,11 @@ Resume text to parse:
 `;
 
 export async function parseResumeWithClaude(resumeText: string) {
+  console.log('[CLAUDE-PARSER] Starting Claude resume parsing, text length:', resumeText.length);
+  console.log('[CLAUDE-PARSER] Text preview (first 300 chars):', resumeText.substring(0, 300));
+  
   try {
+    console.log('[CLAUDE-PARSER] Sending request to Claude API');
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4000,
@@ -101,23 +105,35 @@ export async function parseResumeWithClaude(resumeText: string) {
       ]
     });
 
+    console.log('[CLAUDE-PARSER] Received response from Claude API');
+    console.log('[CLAUDE-PARSER] Response usage:', response.usage);
+
     const content = response.content[0];
     if (content.type !== 'text') {
+      console.log('[CLAUDE-PARSER] ERROR: Unexpected response format from Claude, type:', content.type);
       throw new Error('Unexpected response format from Claude');
     }
+
+    console.log('[CLAUDE-PARSER] Claude response length:', content.text.length);
+    console.log('[CLAUDE-PARSER] Claude response preview (first 500 chars):', content.text.substring(0, 500));
 
     // Parse the JSON response
     let resumeData;
     try {
       resumeData = JSON.parse(content.text);
+      console.log('[CLAUDE-PARSER] JSON parsed successfully');
+      console.log('[CLAUDE-PARSER] Parsed data keys:', Object.keys(resumeData));
+      console.log('[CLAUDE-PARSER] Personal info extracted:', resumeData.personalInfo);
     } catch (parseError) {
-      console.error('Failed to parse Claude response as JSON:', content.text);
+      console.error('[CLAUDE-PARSER] Failed to parse Claude response as JSON:', content.text);
+      console.error('[CLAUDE-PARSER] Parse error:', parseError);
       throw new Error('Claude returned invalid JSON');
     }
 
+    console.log('[CLAUDE-PARSER] Resume parsing completed successfully');
     return resumeData;
   } catch (error) {
-    console.error('Error parsing resume with Claude:', error);
+    console.error('[CLAUDE-PARSER] Error parsing resume with Claude:', error);
     throw new Error('Failed to parse resume with AI');
   }
 }

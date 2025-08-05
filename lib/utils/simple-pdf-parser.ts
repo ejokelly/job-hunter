@@ -1,15 +1,18 @@
 import PDFParser from 'pdf2json';
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  console.log('[PDF-PARSER] Starting PDF text extraction, buffer size:', buffer.length);
+  
   return new Promise((resolve, reject) => {
     const pdfParser = new PDFParser();
 
     pdfParser.on('pdfParser_dataError', (errData: any) => {
-      console.error('PDF parsing error:', errData);
+      console.error('[PDF-PARSER] PDF parsing error:', errData);
       reject(new Error('Failed to parse PDF file'));
     });
 
     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+      console.log('[PDF-PARSER] PDF data ready, pages found:', pdfData.Pages?.length || 0);
       try {
         let text = '';
         
@@ -34,15 +37,21 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
           }
         }
 
+        console.log('[PDF-PARSER] Raw text extracted, length:', text.length);
+        
         const cleanedText = text
           .replace(/\s+/g, ' ')
           .trim();
 
+        console.log('[PDF-PARSER] Text cleaned, final length:', cleanedText.length);
+
         if (cleanedText.length < 10) {
+          console.log('[PDF-PARSER] ERROR: No readable text found in PDF');
           reject(new Error('No readable text found in PDF'));
           return;
         }
 
+        console.log('[PDF-PARSER] Text extraction successful');
         resolve(cleanedText);
       } catch (error) {
         console.error('Error processing PDF data:', error);
