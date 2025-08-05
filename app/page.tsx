@@ -532,28 +532,28 @@ export default function Home() {
       <div className="min-h-screen theme-bg-gradient">
         <Header />
         {/* Page 1 - Hero Only */}
-        <div className="h-screen flex items-center justify-center p-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-4xl w-full text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-8 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-6 sm:mb-8 leading-tight px-2">
               <strong>We take</strong> the hard work out of creating resumes tailored for the job!
             </h1>
-            <p className="text-xl md:text-2xl theme-text-secondary leading-relaxed max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl theme-text-secondary leading-relaxed max-w-3xl mx-auto px-4">
               Upload your resume, paste a job description, and get a customized resume and cover letter in minutes.
             </p>
           </div>
         </div>
 
         {/* Page 2 - Resume Upload */}
-        <div className="h-screen flex items-center justify-center p-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-6xl w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Left Side - Upload Section */}
-              <div className="space-y-8">
+              <div className="space-y-6 lg:space-y-8">
                 <div>
-                  <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-6 leading-tight">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold theme-text-primary mb-4 sm:mb-6 leading-tight">
                     Start by uploading your resume
                   </h2>
-                  <p className="text-lg theme-text-secondary leading-relaxed">
+                  <p className="text-base sm:text-lg theme-text-secondary leading-relaxed">
                     We'll extract all your experience and skills, then help you customize it for each job application.
                   </p>
                 </div>
@@ -591,71 +591,75 @@ export default function Home() {
               </div>
 
               {/* Right Side - Resume Screenshot */}
-              <div className="flex justify-center lg:justify-end">
-                <Image 
-                  src="/screenshots/resume.png" 
-                  alt="Example of a customized resume showing technical skills and experience" 
-                  width={1200}
-                  height={1600}
-                  className="max-w-full h-auto"
-                  priority
-                />
+              <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+                <div className="w-full max-w-sm sm:max-w-md lg:max-w-full">
+                  <Image 
+                    src="/screenshots/resume.png" 
+                    alt="Example of a customized resume showing technical skills and experience" 
+                    width={600}
+                    height={800}
+                    className="w-full h-auto rounded-lg shadow-lg"
+                    priority
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Page 3 - Skill Management */}
-        <div className="h-screen flex items-center justify-center p-8">
-          <div className="max-w-4xl w-full text-center space-y-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-4xl w-full text-center space-y-6 sm:space-y-8">
             {/* Header */}
-            <h2 className="text-4xl md:text-5xl font-bold theme-text-primary leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold theme-text-primary leading-tight px-2">
               Smart Skill Management
             </h2>
             
             {/* Image */}
-            <div className="flex justify-center">
-              <Image 
-                src="/screenshots/skill-gap.png" 
-                alt="Skill gap analysis interface showing missing and matching skills with one-click selection" 
-                width={904}
-                height={595}
-                className="max-w-full h-auto"
-                priority
-              />
+            <div className="flex justify-center px-4">
+              <div className="w-full max-w-2xl">
+                <Image 
+                  src="/screenshots/skill-gap.png" 
+                  alt="Skill gap analysis interface showing missing and matching skills with one-click selection" 
+                  width={904}
+                  height={595}
+                  className="w-full h-auto rounded-lg shadow-lg"
+                  priority
+                />
+              </div>
             </div>
             
             {/* Text */}
-            <p className="text-xl theme-text-secondary leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl theme-text-secondary leading-relaxed max-w-3xl mx-auto px-4">
               As you apply to more resumes, we keep track of the skills you selected. Not every hiring manager uses the same skills keywords the same way. We allow you to select the exact wording they ask for on each job, building a long list of your skills in many variations. Then when you apply, we those skills up front and bold them on your resume, improving your chance of matching the job.
             </p>
           </div>
         </div>
 
         {/* Page 4 - Value Proposition */}
-        <div className="h-screen flex items-center justify-center p-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-5xl w-full">
-            <div className="theme-card rounded-xl p-8 md:p-12">
-              <div className="text-center space-y-8">
-                <h2 className="text-3xl md:text-4xl font-bold theme-text-primary leading-tight">
+            <div className="theme-card rounded-xl p-6 sm:p-8 md:p-12">
+              <div className="text-center space-y-6 sm:space-y-8">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold theme-text-primary leading-tight px-2">
                   Stop sending the same resume to every job that is general and uninspiring.
                 </h2>
                 
                 <div className="max-w-4xl mx-auto">
-                  <p className="text-xl theme-text-secondary leading-relaxed mb-6">
+                  <p className="text-lg sm:text-xl theme-text-secondary leading-relaxed mb-4 sm:mb-6 px-2">
                     Instead let resumelove do the hard work of customizing your resume specifically for the skills the hiring manager is looking for!
                   </p>
-                  <p className="text-lg theme-text-tertiary leading-relaxed">
+                  <p className="text-base sm:text-lg theme-text-tertiary leading-relaxed px-2">
                     We use an ATS friendly resume template that is designed with data science to get the most views!
                   </p>
                 </div>
                 
                 {/* Pricing Card */}
-                <div className="theme-bg-tertiary rounded-lg p-8 max-w-md mx-auto border theme-border">
+                <div className="theme-bg-tertiary rounded-lg p-6 sm:p-8 max-w-md mx-auto border theme-border">
                   <div className="text-center">
-                    <div className="text-4xl md:text-5xl font-bold theme-text-primary mb-3">$25</div>
-                    <div className="text-xl theme-text-secondary mb-4">for 100 custom resumes a month</div>
-                    <p className="text-base theme-text-tertiary">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-bold theme-text-primary mb-3">$25</div>
+                    <div className="text-lg sm:text-xl theme-text-secondary mb-4">for 100 custom resumes a month</div>
+                    <p className="text-sm sm:text-base theme-text-tertiary px-2">
                       Subscribe by uploading your resume and trying out resumelove
                     </p>
                   </div>
@@ -663,7 +667,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </ReactPageScroller>
 
         <style jsx>{`
           .perspective-1000 {
