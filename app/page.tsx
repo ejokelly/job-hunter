@@ -529,23 +529,38 @@ export default function Home() {
 
   if (!showForm && !session) {
     return (
-      <div className="min-h-screen theme-bg-gradient">
+      <div className="h-screen w-screen relative overflow-hidden">
+        {/* Header */}
         <Header />
-        {/* Page 1 - Hero Only */}
-        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-4xl w-full text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-6 sm:mb-8 leading-tight px-2">
-              <strong>We take</strong> the hard work out of creating resumes tailored for the job!
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl theme-text-secondary leading-relaxed max-w-3xl mx-auto px-4">
-              Upload your resume, paste a job description, and get a customized resume and cover letter in minutes.
-            </p>
+        
+        {/* Page Scroller */}
+        <ReactPageScroller
+          pageOnChange={handlePageChange}
+          customPageNumber={currentPage}
+          animationTimer={1000}
+          animationTimerBuffer={100}
+          transitionTimingFunction="cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+          containerHeight="100vh"
+          containerWidth="100vw"
+          blockScrollUp={false}
+          blockScrollDown={false}
+          renderAllPagesOnFirstRender={false}
+        >
+          {/* Page 1 - Hero Only */}
+          <div className="h-screen w-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8 theme-bg-gradient relative z-10">
+            <div className="max-w-4xl w-full text-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-6 sm:mb-8 leading-tight px-2">
+                <strong>We take</strong> the hard work out of creating resumes tailored for the job!
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl theme-text-secondary leading-relaxed max-w-3xl mx-auto px-4">
+                Upload your resume, paste a job description, and get a customized resume and cover letter in minutes.
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Page 2 - Resume Upload */}
-        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-6xl w-full">
+          {/* Page 2 - Resume Upload */}
+          <div className="h-screen w-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8 theme-bg-gradient relative z-10">
+            <div className="max-w-6xl w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Left Side - Upload Section */}
               <div className="space-y-6 lg:space-y-8">
@@ -604,12 +619,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </div>
 
-        {/* Page 3 - Skill Management */}
-        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-4xl w-full text-center space-y-6 sm:space-y-8">
+          {/* Page 3 - Skill Management */}
+          <div className="h-screen w-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8 theme-bg-gradient relative z-10">
+            <div className="max-w-4xl w-full text-center space-y-6 sm:space-y-8">
             {/* Header */}
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold theme-text-primary leading-tight px-2">
               Smart Skill Management
@@ -633,12 +648,12 @@ export default function Home() {
             <p className="text-base sm:text-lg md:text-xl theme-text-secondary leading-relaxed max-w-3xl mx-auto px-4">
               As you apply to more resumes, we keep track of the skills you selected. Not every hiring manager uses the same skills keywords the same way. We allow you to select the exact wording they ask for on each job, building a long list of your skills in many variations. Then when you apply, we those skills up front and bold them on your resume, improving your chance of matching the job.
             </p>
+            </div>
           </div>
-        </div>
 
-        {/* Page 4 - Value Proposition */}
-        <div className="min-h-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-5xl w-full">
+          {/* Page 4 - Value Proposition */}
+          <div className="h-screen w-screen flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8 theme-bg-gradient relative z-10">
+            <div className="max-w-5xl w-full">
             <div className="theme-card rounded-xl p-6 sm:p-8 md:p-12">
               <div className="text-center space-y-6 sm:space-y-8">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold theme-text-primary leading-tight px-2">
@@ -666,8 +681,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </div>
+        </ReactPageScroller>
 
         <style jsx>{`
           .perspective-1000 {
