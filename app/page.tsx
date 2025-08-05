@@ -559,15 +559,16 @@ export default function Home() {
                 </div>
 
                 {/* Upload Section */}
-                <div className="relative perspective-1000">
+                <div className="relative" style={{ perspective: '1000px' }}>
                   <div 
-                    className={`
-                      w-full transition-transform duration-700 transform-style-preserve-3d
-                      ${hasFileSelected ? 'rotate-y-180' : ''}
-                    `}
+                    className="w-full transition-transform duration-700"
+                    style={{ 
+                      transformStyle: 'preserve-3d',
+                      transform: hasFileSelected ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                    }}
                   >
                     {/* Front Side - Upload Form */}
-                    <div className="w-full backface-hidden">
+                    <div className="w-full" style={{ backfaceVisibility: 'hidden' }}>
                       <ResumeUpload 
                         onUploadSuccess={handleUploadSuccess}
                         onUploadError={handleUploadError}
@@ -576,7 +577,13 @@ export default function Home() {
                     </div>
 
                     {/* Back Side - Processing */}
-                    <div className="absolute inset-0 w-full backface-hidden rotate-y-180">
+                    <div 
+                      className="absolute inset-0 w-full" 
+                      style={{ 
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)'
+                      }}
+                    >
                       <div className="theme-card rounded-lg p-8 h-full flex flex-col justify-center">
                         <div className="text-center space-y-6">
                           <p className="theme-text-secondary text-lg leading-relaxed">
@@ -668,21 +675,6 @@ export default function Home() {
             </div>
           </div>
         </ReactPageScroller>
-
-        <style jsx>{`
-          .perspective-1000 {
-            perspective: 1000px;
-          }
-          .transform-style-preserve-3d {
-            transform-style: preserve-3d;
-          }
-          .backface-hidden {
-            backface-visibility: hidden;
-          }
-          .rotate-y-180 {
-            transform: rotateY(180deg);
-          }
-        `}</style>
       </div>
     );
   }
