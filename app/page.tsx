@@ -580,7 +580,7 @@ export default function Home() {
                     Start by uploading your resume
                   </h2>
                   <p className="text-base sm:text-lg theme-text-secondary leading-relaxed">
-                    We'll extract all your experience and skills, then help you customize it for each job application.
+                    We&apos;ll extract all your experience and skills, then help you customize it for each job application.
                   </p>
                 </div>
 
