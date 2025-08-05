@@ -531,16 +531,31 @@ export default function Home() {
     return (
       <div className="min-h-screen theme-bg-gradient">
         <Header />
-        {/* Page 1 - Hero and Upload */}
+        {/* Page 1 - Hero Only */}
+        <div className="h-screen flex items-center justify-center p-8">
+          <div className="max-w-4xl w-full text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-8 leading-tight">
+              <strong>We take</strong> the hard work out of creating resumes tailored for the job!
+            </h1>
+            <p className="text-xl md:text-2xl theme-text-secondary leading-relaxed max-w-3xl mx-auto">
+              Upload your resume, paste a job description, and get a customized resume and cover letter in minutes.
+            </p>
+          </div>
+        </div>
+
+        {/* Page 2 - Resume Upload */}
         <div className="h-screen flex items-center justify-center p-8">
           <div className="max-w-6xl w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
-              {/* Left Side - Hero and Upload */}
+              {/* Left Side - Upload Section */}
               <div className="space-y-8">
                 <div>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold theme-text-primary mb-6 leading-tight">
-                    <strong>We take</strong> the hard work out of creating resumes tailored for the job!
-                  </h1>
+                  <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-6 leading-tight">
+                    Start by uploading your resume
+                  </h2>
+                  <p className="text-lg theme-text-secondary leading-relaxed">
+                    We'll extract all your experience and skills, then help you customize it for each job application.
+                  </p>
                 </div>
 
                 {/* Upload Section */}
@@ -582,7 +597,7 @@ export default function Home() {
                   alt="Example of a customized resume showing technical skills and experience" 
                   width={1200}
                   height={1600}
-                  className=""
+                  className="max-w-full h-auto"
                   priority
                 />
               </div>
@@ -590,7 +605,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Page 2 - Skill Management */}
+        {/* Page 3 - Skill Management */}
         <div className="h-screen flex items-center justify-center p-8">
           <div className="max-w-4xl w-full text-center space-y-8">
             {/* Header */}
@@ -605,7 +620,7 @@ export default function Home() {
                 alt="Skill gap analysis interface showing missing and matching skills with one-click selection" 
                 width={904}
                 height={595}
-                className=""
+                className="max-w-full h-auto"
                 priority
               />
             </div>
@@ -617,7 +632,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Page 3 - Value Proposition */}
+        {/* Page 4 - Value Proposition */}
         <div className="h-screen flex items-center justify-center p-8">
           <div className="max-w-5xl w-full">
             <div className="theme-card rounded-xl p-8 md:p-12">
