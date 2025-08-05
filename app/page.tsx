@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 // Using custom auth system instead of next-auth
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
+
+const ReactPageScroller = dynamic(() => import('react-page-scroller'), {
+  ssr: false,
+});
 import ActionButton from '@/components/action-button';
 import ThreeDotsLoader from '@/components/three-dots-loader';
 import Header from '@/components/header';
@@ -31,6 +36,8 @@ interface PreviewData {
 export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,6 +73,10 @@ export default function Home() {
     upgradePrice?: number
     stripePriceId?: string
   } | null>(null);
+
+  const handlePageChange = (number: number) => {
+    setCurrentPage(number);
+  };
 
   // Load session on component mount
   useEffect(() => {
