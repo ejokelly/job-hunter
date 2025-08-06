@@ -6,6 +6,8 @@ import Resume from '@/lib/db/models/Resume';
 import { MongoClient } from 'mongodb';
 import * as postmark from 'postmark';
 import { randomUUID } from 'crypto';
+import { CodewordAuth } from '@/lib/auth/codeword-auth';
+import { cookies } from 'next/headers';
 
 function cleanResumeText(text: string): string {
   console.log('[CLEAN-TEXT] Starting text cleaning, input length:', text.length);
@@ -183,20 +185,21 @@ export async function POST(request: NextRequest) {
     if (!extractedEmail) {
       console.log(`[RESUME-DEBUG-${requestId}] No email found with standard regex, trying space-tolerant extraction`);
       
-      // Try to find email pattern with spaces between characters (e.g., "j o h n @ e x a m p l e . c o m")
-      const spaceEmailPattern = /([a-zA-Z0-9._%+-]\s*){3,}\s*@\s*([a-zA-Z0-9.-]\s*){2,}\s*\.\s*([a-zA-Z]\s*){2,}/g;
-      const spaceMatches = cleanedText.match(spaceEmailPattern);
-      
-      if (spaceMatches && spaceMatches.length > 0) {
-        // Take the first match and remove all spaces
-        extractedEmail = spaceMatches[0].replace(/\s+/g, '');
-        console.log(`[RESUME-DEBUG-${requestId}] Found spaced email pattern, cleaned to:`, extractedEmail);
+      // First try a more lenient pattern for emails with minimal spaces around @ and .
+      const lenientEmailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+)\s*@\s*([a-zA-Z0-9.-]+)\s*\.\s*([a-zA-Z]{2,})/);
+      if (lenientEmailMatch) {
+        extractedEmail = lenientEmailMatch[0].replace(/\s+/g, ''); // Remove all spaces
+        console.log(`[RESUME-DEBUG-${requestId}] Found email with minimal spaces, cleaned to:`, extractedEmail);
       } else {
-        // Try a more lenient pattern for emails with some spaces
-        const lenientEmailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+\s*@\s*[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-        if (lenientEmailMatch) {
-          extractedEmail = lenientEmailMatch[0].replace(/\s+/g, ''); // Remove all spaces
-          console.log(`[RESUME-DEBUG-${requestId}] Found email with some spaces, cleaned to:`, extractedEmail);
+        // Try to find email pattern with spaces between characters (e.g., "j o h n @ e x a m p l e . c o m")
+        // Use word boundaries to prevent capturing extra characters
+        const spaceEmailPattern = /\b([a-zA-Z0-9._%+-]\s*){3,}\s*@\s*([a-zA-Z0-9.-]\s*){2,}\s*\.\s*([a-zA-Z]\s*){2,}\b/g;
+        const spaceMatches = cleanedText.match(spaceEmailPattern);
+        
+        if (spaceMatches && spaceMatches.length > 0) {
+          // Take the first match and remove all spaces
+          extractedEmail = spaceMatches[0].replace(/\s+/g, '');
+          console.log(`[RESUME-DEBUG-${requestId}] Found spaced email pattern, cleaned to:`, extractedEmail);
         }
       }
     }
@@ -235,27 +238,38 @@ export async function POST(request: NextRequest) {
         name: existingUser.name
       });
       
-      // Check if user is authenticated by looking for session
-      const sessionHeader = request.headers.get('Authorization');
-      const sessionCookie = request.headers.get('Cookie');
+      // Check if user has existing resume - if they do, require login
+      const { ObjectId } = await import('mongodb');
+      const userObjectId = new ObjectId(existingUser._id);
+      const hasExistingResume = await Resume.findOne({ userId: userObjectId });
       
-      console.log(`[RESUME-DEBUG-${requestId}] Auth check - sessionHeader:`, !!sessionHeader, 'sessionCookie:', !!sessionCookie?.includes('session='));
-      
-      // If user exists but no valid session, require login
-      if (!sessionHeader && !sessionCookie?.includes('session=')) {
-        console.log(`[RESUME-DEBUG-${requestId}] ERROR: User exists but not authenticated`);
-        await client.close();
-        return NextResponse.json(
-          { 
-            error: 'An account with this email already exists. Please log in first.',
-            requiresLogin: true,
-            email: userEmail
-          },
-          { status: 401 }
-        );
+      if (hasExistingResume) {
+        console.log(`[RESUME-DEBUG-${requestId}] User has existing resume, checking authentication`);
+        
+        // Check if user is authenticated by looking for session
+        const sessionHeader = request.headers.get('Authorization');
+        const sessionCookie = request.headers.get('Cookie');
+        
+        console.log(`[RESUME-DEBUG-${requestId}] Auth check - sessionHeader:`, !!sessionHeader, 'sessionCookie:', !!sessionCookie?.includes('session='));
+        
+        // If user exists with resume but no valid session, require login
+        if (!sessionHeader && !sessionCookie?.includes('session=')) {
+          console.log(`[RESUME-DEBUG-${requestId}] ERROR: User exists with resume but not authenticated`);
+          await client.close();
+          return NextResponse.json(
+            { 
+              error: 'An account with this email already exists. Please log in first.',
+              requiresLogin: true,
+              email: userEmail
+            },
+            { status: 401 }
+          );
+        }
+      } else {
+        console.log(`[RESUME-DEBUG-${requestId}] User exists but no resume - allowing upload as first-time user`);
       }
     } else {
-      console.log(`[RESUME-DEBUG-${requestId}] No existing user found for email: ${userEmail}`);
+      console.log(`[RESUME-DEBUG-${requestId}] No existing user found for email: ${userEmail} - new user signup`);
     }
 
     console.log(`[RESUME-DEBUG-${requestId}] Step 9: Parsing resume with Claude`);
@@ -304,7 +318,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[RESUME-DEBUG-${requestId}] Step 12: Managing resume record`);
-    // Check if user already has a resume - if so, update it instead of creating new
     const { ObjectId } = await import('mongodb');
     const userObjectId = new ObjectId(userId);
     console.log(`[RESUME-DEBUG-${requestId}] Checking for existing resume for user: ${userId}`);
@@ -314,10 +327,50 @@ export async function POST(request: NextRequest) {
     let resume;
     if (existingResume) {
       console.log(`[RESUME-DEBUG-${requestId}] Updating existing resume: ${existingResume._id}`);
-      // Update existing resume
-      await Resume.findByIdAndUpdate(existingResume._id, resumeData, { new: true });
+      
+      // Merge skills instead of overwriting
+      const skillsMap = new Map();
+      
+      // Add existing skills first
+      existingResume.skills.forEach((skill: any) => {
+        if (skill.name) {
+          skillsMap.set(skill.name.toLowerCase(), skill);
+        }
+      });
+      
+      // Add/update with new skills
+      resumeData.skills.forEach((skill: any) => {
+        if (skill.name) {
+          const key = skill.name.toLowerCase();
+          // If skill already exists, keep the higher proficiency level
+          if (skillsMap.has(key)) {
+            const existingSkill = skillsMap.get(key);
+            const newLevel = skill.level || 'intermediate';
+            const existingLevel = existingSkill.level || 'intermediate';
+            
+            // Priority: advanced > intermediate > basic
+            const levelPriority: Record<string, number> = { advanced: 3, intermediate: 2, basic: 1 };
+            if ((levelPriority[newLevel] || 2) > (levelPriority[existingLevel] || 2)) {
+              skillsMap.set(key, skill);
+            }
+          } else {
+            skillsMap.set(key, skill);
+          }
+        }
+      });
+      
+      // Convert back to array
+      const mergedSkills = Array.from(skillsMap.values());
+      
+      // Update resume with merged skills and new personal info
+      const updateData = {
+        ...resumeData,
+        skills: mergedSkills
+      };
+      
+      await Resume.findByIdAndUpdate(existingResume._id, updateData, { new: true });
       resume = { _id: existingResume._id };
-      console.log(`[RESUME-DEBUG-${requestId}] Resume updated successfully`);
+      console.log(`[RESUME-DEBUG-${requestId}] Resume updated successfully with ${mergedSkills.length} skills`);
     } else {
       console.log(`[RESUME-DEBUG-${requestId}] Creating new resume record`);
       // Create new resume
@@ -327,7 +380,23 @@ export async function POST(request: NextRequest) {
       console.log(`[RESUME-DEBUG-${requestId}] New resume created: ${resume._id}`);
     }
 
-    console.log(`[RESUME-DEBUG-${requestId}] Step 13: Finalizing response`);
+    console.log(`[RESUME-DEBUG-${requestId}] Step 13: Creating session for user`);
+    
+    // Create session for the user (new or existing)
+    const sessionResult = await CodewordAuth.signIn(userEmail, resumeData.personalInfo.name);
+    console.log(`[RESUME-DEBUG-${requestId}] Session created: ${sessionResult.sessionToken}`);
+    
+    // Set the session cookie
+    const cookieStore = await cookies();
+    cookieStore.set('session-token', sessionResult.sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    });
+    
+    console.log(`[RESUME-DEBUG-${requestId}] Step 14: Finalizing response`);
     
     await client.close();
     console.log(`[RESUME-DEBUG-${requestId}] Database connection closed`);
@@ -339,7 +408,9 @@ export async function POST(request: NextRequest) {
       email: userEmail,
       name: resumeData.personalInfo.name,
       message: 'Resume uploaded successfully!',
-      emailVerified: true
+      emailVerified: true,
+      sessionToken: sessionResult.sessionToken,
+      jwtToken: sessionResult.sessionToken
     };
 
     console.log(`[RESUME-DEBUG-${requestId}] === Resume upload process completed successfully ===`);

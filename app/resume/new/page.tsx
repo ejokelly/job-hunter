@@ -641,7 +641,7 @@ export default function NewResumePage() {
       <PageContainer>
         <div className="w-full">
           <div className="text-center mb-4 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Create Your Resume</h1>
+            <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Tailor Your Resume</h1>
             {!skillGapReport && (
               <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
             )}

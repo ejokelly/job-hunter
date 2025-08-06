@@ -30,6 +30,7 @@ export default function AccountPage() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(false);
   const [accentColor, setAccentColor] = useState('#3b82f6');
 
   // Load session
@@ -105,6 +106,7 @@ export default function AccountPage() {
   };
 
   const handleUpgrade = async (stripePriceId: string) => {
+    setUpgrading(true);
     posthog.capture('subscription_upgrade_initiated', {
       price_id: stripePriceId,
       current_status: subscriptionData?.subscriptionStatus,
@@ -117,10 +119,20 @@ export default function AccountPage() {
         body: JSON.stringify({ priceId: stripePriceId })
       });
       
-      const { url, error } = await response.json();
+      const { url, error, upgraded } = await response.json();
       
       if (error) {
         alert(`Error: ${error}`);
+        return;
+      }
+      
+      if (upgraded) {
+        // Subscription was upgraded directly (existing customer)
+        posthog.capture('subscription_upgraded_directly', {
+          price_id: stripePriceId
+        });
+        // Refresh the page to show new subscription status
+        window.location.reload();
         return;
       }
       
@@ -134,6 +146,8 @@ export default function AccountPage() {
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Something went wrong. Please try again.');
+    } finally {
+      setUpgrading(false);
     }
   };
 
@@ -157,7 +171,7 @@ export default function AccountPage() {
           title: 'Starter Plan',
           icon: <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
           color: 'bg-blue-50 border-blue-200 text-blue-800',
-          description: '100 resume and cover letter generations per month',
+          description: `${process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} resume and cover letter generations per month`,
           price: '$25/month',
           renewalDate: subscriptionExpires
         };
@@ -175,7 +189,7 @@ export default function AccountPage() {
           title: 'Free Plan',
           icon: <FileText className="w-6 h-6 text-gray-600 dark:text-gray-400" />,
           color: 'bg-gray-50 border-gray-200 text-gray-800',
-          description: '10 resume generations per month',
+          description: `${process.env.NEXT_PUBLIC_FREE_MONTHLY_LIMIT} resume generations per month`,
           price: 'Free',
           renewalDate: null
         };
@@ -349,8 +363,13 @@ export default function AccountPage() {
                   onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
                   variant="primary"
                   className="w-full py-3"
+                  disabled={upgrading}
                 >
-                  <Crown className="w-4 h-4 mr-2" />
+                  {upgrading ? (
+                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                  ) : (
+                    <Crown className="w-4 h-4 mr-2" />
+                  )}
                   Upgrade to Starter Plan - $25/month
                 </ActionButton>
               )}
@@ -361,16 +380,26 @@ export default function AccountPage() {
                     onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
                     variant="primary"
                     className="w-full py-3"
+                    disabled={upgrading}
                   >
-                    <Crown className="w-4 h-4 mr-2" />
+                    {upgrading ? (
+                      <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                    ) : (
+                      <Crown className="w-4 h-4 mr-2" />
+                    )}
                     Reactivate Starter Plan - $25/month
                   </ActionButton>
                   <ActionButton
                     onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
                     variant="secondary"
                     className="w-full py-3"
+                    disabled={upgrading}
                   >
-                    <Crown className="w-4 h-4 mr-2" />
+                    {upgrading ? (
+                      <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                    ) : (
+                      <Crown className="w-4 h-4 mr-2" />
+                    )}
                     Get Crazy Job Market Plan - $250/month
                   </ActionButton>
                 </div>
@@ -382,8 +411,13 @@ export default function AccountPage() {
                   onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
                   variant="primary"
                   className="w-full py-3"
+                  disabled={upgrading}
                 >
-                  <Crown className="w-4 h-4 mr-2" />
+                  {upgrading ? (
+                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                  ) : (
+                    <Crown className="w-4 h-4 mr-2" />
+                  )}
                   Upgrade to Crazy Job Market Plan - $250/month
                 </ActionButton>
               )}

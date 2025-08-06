@@ -28,7 +28,7 @@ export class SubscriptionManager {
     return connection.db()
   }
 
-  static async getSubscriptionStatus(userId: string): Promise<SubscriptionStatus> {
+  static async getSubscriptionStatus(userId: string, forceRefresh: boolean = false): Promise<SubscriptionStatus> {
     const db = await this.getDatabase()
     
     console.log('🚨 SUBSCRIPTION CHECK - Looking up user ID:', userId)
@@ -38,10 +38,7 @@ export class SubscriptionManager {
     
     console.log('🚨 SUBSCRIPTION CHECK - Found user:', {
       id: user._id.toString(),
-      email: user.email,
-      subscriptionStatus: user.subscriptionStatus,
-      stripeSubscriptionId: user.stripeSubscriptionId,
-      subscriptionExpires: user.subscriptionExpires
+      email: user.email
     })
 
     // Count resumes created this month
@@ -55,142 +52,89 @@ export class SubscriptionManager {
       createdAt: { $gte: startOfMonth }
     })
 
-    let subscriptionStatus = user.subscriptionStatus || 'free'
-    let isActive = !user.subscriptionExpires || new Date(user.subscriptionExpires) > new Date()
-    
-    const now = new Date()
-    const needsStripeCheck = !user.nextStripeCheck || now >= user.nextStripeCheck
-    
-    // Only check Stripe if we need to (haven't checked recently or near renewal)
-    if (needsStripeCheck) {
-      console.log(`🔍 Checking Stripe for user ${userId} (last check: ${user.lastStripeCheck || 'never'})`)
-      
-      try {
-        // CRITICAL FIX: Only check Stripe for this specific user's email
-        if (!user.email) {
-          console.log(`❌ User ${userId} has no email, skipping Stripe check`)
-          return {
-            canCreateResume: subscriptionStatus === 'free' ? monthlyCount < parseInt(process.env.FREE_MONTHLY_LIMIT!) : true,
-            subscriptionStatus,
-            monthlyCount,
-            monthlyLimit: subscriptionStatus === 'free' ? parseInt(process.env.FREE_MONTHLY_LIMIT!) : parseInt(process.env.STARTER_MONTHLY_LIMIT!),
-            needsUpgrade: false,
-            upgradeToTier: null,
-            upgradePrice: null,
-            stripePriceId: null
-          }
-        }
+    // Check Stripe - it's the source of truth (but can be cached in session)
+    let subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled' = 'free'
+    let stripeSubscriptionId: string | undefined = undefined
+    let subscriptionExpires: Date | undefined = undefined
 
-        console.log(`🔍 Checking Stripe ONLY for email: ${user.email}`)
+    console.log(`🔍 Stripe check - forceRefresh: ${forceRefresh}`);
+
+    try {
+      // Check Stripe for this specific user's email
+      if (!user.email) {
+        console.log(`❌ User ${userId} has no email, defaulting to free`)
+      } else {
+        console.log(`🔍 Checking Stripe for email: ${user.email}`)
         
-        // Get Stripe customer for this specific email
-        const customers = await stripe.customers.list({ email: user.email })
+        // Get ALL Stripe customers for this email and check ALL for active subscriptions
+        const customers = await stripe.customers.list({ email: user.email, limit: 100 })
+        console.log(`📊 STRIPE DEBUG - Found ${customers.data.length} customers for email: ${user.email}`)
+        
         if (customers.data.length === 0) {
-          console.log(`❌ No Stripe customer found for email: ${user.email}`)
-          // Skip Stripe sync if no customer exists
-          return {
-            canCreateResume: subscriptionStatus === 'free' ? monthlyCount < parseInt(process.env.FREE_MONTHLY_LIMIT!) : true,
-            subscriptionStatus,
-            monthlyCount,
-            monthlyLimit: subscriptionStatus === 'free' ? parseInt(process.env.FREE_MONTHLY_LIMIT!) : parseInt(process.env.STARTER_MONTHLY_LIMIT!),
-            needsUpgrade: false,
-            upgradeToTier: null,
-            upgradePrice: null,
-            stripePriceId: null
-          }
-        }
-
-        const stripeCustomer = customers.data[0]
-        
-        // Search for active subscriptions for this specific customer
-        const subscriptions = await stripe.subscriptions.list({
-          customer: stripeCustomer.id,
-          status: 'active',
-          limit: 10
-        })
-        
-        let foundActiveSubscription = false
-        let nextCheckDate = new Date(now.getTime() + 24 * 60 * 60 * 1000) // Default: check again in 24 hours
-        
-        // If user has a stored subscription ID, check it first
-        if (user.stripeSubscriptionId) {
-          try {
-            const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
-            if (subscription.status === 'active') {
-              foundActiveSubscription = true
-              isActive = true
-              const priceId = subscription.items.data[0]?.price?.id
+          console.log(`❌ No Stripe customer found for email: ${user.email}, using free tier`)
+        } else {
+          let foundActiveSubscription = false;
+          
+          // Check ALL customers for active subscriptions
+          for (const customer of customers.data) {
+            console.log(`🔍 Checking customer: ${customer.id}`)
+            
+            const subscriptions = await stripe.subscriptions.list({
+              customer: customer.id,
+              status: 'active',
+              limit: 10
+            })
+            
+            console.log(`📊 STRIPE DEBUG - Found ${subscriptions.data.length} active subscriptions for customer: ${customer.id}`)
+            
+            if (subscriptions.data.length > 0) {
+              console.log(`📊 STRIPE DEBUG - Subscription details:`, subscriptions.data.map(sub => ({
+                id: sub.id,
+                status: sub.status,
+                priceId: sub.items.data[0]?.price?.id,
+                amount: sub.items.data[0]?.price?.unit_amount,
+                created: new Date(sub.created * 1000).toISOString()
+              })));
+              
+              // Get the highest tier subscription if multiple exist
+              const activeSubscription = subscriptions.data.reduce((highest, current) => {
+                const currentPriceId = current.items.data[0]?.price?.id;
+                const highestPriceId = highest.items.data[0]?.price?.id;
+                
+                const getTierValue = (priceId: string): number => {
+                  if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) return 1;
+                  if (priceId === process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID) return 2;
+                  return 0;
+                };
+                
+                return getTierValue(currentPriceId) > getTierValue(highestPriceId) ? current : highest;
+              });
+              
+              const priceId = activeSubscription.items.data[0]?.price?.id
+              stripeSubscriptionId = activeSubscription.id
+              subscriptionExpires = new Date((activeSubscription as any).current_period_end * 1000)
+              
               if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) {
                 subscriptionStatus = 'starter'
               } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID) {
                 subscriptionStatus = 'unlimited'
               }
               
-              // Set next check date for future validation
-              nextCheckDate = new Date(Date.now() + 24 * 60 * 60 * 1000) // Check again tomorrow
+              console.log(`✅ Found active subscription for user ${userId}: ${subscriptionStatus} (${activeSubscription.id}) on customer ${customer.id}`)
+              foundActiveSubscription = true;
+              break; // Found an active subscription, stop looking
             }
-          } catch (error) {
-            console.error('Error checking stored subscription:', error)
+          }
+          
+          if (!foundActiveSubscription) {
+            console.log(`❌ No active subscriptions found across ${customers.data.length} customers for user ${userId}, using free tier`)
           }
         }
-        
-        // If no stored subscription or it's not active, check all subscriptions for this customer
-        if (!foundActiveSubscription && subscriptions.data.length > 0) {
-          const activeSubscription = subscriptions.data[0] // Take the first active subscription
-          const priceId = activeSubscription.items.data[0]?.price?.id
-          
-          isActive = true
-          foundActiveSubscription = true
-          
-          if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) {
-            subscriptionStatus = 'starter'
-          } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID) {
-            subscriptionStatus = 'unlimited'
-          }
-          
-          // Set next check date for future validation
-          nextCheckDate = new Date(Date.now() + 24 * 60 * 60 * 1000) // Check again tomorrow
-          
-          console.log(`✅ Found new subscription for user ${userId}: ${subscriptionStatus} (${activeSubscription.id})`)
-        }
-        
-        // Update database with check timestamps
-        await db.collection('users').updateOne(
-          { _id: new ObjectId(userId) },
-          {
-            $set: {
-              lastStripeCheck: now,
-              nextStripeCheck: nextCheckDate,
-              ...(foundActiveSubscription && {
-                subscriptionStatus,
-                stripeSubscriptionId: foundActiveSubscription ? 
-                  (user.stripeSubscriptionId || subscriptions.data[0]?.id) : user.stripeSubscriptionId,
-                subscriptionExpires: foundActiveSubscription ? 
-                  new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : user.subscriptionExpires // Default to 30 days from now
-              }),
-              updatedAt: now
-            }
-          }
-        )
-        
-        console.log(`📅 Next Stripe check for user ${userId}: ${nextCheckDate.toISOString()}`)
-        
-      } catch (error) {
-        console.error('Error syncing with Stripe:', error)
-        // Update next check to retry in 1 hour on error
-        await db.collection('users').updateOne(
-          { _id: new ObjectId(userId) },
-          {
-            $set: {
-              lastStripeCheck: now,
-              nextStripeCheck: new Date(now.getTime() + 60 * 60 * 1000), // Retry in 1 hour
-              updatedAt: now
-            }
-          }
-        )
       }
-    } else {
-      console.log(`⏭️ Skipping Stripe check for user ${userId} (next check: ${user.nextStripeCheck})`)
+    } catch (error) {
+      console.error('Error checking Stripe:', error)
+      // Default to free on error
+      subscriptionStatus = 'free'
     }
     
     // Get pricing data
@@ -247,8 +191,8 @@ export class SubscriptionManager {
       upgradeToTier: upgradeToTier as 'starter' | 'unlimited' | null,
       upgradePrice,
       stripePriceId,
-      subscriptionExpires: user.subscriptionExpires,
-      stripeSubscriptionId: user.stripeSubscriptionId
+      subscriptionExpires,
+      stripeSubscriptionId
     }
   }
 
@@ -307,26 +251,70 @@ export class SubscriptionManager {
     return status
   }
 
-  static async updateSubscription(
-    userId: string,
-    stripeSubscriptionId: string,
-    subscriptionStatus: 'starter' | 'unlimited' | 'canceled',
+  // Helper method to get subscription status from Stripe only (for session caching)
+  static async getSubscriptionFromStripe(userEmail: string): Promise<{
+    subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled',
+    stripeSubscriptionId?: string,
     subscriptionExpires?: Date
-  ): Promise<void> {
-    const db = await this.getDatabase()
-    
-    await db.collection('users').updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $set: {
-          subscriptionStatus,
-          stripeSubscriptionId,
-          subscriptionExpires,
-          updatedAt: new Date()
-        }
+  }> {
+    try {
+      console.log(`🔍 Checking Stripe for email: ${userEmail}`)
+      
+      // Get Stripe customer for this specific email
+      const customers = await stripe.customers.list({ email: userEmail })
+      if (customers.data.length === 0) {
+        console.log(`❌ No Stripe customer found for email: ${userEmail}, using free tier`)
+        return { subscriptionStatus: 'free' }
       }
-    )
-    
-    console.log(`Updated subscription for user ${userId}: ${subscriptionStatus}`)
+
+      const stripeCustomer = customers.data[0]
+      
+      // Search for active subscriptions for this specific customer
+      const subscriptions = await stripe.subscriptions.list({
+        customer: stripeCustomer.id,
+        status: 'active',
+        limit: 10
+      })
+      
+      if (subscriptions.data.length === 0) {
+        console.log(`❌ No active subscriptions found for ${userEmail}, using free tier`)
+        return { subscriptionStatus: 'free' }
+      }
+
+      // Get the highest tier subscription if multiple exist
+      const activeSubscription = subscriptions.data.reduce((highest, current) => {
+        const currentPriceId = current.items.data[0]?.price?.id;
+        const highestPriceId = highest.items.data[0]?.price?.id;
+        
+        const getTierValue = (priceId: string): number => {
+          if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) return 1;
+          if (priceId === process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID) return 2;
+          return 0;
+        };
+        
+        return getTierValue(currentPriceId) > getTierValue(highestPriceId) ? current : highest;
+      });
+      
+      const priceId = activeSubscription.items.data[0]?.price?.id
+      let subscriptionStatus: 'free' | 'starter' | 'unlimited' | 'canceled' = 'free'
+      
+      if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) {
+        subscriptionStatus = 'starter'
+      } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID) {
+        subscriptionStatus = 'unlimited'
+      }
+      
+      console.log(`✅ Found active subscription for ${userEmail}: ${subscriptionStatus} (${activeSubscription.id})`)
+      
+      return {
+        subscriptionStatus,
+        stripeSubscriptionId: activeSubscription.id,
+        subscriptionExpires: new Date((activeSubscription as any).current_period_end * 1000)
+      }
+      
+    } catch (error) {
+      console.error('Error checking Stripe:', error)
+      return { subscriptionStatus: 'free' }
+    }
   }
 }

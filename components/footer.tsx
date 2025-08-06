@@ -40,11 +40,11 @@ export default function Footer() {
 
   return (
     <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 py-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-16 lg:gap-20 py-20">
         {/* Company Info */}
         <div className="text-center md:text-left">
-          <h3 className="text-2xl font-bold theme-text-primary mb-4">resumelove</h3>
-          <p className="theme-text-secondary mb-6 leading-relaxed">
+          <h3 className="text-3xl font-black theme-text-primary mb-4 tracking-tight">resumelove</h3>
+          <p className="theme-text-secondary mb-8 leading-relaxed font-medium">
             Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
           </p>
           <div className="text-sm theme-text-tertiary">
@@ -54,8 +54,8 @@ export default function Footer() {
 
         {/* Quick Links */}
         <div className="text-center md:text-left">
-          <h4 className="text-lg font-semibold theme-text-primary mb-4">Quick Links</h4>
-          <div className="space-y-3">
+          <h4 className="text-xl font-bold theme-text-primary mb-4">Quick Links</h4>
+          <div className="space-y-4">
             <div>
               <Link href="/privacy" className="theme-text-secondary hover:theme-text-primary transition-colors">
                 Privacy Policy
@@ -76,12 +76,12 @@ export default function Footer() {
 
         {/* Contact & Support */}
         <div className="text-center md:text-left">
-          <h4 className="text-lg font-semibold theme-text-primary mb-4">Get in Touch</h4>
-          <div className="space-y-3">
+          <h4 className="text-xl font-bold theme-text-primary mb-4">Get in Touch</h4>
+          <div className="space-y-4">
             {isSubscribed ? (
               <>
                 <div>
-                  <p className="theme-text-secondary">Questions or need help?</p>
+                  <p className="theme-text-secondary font-medium">Questions or need help?</p>
                   <a href="mailto:helpme@resumelove.app" className="theme-text-primary hover:opacity-80 transition-opacity font-medium">
                     helpme@resumelove.app
                   </a>
@@ -94,7 +94,7 @@ export default function Footer() {
               </>
             ) : (
               <div>
-                <p className="theme-text-secondary">Need support?</p>
+                <p className="theme-text-secondary font-medium">Need support?</p>
                 <p className="theme-text-primary font-medium">
                   Email support is available for paid subscribers
                 </p>

@@ -38,15 +38,15 @@ export function getPricingData(): PricingData {
         free: {
           name: "Free",
           price: 0,
-          monthlyLimit: 10,
-          features: ["10 resumes per month", "10 cover letters per month"],
+          monthlyLimit: parseInt(process.env.NEXT_PUBLIC_FREE_MONTHLY_LIMIT!),
+          features: [`${process.env.NEXT_PUBLIC_FREE_MONTHLY_LIMIT} resumes per month`, `${process.env.NEXT_PUBLIC_FREE_MONTHLY_LIMIT} cover letters per month`],
           upgradeToTier: "starter"
         },
         starter: {
           name: "Starter", 
           price: 25,
-          monthlyLimit: 100,
-          features: ["100 resumes per month", "100 cover letters per month"],
+          monthlyLimit: parseInt(process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT!),
+          features: [`${process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} resumes per month`, `${process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} cover letters per month`],
           upgradeToTier: "unlimited"
         },
         unlimited: {

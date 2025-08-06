@@ -51,6 +51,34 @@ export default function Home() {
     loadSession()
   }, [router])
 
+  // Handle subscription cleanup after successful Stripe checkout
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const cleanup = urlParams.get('cleanup');
+    const success = urlParams.get('success');
+    
+    if (cleanup === 'true' && success === 'true') {
+      console.log('🧹 Triggering subscription cleanup after successful checkout');
+      
+      fetch('/api/stripe/cleanup-subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('✅ Subscription cleanup result:', data);
+        
+        // Remove cleanup parameters from URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('cleanup');
+        window.history.replaceState({}, document.title, newUrl.toString());
+      })
+      .catch(error => {
+        console.error('❌ Subscription cleanup failed:', error);
+      });
+    }
+  }, []);
+
   const handleUploadSuccess = async (userData: { userId: string; email: string; name: string; message: string; resumeId: string; sessionToken: string; jwtToken: string; emailVerified: boolean }) => {
     console.log('Upload success, redirecting to resume builder');
     

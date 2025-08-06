@@ -70,10 +70,10 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
   }
 
   return (
-    <div className="theme-header shadow-sm border-b theme-border-light">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="theme-header shadow-md border-b theme-border-light">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {onBack && (
               <ActionButton 
                 onClick={onBack}
@@ -89,7 +89,7 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-6">
             {/* Theme Toggle - Center */}
             <div className="flex items-center theme-bg-tertiary rounded-full p-1">
               <button
@@ -161,6 +161,17 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
                 </ActionButton>
                 <ActionButton
                   onClick={() => {
+                    posthog.capture('header_menu_clicked', { item: 'profile' });
+                    window.location.href = '/profile';
+                  }}
+                  variant="ghost"
+                  className="gap-2 text-sm"
+                >
+                  <User className="w-4 h-4" />
+                  Profile
+                </ActionButton>
+                <ActionButton
+                  onClick={() => {
                     posthog.capture('header_menu_clicked', { item: 'account' });
                     window.location.href = '/account';
                   }}
@@ -183,7 +194,7 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
           </div>
 
           {/* Mobile Actions */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-4">
             {/* Always show New Resume on mobile */}
             {session && (
               <ActionButton
@@ -206,8 +217,8 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t theme-border-light relative z-[10000]">
-            <div className="flex flex-col gap-4">
+          <div className="md:hidden mt-6 pt-6 border-t theme-border-light relative z-[10000]">
+            <div className="flex flex-col gap-6">
               {/* Theme Toggle for Mobile */}
               <div className="flex items-center justify-center">
                 <div className="flex items-center theme-bg-tertiary rounded-full p-1">
@@ -268,6 +279,18 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
               
               {session && (
                 <>
+                  <ActionButton
+                    onClick={() => {
+                      posthog.capture('mobile_menu_clicked', { item: 'profile' });
+                      setIsMobileMenuOpen(false);
+                      window.location.href = '/profile';
+                    }}
+                    variant="ghost"
+                    className="gap-2 text-sm justify-center"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </ActionButton>
                   <ActionButton
                     onClick={() => {
                       posthog.capture('mobile_menu_clicked', { item: 'account' });

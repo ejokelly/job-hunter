@@ -107,6 +107,50 @@ export class CodewordAuth {
     return { success: true, code } // Return code for development/testing
   }
 
+  private static async findOrCreateUser(email: string, name: string) {
+    const db = await this.getDatabase()
+    
+    // Use findOneAndUpdate with upsert to prevent duplicate creation
+    const result = await db.collection('users').findOneAndUpdate(
+      { email }, // Find by email
+      {
+        $setOnInsert: {
+          email,
+          name,
+          emailVerified: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        $set: {
+          updatedAt: new Date()
+        }
+      },
+      { 
+        upsert: true, 
+        returnDocument: 'after' 
+      }
+    )
+    
+    return result
+  }
+
+  private static async createSession(userId: any) {
+    const db = await this.getDatabase()
+    
+    // Create session
+    const sessionToken = crypto.randomBytes(32).toString('hex')
+    const sessionExpires = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
+    
+    await db.collection('sessions').insertOne({
+      sessionToken,
+      userId,
+      expires: sessionExpires,
+      createdAt: new Date()
+    })
+    
+    return { sessionToken, expires: sessionExpires }
+  }
+
   static async verifyCode(email: string, code: string) {
     const db = await this.getDatabase()
     
@@ -138,19 +182,17 @@ export class CodewordAuth {
     
     console.log('✅ Code verified successfully')
     
-    // Find or create user
+    // Extract name from email for new users
+    const nameFromEmail = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    
+    // Find or create user (with additional fields for verifyCode)
     let user = await db.collection('users').findOne({ email })
     
     if (!user) {
       const result = await db.collection('users').insertOne({
         email,
+        name: nameFromEmail,
         emailVerified: true,
-        subscriptionStatus: 'free',
-        weeklyResumeCount: 0,
-        monthlyResumeCount: 0,
-        lastResumeDate: new Date('1970-01-01'), // Start with old date
-        lastWeeklyReset: new Date('1970-01-01'),
-        lastMonthlyReset: new Date('1970-01-01'),
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -158,20 +200,15 @@ export class CodewordAuth {
       user = {
         _id: result.insertedId,
         email,
+        name: nameFromEmail,
         emailVerified: true,
-        subscriptionStatus: 'free',
-        weeklyResumeCount: 0,
-        monthlyResumeCount: 0,
-        lastResumeDate: new Date('1970-01-01'),
-        lastWeeklyReset: new Date('1970-01-01'),
-        lastMonthlyReset: new Date('1970-01-01'),
         createdAt: new Date(),
         updatedAt: new Date()
       }
     } else {
       // Update email verified status
       await db.collection('users').updateOne(
-        { _id: user._id },
+        { _id: user!._id },
         { 
           $set: { 
             emailVerified: true,
@@ -182,21 +219,32 @@ export class CodewordAuth {
     }
     
     // Create session
-    const sessionToken = crypto.randomBytes(32).toString('hex')
-    const sessionExpires = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
-    
-    await db.collection('sessions').insertOne({
-      sessionToken,
-      userId: user._id,
-      expires: sessionExpires,
-      createdAt: new Date()
-    })
+    const { sessionToken, expires: sessionExpires } = await this.createSession(user!._id)
     
     return {
       user: {
-        id: user._id.toString(),
-        email: user.email,
-        emailVerified: user.emailVerified
+        id: user!._id.toString(),
+        email: user!.email,
+        emailVerified: user!.emailVerified
+      },
+      sessionToken,
+      expires: sessionExpires
+    }
+  }
+
+  static async signIn(email: string, name: string) {
+    // Find or create user
+    const user = await this.findOrCreateUser(email, name)
+    
+    // Create session
+    const { sessionToken, expires: sessionExpires } = await this.createSession(user!._id)
+    
+    return {
+      user: {
+        id: user!._id.toString(),
+        email: user!.email,
+        name: user!.name,
+        emailVerified: user!.emailVerified
       },
       sessionToken,
       expires: sessionExpires
@@ -221,9 +269,9 @@ export class CodewordAuth {
     
     return {
       user: {
-        id: user._id.toString(),
-        email: user.email,
-        emailVerified: user.emailVerified
+        id: user!._id.toString(),
+        email: user!.email,
+        emailVerified: user!.emailVerified
       },
       expires: session.expires
     }

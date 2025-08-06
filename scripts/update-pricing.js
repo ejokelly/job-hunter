@@ -52,8 +52,8 @@ async function updatePricingData() {
     pricingData.plans.unlimited.stripePriceId = unlimitedPriceId;
     
     // Update limits from environment variables
-    pricingData.plans.free.monthlyLimit = parseInt(process.env.FREE_MONTHLY_LIMIT || '10');
-    pricingData.plans.starter.monthlyLimit = parseInt(process.env.STARTER_MONTHLY_LIMIT || '100');
+    pricingData.plans.free.monthlyLimit = parseInt(process.env.NEXT_PUBLIC_FREE_MONTHLY_LIMIT || process.env.FREE_MONTHLY_LIMIT);
+    pricingData.plans.starter.monthlyLimit = parseInt(process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT || process.env.STARTER_MONTHLY_LIMIT);
     
     // Save updated data
     fs.writeFileSync(pricingPath, JSON.stringify(pricingData, null, 2));

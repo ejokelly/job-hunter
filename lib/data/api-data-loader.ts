@@ -73,24 +73,12 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
       console.log('🔍 Looking for resume with userId:', finalUserId);
       const { ObjectId } = await import('mongodb');
       const userObjectId = new ObjectId(finalUserId);
-      let resume = await Resume.findOne({ userId: userObjectId }).sort({ updatedAt: -1 });
+      const resume = await Resume.findOne({ userId: userObjectId }).sort({ updatedAt: -1 });
       console.log('🔍 Found resume:', !!resume, resume?._id);
       
       if (!resume) {
-        console.log('🔍 No resume found, checking all resumes...');
-        const allResumes = await Resume.find({}).limit(5);
-        console.log('🔍 All resumes userIds:', allResumes.map(r => ({ userId: r.userId, name: r.personalInfo?.name })));
-        
-        // Auto-create resume from default data.json for new users
-        const fs = await import('fs');
-        const path = await import('path');
-        const dataPath = path.join(process.cwd(), 'data.json');
-        const rawData = fs.readFileSync(dataPath, 'utf8');
-        const defaultData = JSON.parse(rawData);
-        
-        resume = new Resume({ ...defaultData, userId: userObjectId });
-        await resume.save();
-        console.log('Auto-created resume for user:', finalUserId);
+        console.log('🔍 No resume found for user:', finalUserId);
+        throw new Error('No resume found for user. Please upload a resume first.');
       }
 
       const resumeData = {
@@ -143,17 +131,6 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
     }
   } catch (error) {
     console.error('Error loading applicant data:', error);
-    
-    // Fallback to data.json only if no user context
-    if (!userId && typeof window === 'undefined') {
-      const fs = await import('fs');
-      const path = await import('path');
-      const dataPath = path.join(process.cwd(), 'data.json');
-      const rawData = fs.readFileSync(dataPath, 'utf8');
-      cachedData = JSON.parse(rawData) as ApplicantData;
-      return cachedData;
-    }
-    
     throw error;
   }
 }
