@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/db/mongodb'
+import dbConnect from '@/lib/db/mongodb'
+import { MongoClient } from 'mongodb'
 
 interface LogEntry {
   level: 'debug' | 'info' | 'warn' | 'error'
@@ -36,8 +37,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Connect to database and store log
-    const { db } = await connectToDatabase()
+    await dbConnect()
+    const client = new MongoClient(process.env.MONGODB_URI!)
+    await client.connect()
+    const db = client.db()
     await db.collection('debug_logs').insertOne(logEntry)
+    await client.close()
 
     // Also log to server console for immediate visibility
     const logLevel = level === 'error' ? console.error : 
@@ -70,13 +75,17 @@ export async function GET(request: NextRequest) {
     if (source) filter.source = source
     if (userId) filter.userId = userId
 
-    const { db } = await connectToDatabase()
+    await dbConnect()
+    const client = new MongoClient(process.env.MONGODB_URI!)
+    await client.connect()
+    const db = client.db()
     const logs = await db.collection('debug_logs')
       .find(filter)
       .sort({ timestamp: -1 })
       .limit(limit)
       .toArray()
 
+    await client.close()
     return NextResponse.json({ logs })
   } catch (error) {
     console.error('Error fetching debug logs:', error)
@@ -99,11 +108,15 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const { db } = await connectToDatabase()
+    await dbConnect()
+    const client = new MongoClient(process.env.MONGODB_URI!)
+    await client.connect()
+    const db = client.db()
     const result = await db.collection('debug_logs').deleteMany({
       timestamp: { $lt: olderThan }
     })
 
+    await client.close()
     return NextResponse.json({ 
       deleted: result.deletedCount,
       message: `Deleted ${result.deletedCount} log entries older than ${olderThan}`

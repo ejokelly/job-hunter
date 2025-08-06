@@ -125,3 +125,57 @@ body {
 .theme-overlay {
   background-color: rgba(9, 9, 11, 0.8);
 }
+
+/* Homepage sections */
+.theme-homepage-bg { background-color: #111827; }
+.theme-homepage-text { color: #ffffff; }
+
+.theme-hero-bg { background: linear-gradient(135deg, #111827 0%, #1e3a8a 50%, #7c3aed 100%); }
+.theme-hero-overlay { background-color: rgba(17, 24, 39, 0.5); }
+.theme-hero-title { color: #ffffff; }
+.theme-hero-subtitle { color: #d1d5db; }
+.theme-hero-subtitle-accent { color: #e4e4e7; }
+.theme-hero-badge { color: #e0e7ff; }
+.theme-hero-resume-border { border-color: #374151; }
+
+.theme-upload-bg { background-color: #111827; }
+.theme-upload-title { color: #ffffff; }
+.theme-upload-text { color: #d1d5db; }
+.theme-upload-card { background-color: rgba(31, 41, 55, 0.5); border-color: #374151; }
+.theme-upload-processing-bg { background-color: #1f2937; }
+.theme-upload-processing-title { color: #ffffff; }
+.theme-upload-processing-text { color: #d1d5db; }
+.theme-upload-extract-bg { background-color: rgba(31, 41, 55, 0.5); border-color: #374151; }
+.theme-upload-extract-title { color: #ffffff; }
+.theme-upload-extract-text { color: #d1d5db; }
+.theme-upload-extract-check { color: #4ade80; }
+
+.theme-works-bg { background-color: #111827; }
+.theme-works-title { color: #ffffff; }
+.theme-works-text { color: #d1d5db; }
+.theme-works-card { background-color: rgba(31, 41, 55, 0.5); border-color: #374151; }
+.theme-works-icon-bg { background-color: #2563eb; }
+.theme-works-number { color: #60a5fa; }
+.theme-works-feature-bg { background-color: rgba(34, 197, 94, 0.2); }
+.theme-works-feature-text { color: #4ade80; }
+.theme-works-arrow { color: #4b5563; }
+.theme-works-bottom-card { background-color: rgba(31, 41, 55, 0.3); border-color: #374151; }
+.theme-works-bottom-title { color: #ffffff; }
+.theme-works-bottom-feature-title { color: #ffffff; }
+.theme-works-bottom-feature-text { color: #d1d5db; }
+
+.theme-pricing-bg { background-color: rgba(31, 41, 55, 0.3); }
+.theme-pricing-title { color: #ffffff; }
+.theme-pricing-text { color: #d1d5db; }
+.theme-pricing-card { background-color: #1f2937; border-color: #374151; }
+.theme-pricing-card:hover { border-color: #4b5563; }
+.theme-pricing-popular { border-color: #3b82f6; box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.2); }
+.theme-pricing-popular-badge { background-color: #3b82f6; color: #ffffff; }
+.theme-pricing-plan-title { color: #ffffff; }
+.theme-pricing-plan-price { color: #ffffff; }
+.theme-pricing-plan-period { color: #9ca3af; }
+.theme-pricing-feature { color: #d1d5db; }
+.theme-pricing-check-bg { background-color: #16a34a; }
+.theme-pricing-cta-bg { background-color: #3b82f6; }
+.theme-pricing-cta-bg:hover { background-color: #2563eb; }
+.theme-pricing-cta-text { color: #ffffff; }

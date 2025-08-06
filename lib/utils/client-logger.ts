@@ -123,7 +123,7 @@ class ClientLogger {
       metric,
       value,
       unit,
-      timestamp: performance.now()
+      timestamp: globalThis.performance.now()
     })
   }
 }

@@ -11,9 +11,10 @@ interface HeaderProps {
   title?: string;
   onBack?: () => void;
   actions?: React.ReactNode;
+  onLoginClick?: () => void;
 }
 
-export default function Header({ title, onBack, actions }: HeaderProps) {
+export default function Header({ title, onBack, actions, onLoginClick }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -130,8 +131,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
               <ActionButton
                 onClick={() => {
                   posthog.capture('header_login_clicked');
-                  // Redirect to sign-in page or trigger login flow
-                  window.location.href = '/auth/signin';
+                  if (onLoginClick) {
+                    onLoginClick();
+                  } else {
+                    // Fallback to redirect if no handler provided
+                    window.location.href = '/auth/signin';
+                  }
                 }}
                 variant="ghost"
                 className="text-sm whitespace-nowrap"
@@ -247,7 +252,12 @@ export default function Header({ title, onBack, actions }: HeaderProps) {
                   onClick={() => {
                     posthog.capture('mobile_login_clicked');
                     setIsMobileMenuOpen(false);
-                    window.location.href = '/auth/signin';
+                    if (onLoginClick) {
+                      onLoginClick();
+                    } else {
+                      // Fallback to redirect if no handler provided
+                      window.location.href = '/auth/signin';
+                    }
                   }}
                   variant="ghost"
                   className="text-sm justify-center"

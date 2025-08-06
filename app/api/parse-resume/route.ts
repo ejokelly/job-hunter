@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     console.log(`[RESUME-DEBUG-${requestId}] Step 6: Extracting email address`);
     // First, do a quick email extraction to check if user exists
     // Handle cases where PDF extraction might add spaces in email addresses
-    let emailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    const emailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
     let extractedEmail = emailMatch ? emailMatch[0] : null;
     
     // If no email found, try to find email with spaces (common PDF extraction issue)
