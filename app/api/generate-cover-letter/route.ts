@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const coverLetterPDF = await generateCoverLetterPDF(coverLetterData);
 
     // Create filename
-    const coverLetterFilename = generatePDFFilename('cover-letter', jobDetails);
+    const coverLetterFilename = generatePDFFilename('cover-letter', jobDetails, applicantData.personalInfo.name);
 
     Logger.success('Cover letter PDF generated successfully');
     Logger.debug('Cover letter filename', coverLetterFilename);

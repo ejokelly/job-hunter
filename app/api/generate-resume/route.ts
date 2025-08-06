@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
     const resumePDF = await generateResumePDF(tailoredData, jobDescription);
 
     // Create filename
-    const resumeFilename = generatePDFFilename('resume', jobDetails);
+    const resumeFilename = generatePDFFilename('resume', jobDetails, applicantData.personalInfo.name);
 
     Logger.success('Resume PDF generated successfully');
     Logger.debug('Resume filename', resumeFilename);

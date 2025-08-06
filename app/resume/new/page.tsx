@@ -280,7 +280,13 @@ export default function NewResumePage() {
         setShowLimitModal(true);
         console.log('showLimitModal state should now be true');
       } else {
-        console.error('Error generating resume:', resumeResponse.statusText);
+        console.error('Error generating resume:', resumeResponse.status, resumeResponse.statusText);
+        try {
+          const errorData = await resumeResponse.json();
+          console.error('Error details:', errorData);
+        } catch (e) {
+          console.error('Could not parse error response:', e);
+        }
       }
     } catch (error) {
       console.error('Error generating preview:', error);

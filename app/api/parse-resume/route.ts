@@ -8,27 +8,51 @@ import * as postmark from 'postmark';
 import { randomUUID } from 'crypto';
 
 function cleanResumeText(text: string): string {
-  // Remove excessive whitespace and normalize line breaks
-  let cleaned = text
-    .replace(/\s+/g, ' ')
+  console.log('[CLEAN-TEXT] Starting text cleaning, input length:', text.length);
+  console.log('[CLEAN-TEXT] Input preview (first 200 chars):', text.substring(0, 200));
+  
+  // Check if text has spaced characters pattern (every char separated by space)
+  const spacedPattern = /([A-Z]\s){5,}/; // Look for pattern like "T E C H N I C A L"
+  const hasSpacedChars = spacedPattern.test(text);
+  
+  console.log('[CLEAN-TEXT] Has spaced characters pattern:', hasSpacedChars);
+  
+  let cleaned = text;
+  
+  // If we detect spaced characters, try to fix them
+  if (hasSpacedChars) {
+    console.log('[CLEAN-TEXT] Attempting to fix spaced characters');
+    
+    // More aggressive approach: find sequences of single characters separated by spaces
+    // and merge them into words, but preserve actual word boundaries
+    cleaned = text.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, (match, a, b, c) => {
+      // If this looks like spaced letters, merge them
+      return a + b + c;
+    });
+    
+    // Handle longer sequences
+    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4');
+    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4$5');
+    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4$5$6');
+    
+    console.log('[CLEAN-TEXT] After fixing spaced chars, length:', cleaned.length);
+    console.log('[CLEAN-TEXT] Fixed text preview (first 200 chars):', cleaned.substring(0, 200));
+  }
+
+  // Standard cleanup
+  cleaned = cleaned
+    .replace(/\s+/g, ' ') // Normalize whitespace
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-
-  // Remove common PDF artifacts
-  cleaned = cleaned
+    .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
     .replace(/\u00A0/g, ' ') // Non-breaking spaces
-    .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters except newlines
     .replace(/\s*\|\s*/g, ' ') // Remove table separators
     .replace(/_{3,}/g, '') // Remove underline artifacts
     .replace(/-{3,}/g, '') // Remove dash artifacts
     .trim();
 
-  // Remove duplicate sentences/phrases (simple deduplication)
-  const sentences = cleaned.split(/[.!?]\s+/);
-  const uniqueSentences = [...new Set(sentences)];
-  cleaned = uniqueSentences.join('. ');
+  console.log('[CLEAN-TEXT] Final cleaned text length:', cleaned.length);
+  console.log('[CLEAN-TEXT] Final preview (first 200 chars):', cleaned.substring(0, 200));
 
   return cleaned;
 }
@@ -105,7 +129,7 @@ export async function POST(request: NextRequest) {
       
       console.log(`[RESUME-DEBUG-${requestId}] Creating Anthropic message for PDF extraction`);
       const message = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
         messages: [{
           role: 'user',
@@ -158,10 +182,22 @@ export async function POST(request: NextRequest) {
     // If no email found, try to find email with spaces (common PDF extraction issue)
     if (!extractedEmail) {
       console.log(`[RESUME-DEBUG-${requestId}] No email found with standard regex, trying space-tolerant extraction`);
-      const spaceEmailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+\s*@\s*[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-      if (spaceEmailMatch) {
-        extractedEmail = spaceEmailMatch[0].replace(/\s+/g, ''); // Remove all spaces
-        console.log(`[RESUME-DEBUG-${requestId}] Found email with spaces, cleaned to:`, extractedEmail);
+      
+      // Try to find email pattern with spaces between characters (e.g., "j o h n @ e x a m p l e . c o m")
+      const spaceEmailPattern = /([a-zA-Z0-9._%+-]\s*){3,}\s*@\s*([a-zA-Z0-9.-]\s*){2,}\s*\.\s*([a-zA-Z]\s*){2,}/g;
+      const spaceMatches = cleanedText.match(spaceEmailPattern);
+      
+      if (spaceMatches && spaceMatches.length > 0) {
+        // Take the first match and remove all spaces
+        extractedEmail = spaceMatches[0].replace(/\s+/g, '');
+        console.log(`[RESUME-DEBUG-${requestId}] Found spaced email pattern, cleaned to:`, extractedEmail);
+      } else {
+        // Try a more lenient pattern for emails with some spaces
+        const lenientEmailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+\s*@\s*[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+        if (lenientEmailMatch) {
+          extractedEmail = lenientEmailMatch[0].replace(/\s+/g, ''); // Remove all spaces
+          console.log(`[RESUME-DEBUG-${requestId}] Found email with some spaces, cleaned to:`, extractedEmail);
+        }
       }
     }
     
@@ -184,7 +220,7 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     const client = new MongoClient(process.env.MONGODB_URI!);
     await client.connect();
-    const db = client.db();
+    const db = client.db(process.env.MONGODB_DB);
     console.log(`[RESUME-DEBUG-${requestId}] Database connected successfully`);
     
     console.log(`[RESUME-DEBUG-${requestId}] Step 8: Checking for existing user`);
@@ -247,10 +283,11 @@ export async function POST(request: NextRequest) {
       userId = existingUser._id.toString();
       console.log(`[RESUME-DEBUG-${requestId}] Using existing user ID: ${userId}`);
     } else {
-      // Create new user
-      console.log(`[RESUME-DEBUG-${requestId}] Creating new user with email: ${userEmail}`);
+      // Create new user - use email from Claude parsing, not raw extraction
+      const finalEmail = resumeData.personalInfo.email || userEmail;
+      console.log(`[RESUME-DEBUG-${requestId}] Creating new user with email: ${finalEmail}`);
       const newUser = {
-        email: userEmail,
+        email: finalEmail,
         name: resumeData.personalInfo.name,
         emailVerified: null,
         createdAt: new Date(),

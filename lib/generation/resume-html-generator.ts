@@ -4,22 +4,46 @@ import { boldSkillsInText, shouldBoldSkill } from '../utils/skill-matching';
 export function generateResumeHTML(data: ApplicantData, jobDescription: string): string {
   const allSkills = getAllSkillsFlat(data);
 
-  // Generate skills HTML with bolding
-  const skillsHTML = Object.entries(data.skills)
-    .filter(([, skillList]) => skillList && skillList.length > 0)
-    .map(([category, skillList]) => `
+  // Generate skills HTML with bolding - handle both categorized and flat structures
+  let skillsHTML = '';
+  
+  if (Array.isArray(data.skills)) {
+    // Flat array format: [skill1, skill2, ...]
+    const skills = data.skills.filter(skill => skill && skill.name);
+    skillsHTML = `
       <div class="flex mb-2">
         <div class="w-20 text-xs font-bold flex-shrink-0 mr-4">
-          ${category.charAt(0).toUpperCase() + category.slice(1).replace(/([A-Z])/g, ' $1')}
+          Skills
         </div>
         <div class="text-xs flex-1">
-          ${skillList.map(skill => {
+          ${skills.map(skill => {
             const shouldBold = shouldBoldSkill(skill.name, jobDescription);
             return shouldBold ? `<strong>${skill.name} (${skill.years})</strong>` : `${skill.name} (${skill.years})`;
           }).join(', ')}
         </div>
       </div>
-    `).join('');
+    `;
+  } else if (data.skills && typeof data.skills === 'object') {
+    // Categorized format: { "technical": [...], "soft": [...] }
+    skillsHTML = Object.entries(data.skills)
+      .filter(([, skillList]) => skillList && Array.isArray(skillList) && skillList.length > 0)
+      .map(([category, skillList]) => {
+        const skills = Array.isArray(skillList) ? skillList : [];
+        return `
+          <div class="flex mb-2">
+            <div class="w-20 text-xs font-bold flex-shrink-0 mr-4">
+              ${category.charAt(0).toUpperCase() + category.slice(1).replace(/([A-Z])/g, ' $1')}
+            </div>
+            <div class="text-xs flex-1">
+              ${skills.map(skill => {
+                const shouldBold = shouldBoldSkill(skill.name, jobDescription);
+                return shouldBold ? `<strong>${skill.name} (${skill.years})</strong>` : `${skill.name} (${skill.years})`;
+              }).join(', ')}
+            </div>
+          </div>
+        `;
+      }).join('');
+  }
 
   // Generate first 3 jobs HTML
   const firstThreeJobsHTML = data.experience.slice(0, 3).map((exp) => `

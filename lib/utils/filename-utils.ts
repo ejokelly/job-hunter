@@ -9,10 +9,12 @@ export function sanitizeFilename(text: string): string {
 
 export function generatePDFFilename(
   type: 'resume' | 'cover-letter',
-  jobDetails: JobDetails
+  jobDetails: JobDetails,
+  userName?: string
 ): string {
   const sanitizedTitle = sanitizeFilename(jobDetails.title);
   const sanitizedCompany = sanitizeFilename(jobDetails.company);
+  const sanitizedName = userName ? sanitizeFilename(userName) : 'resume';
   
-  return `ej-okelly-${sanitizedTitle}-${sanitizedCompany}-${type}.pdf`;
+  return `${sanitizedName}-${sanitizedTitle}-${sanitizedCompany}-${type}.pdf`;
 }

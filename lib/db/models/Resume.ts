@@ -61,7 +61,7 @@ const PersonalInfoSchema = new Schema({
   phone: { type: String, required: true },
   email: { type: String, required: true },
   location: { type: String, required: true },
-  github: { type: String, required: true },
+  github: { type: String, default: '' },
   linkedin: { type: String, required: true },
   title: { type: String, required: true }
 });
@@ -74,7 +74,7 @@ const SkillsSchema = new Schema({}, {
 const ExperienceSchema = new Schema({
   role: { type: String, required: true },
   company: { type: String, required: true },
-  location: { type: String, required: true },
+  location: { type: String, default: '' },
   startDate: { type: String, required: true },
   endDate: { type: String, required: true },
   achievements: [{ type: String }]
@@ -83,7 +83,7 @@ const ExperienceSchema = new Schema({
 const EducationSchema = new Schema({
   degree: { type: String, required: true },
   institution: { type: String, required: true },
-  location: { type: String, required: true },
+  location: { type: String, default: '' },
   graduationDate: { type: String, required: true },
   coursework: [{ type: String }],
   capstone: { type: String }
