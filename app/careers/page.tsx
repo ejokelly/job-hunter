@@ -92,7 +92,7 @@ export default function CareersPage() {
             Join Our Team
           </h1>
           <p className="text-xl theme-text-secondary max-w-2xl mx-auto leading-relaxed">
-            Help us build the future of resume creation and career advancement. We're looking for passionate individuals who want to make a real impact.
+            Help us build the future of resume creation and career advancement. We&apos;re looking for passionate individuals who want to make a real impact.
           </p>
         </div>
 
