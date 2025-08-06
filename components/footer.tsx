@@ -66,6 +66,11 @@ export default function Footer() {
                 Terms of Service
               </Link>
             </div>
+            <div>
+              <Link href="/careers" className="theme-text-secondary hover:theme-text-primary transition-colors">
+                Careers
+              </Link>
+            </div>
           </div>
         </div>
 
