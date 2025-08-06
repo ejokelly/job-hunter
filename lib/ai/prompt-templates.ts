@@ -29,7 +29,7 @@ export function createSkillsFilterPrompt(
   jobDescription: string,
   applicantSkills: Record<string, any>
 ): string {
-  return `Given this job description, filter the skills to include relevant skills plus one additional skill per category that wasn't mentioned.
+  return `Given this job description, filter and reorder the EXISTING skills to highlight the most relevant ones.
 
 Job Description:
 ${jobDescription}
@@ -38,13 +38,14 @@ Original Skills:
 ${JSON.stringify(applicantSkills, null, 2)}
 
 INSTRUCTIONS:
+- ONLY use skills that already exist in the Original Skills data above
+- NEVER add, create, or invent new skills that are not in the original data
 - Include skills that are mentioned in the job description or directly relevant to the role
-- For each category that has matching skills, also include 1 additional skill that wasn't mentioned in the job posting
-- Order the remaining skills by relevance (most relevant first, then the additional skill last)
-- If a category has no relevant skills, remove the entire category
+- Order skills by relevance (most relevant first)
+- If a category has no relevant skills, you may remove the entire category
 - Return ONLY valid JSON - no markdown, no explanation
 
-Return ONLY the filtered skills object with relevant skills:`;
+Return ONLY the filtered skills object using ONLY existing skills:`;
 }
 
 export function createExperienceReorderPrompt(

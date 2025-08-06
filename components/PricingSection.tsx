@@ -48,7 +48,7 @@ export default function PricingSection() {
             Choose Your Plan
           </h2>
           <p className="text-xl theme-pricing-text max-w-3xl mx-auto">
-            Everyone starts free. When you run out of free generations, you'll automatically upgrade to Starter. Need more? Upgrade to Unlimited.
+            Everyone starts free. When you run out of free generations, you&apos;ll automatically upgrade to Starter. Need more? Upgrade to Unlimited.
           </p>
         </div>
 
