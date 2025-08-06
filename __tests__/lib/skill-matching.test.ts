@@ -1,4 +1,4 @@
-import { generateSkillVariations, shouldBoldSkill, boldSkillsInText } from '@/lib/utils/skill-matching';
+import { generateSkillVariations, shouldBoldSkill, boldSkillsInText } from '@/app/lib/utils/skill-matching';
 
 describe('skill-matching utilities', () => {
   describe('generateSkillVariations', () => {

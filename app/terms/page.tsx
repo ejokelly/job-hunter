@@ -1,7 +1,7 @@
 'use client';
 
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+import Header from '@/pc/auth/header';
+import Footer from '@/pc/layout/footer';
 
 export default function TermsOfService() {
   return (
@@ -29,7 +29,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold theme-text-primary mb-4">Description of Service</h2>
               <p>
-                resumelove is an AI-powered resume and cover letter generation service. We provide tools 
+                resumelove is an intelligent resume and cover letter generation service. We provide tools 
                 to help you create tailored resumes and cover letters based on job descriptions and your 
                 professional information.
               </p>

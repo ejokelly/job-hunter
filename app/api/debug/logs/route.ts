@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/db/mongodb'
+import dbConnect from '@/app/lib/db/mongodb'
 import { MongoClient } from 'mongodb'
 
 interface LogEntry {

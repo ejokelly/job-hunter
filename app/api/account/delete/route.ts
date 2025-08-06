@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CodewordAuth } from '@/lib/auth/codeword-auth';
+import { CodewordAuth } from '@/app/lib/auth/codeword-auth';
 import { cookies } from 'next/headers';
-import dbConnect from '@/lib/db/mongodb';
-import Resume from '@/lib/db/models/Resume';
+import dbConnect from '@/app/lib/db/mongodb';
+import Resume from '@/app/lib/db/models/Resume';
 import { MongoClient, ObjectId } from 'mongodb';
 
 export async function DELETE(request: NextRequest) {

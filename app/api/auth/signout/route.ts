@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { CodewordAuth } from '@/lib/auth/codeword-auth'
+import { CodewordAuth } from '@/app/lib/auth/codeword-auth'
 import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {

@@ -1,7 +1,7 @@
 'use client';
 
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+import Header from '@/pc/auth/header';
+import Footer from '@/pc/layout/footer';
 
 export default function PrivacyPolicy() {
   return (

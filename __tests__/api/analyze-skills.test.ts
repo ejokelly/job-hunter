@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/analyze-skills/route';
-import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
+import { loadApplicantData, getAllSkillsFlat } from '@/app/lib/data/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/app/lib/ai/anthropic-client';
 
-jest.mock('@/lib/data/data-loader');
-jest.mock('@/lib/ai/anthropic-client');
+jest.mock('@/app/lib/data/data-loader');
+jest.mock('@/app/lib/ai/anthropic-client');
 
 const mockLoadApplicantData = loadApplicantData as jest.MockedFunction<typeof loadApplicantData>;
 const mockGetAllSkillsFlat = getAllSkillsFlat as jest.MockedFunction<typeof getAllSkillsFlat>;

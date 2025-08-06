@@ -1,4 +1,4 @@
-import IconButton from './icon-button';
+import IconButton from '../ui/icon-button';
 import RegenerateButton from './regenerate-button';
 
 interface PreviewPaneProps {

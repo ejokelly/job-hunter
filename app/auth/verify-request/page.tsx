@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
-import ActionButton from '@/components/action-button'
+import ActionButton from '@/pc/ui/action-button'
 
 export default function VerifyRequest() {
   const router = useRouter()

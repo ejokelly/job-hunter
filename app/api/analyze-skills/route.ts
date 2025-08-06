@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData, getAllSkillsFlat } from '@/lib/data/api-data-loader';
-import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
-import { getServerAuthSession } from '@/lib/auth/server-auth';
-import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
+import { loadApplicantData, getAllSkillsFlat } from '@/app/lib/data/api-data-loader';
+import { TrackedAnthropic, extractJsonFromResponse } from '@/app/lib/ai/tracked-anthropic';
+import { getServerAuthSession } from '@/app/lib/auth/server-auth';
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
 
 export async function POST(request: NextRequest) {
   try {

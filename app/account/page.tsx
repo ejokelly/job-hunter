@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Crown, Calendar, FileText, CreditCard, AlertTriangle, Palette } from 'lucide-react';
 import posthog from 'posthog-js';
-import Header from '@/components/header';
-import ActionButton from '@/components/action-button';
-import PageContainer from '@/components/page-container';
-import { useTheme } from '@/components/theme-provider';
-import Footer from '@/components/footer';
+import Header from '@/pc/auth/header';
+import ActionButton from '@/pc/ui/action-button';
+import PageContainer from '@/pc/layout/page-container';
+import { useTheme } from '@/app/providers/theme-provider';
+import Footer from '@/pc/layout/footer';
 
 interface SubscriptionData {
   canCreateResume: boolean;

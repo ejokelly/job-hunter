@@ -1,4 +1,4 @@
-import { IResume } from '@/lib/db/models/Resume';
+import { IResume } from '@/app/lib/db/models/Resume';
 
 export interface Skill {
   name: string;
@@ -55,9 +55,9 @@ export async function loadApplicantData(userId?: string): Promise<ApplicantData>
     // Check if we're on the server or client
     if (typeof window === 'undefined') {
       // Server-side: use the database directly
-      const dbConnect = (await import('@/lib/db/mongodb')).default;
-      const Resume = (await import('@/lib/db/models/Resume')).default;
-      const { getServerAuthSession } = await import('@/lib/auth/server-auth');
+      const dbConnect = (await import('@/app/lib/db/mongodb')).default;
+      const Resume = (await import('@/app/lib/db/models/Resume')).default;
+      const { getServerAuthSession } = await import('@/app/lib/auth/server-auth');
       
       await dbConnect();
       
@@ -139,9 +139,9 @@ export async function saveApplicantData(data: ApplicantData, userId?: string): P
   try {
     if (typeof window === 'undefined') {
       // Server-side: use the database directly
-      const dbConnect = (await import('@/lib/db/mongodb')).default;
-      const Resume = (await import('@/lib/db/models/Resume')).default;
-      const { getServerAuthSession } = await import('@/lib/auth/server-auth');
+      const dbConnect = (await import('@/app/lib/db/mongodb')).default;
+      const Resume = (await import('@/app/lib/db/models/Resume')).default;
+      const { getServerAuthSession } = await import('@/app/lib/auth/server-auth');
       
       await dbConnect();
       

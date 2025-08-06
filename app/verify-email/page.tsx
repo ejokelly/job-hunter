@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle } from 'lucide-react';
-import Header from '@/components/header';
+import Header from '@/pc/auth/header';
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();

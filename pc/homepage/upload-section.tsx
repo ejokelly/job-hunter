@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import ResumeUpload from './resume-upload';
-import ThreeDotsLoader from './three-dots-loader';
+import ResumeUpload from '../resume/resume-upload';
+import ThreeDotsLoader from '../ui/three-dots-loader';
 
 interface UploadSectionProps {
   onUploadSuccess?: (userData: any) => void;
@@ -86,30 +86,6 @@ export default function UploadSection({ onUploadSuccess, onUploadError }: Upload
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="theme-upload-extract-bg rounded-xl p-6 border">
-              <h3 className="font-semibold theme-upload-extract-title mb-3">What we extract:</h3>
-              <ul className="space-y-2 theme-upload-extract-text">
-                <li className="flex items-center">
-                  <svg className="w-4 h-4 theme-upload-extract-check mr-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                  </svg>
-                  Your work experience and achievements
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-4 h-4 theme-upload-extract-check mr-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                  </svg>
-                  Technical skills and certifications
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-4 h-4 theme-upload-extract-check mr-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/>
-                  </svg>
-                  Education and contact information
-                </li>
-              </ul>
             </div>
           </div>
 

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadApplicantData } from '@/lib/data/api-data-loader';
-import { TrackedAnthropic, extractJsonFromResponse } from '@/lib/ai/tracked-anthropic';
-import { extractJobDetails } from '@/lib/ai/job-extraction';
-import { generateResumeHTML } from '@/lib/generation/resume-html-generator';
-import { Logger } from '@/lib/utils/logger';
-import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/lib/ai/prompt-templates';
-import { getServerAuthSession } from '@/lib/auth/server-auth';
-import dbConnect from '@/lib/db/mongodb';
-import Resume from '@/lib/db/models/Resume';
-import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
+import { loadApplicantData } from '@/app/lib/data/api-data-loader';
+import { TrackedAnthropic, extractJsonFromResponse } from '@/app/lib/ai/tracked-anthropic';
+import { extractJobDetails } from '@/app/lib/ai/job-extraction';
+import { generateResumeHTML } from '@/app/lib/generation/resume-html-generator';
+import { Logger } from '@/app/lib/utils/logger';
+import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/app/lib/ai/prompt-templates';
+import { getServerAuthSession } from '@/app/lib/auth/server-auth';
+import dbConnect from '@/app/lib/db/mongodb';
+import Resume from '@/app/lib/db/models/Resume';
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
 
 async function categorizePendingSkills(userId: string, applicantData: any) {
   try {

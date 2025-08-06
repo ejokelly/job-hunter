@@ -1,6 +1,6 @@
 'use client';
 
-import Modal from './Modal';
+import Modal from './modal';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmModalProps {

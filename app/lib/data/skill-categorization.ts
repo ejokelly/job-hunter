@@ -1,7 +1,7 @@
-import { callClaude } from '@/lib/ai/anthropic-client';
+import { callClaude } from '@/app/lib/ai/anthropic-client';
 
 export async function categorizeSkill(skill: string, existingCategories: string[] = []): Promise<string> {
-  // If there are existing categories, try to match with AI
+  // If there are existing categories, try to match with intelligent processing
   if (existingCategories.length > 0) {
     const prompt = `Given the skill "${skill}" and these existing categories: ${existingCategories.join(', ')}, 
     which category would be the best fit? If none fit well, suggest a new category name.
@@ -19,7 +19,7 @@ export async function categorizeSkill(skill: string, existingCategories: string[
       
       return matchingCategory || category;
     } catch (error) {
-      console.error('Error categorizing skill with AI:', error);
+      console.error('Error categorizing skill with intelligent processing:', error);
     }
   }
   
@@ -50,8 +50,8 @@ export async function categorizeSkill(skill: string, existingCategories: string[
     return 'cloud';
   }
   
-  if (['machine learning', 'deep learning', 'tensorflow', 'pytorch', 'opencv', 'scikit', 'pandas', 'numpy', 'ai', 'neural'].some(ai => skillLower.includes(ai))) {
-    return 'ai';
+  if (['machine learning', 'deep learning', 'tensorflow', 'pytorch', 'opencv', 'scikit', 'pandas', 'numpy', 'artificial intelligence', 'neural'].some(ml => skillLower.includes(ml))) {
+    return 'machine-learning';
   }
   
   return 'tools';

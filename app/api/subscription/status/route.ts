@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerAuthSession } from '@/lib/auth/server-auth'
-import { SubscriptionManager } from '@/lib/subscription/subscription-manager'
+import { getServerAuthSession } from '@/app/lib/auth/server-auth'
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager'
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/lib/auth/providers";
+import { ThemeProvider } from "@/app/providers/theme-provider";
+import { AuthProvider as FrontendAuthProvider } from "@/app/providers/auth-provider";
+import { UIProvider } from "@/app/providers/ui-state-provider";
+import { DeviceProvider } from "@/app/providers/device-provider";
+import { AuthProvider } from "@/app/lib/auth/providers";
 import { PostHogProvider } from './providers';
 
 const geistSans = Geist({
@@ -16,9 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "resume love - AI-Powered Resume Parser & Generator",
-  description: "Upload your resume and extract information using AI. Create tailored resumes and cover letters that match job descriptions perfectly.",
-  keywords: "resume parser, resume generator, AI resume, resume extraction, job application",
+  title: "resume love - Intelligent Resume Parser & Generator",
+  description: "Upload your resume and extract information using advanced technology. Create tailored resumes and cover letters that match job descriptions perfectly.",
+  keywords: "resume parser, resume generator, smart resume, resume extraction, job application",
   authors: [{ name: "EJ O'Kelly" }],
   icons: {
     icon: [
@@ -33,8 +36,8 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: "resume love - AI Resume Parser & Generator",
-    description: "Upload your resume and extract information using AI",
+    title: "resume love - Intelligent Resume Parser & Generator",
+    description: "Upload your resume and extract information using advanced technology",
     type: "website",
   },
 };
@@ -52,7 +55,13 @@ export default function RootLayout({
         <PostHogProvider>
           <AuthProvider>
             <ThemeProvider>
-              {children}
+              <DeviceProvider>
+                <FrontendAuthProvider>
+                  <UIProvider>
+                    {children}
+                  </UIProvider>
+                </FrontendAuthProvider>
+              </DeviceProvider>
             </ThemeProvider>
           </AuthProvider>
         </PostHogProvider>

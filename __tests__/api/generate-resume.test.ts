@@ -1,19 +1,19 @@
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/generate-resume/route';
-import { generateResumePDF } from '@/lib/utils/html-pdf-generator';
-import { loadApplicantData } from '@/lib/data/data-loader';
-import { callClaude, extractJsonFromResponse } from '@/lib/ai/anthropic-client';
-import { extractJobDetails } from '@/lib/ai/job-extraction';
-import { generatePDFFilename } from '@/lib/utils/filename-utils';
-import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/lib/ai/prompt-templates';
+import { generateResumePDF } from '@/app/lib/utils/html-pdf-generator';
+import { loadApplicantData } from '@/app/lib/data/data-loader';
+import { callClaude, extractJsonFromResponse } from '@/app/lib/ai/anthropic-client';
+import { extractJobDetails } from '@/app/lib/ai/job-extraction';
+import { generatePDFFilename } from '@/app/lib/utils/filename-utils';
+import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/app/lib/ai/prompt-templates';
 
-jest.mock('@/lib/utils/html-pdf-generator');
-jest.mock('@/lib/data/data-loader');
-jest.mock('@/lib/ai/anthropic-client');
-jest.mock('@/lib/ai/job-extraction');
-jest.mock('@/lib/utils/filename-utils');
-jest.mock('@/lib/ai/prompt-templates');
-jest.mock('@/lib/utils/logger');
+jest.mock('@/app/lib/utils/html-pdf-generator');
+jest.mock('@/app/lib/data/data-loader');
+jest.mock('@/app/lib/ai/anthropic-client');
+jest.mock('@/app/lib/ai/job-extraction');
+jest.mock('@/app/lib/utils/filename-utils');
+jest.mock('@/app/lib/ai/prompt-templates');
+jest.mock('@/app/lib/utils/logger');
 
 const mockGenerateResumePDF = generateResumePDF as jest.MockedFunction<typeof generateResumePDF>;
 const mockLoadApplicantData = loadApplicantData as jest.MockedFunction<typeof loadApplicantData>;

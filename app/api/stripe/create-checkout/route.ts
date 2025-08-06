@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerAuthSession } from '@/lib/auth/server-auth'
+import { getServerAuthSession } from '@/app/lib/auth/server-auth'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

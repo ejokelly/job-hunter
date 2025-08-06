@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
-import ActionButton from '@/components/action-button'
+import ActionButton from '@/pc/ui/action-button'
 
 const errorMessages: Record<string, string> = {
   Configuration: 'There was a configuration error. Please contact support.',

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
 import { MongoClient, ObjectId } from 'mongodb';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

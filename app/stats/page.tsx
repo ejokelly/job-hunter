@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+import Header from '@/pc/auth/header'
+import Footer from '@/pc/layout/footer'
 import { BarChart, Users, FileText, DollarSign, Zap, TrendingUp } from 'lucide-react'
 
 interface AdminStats {

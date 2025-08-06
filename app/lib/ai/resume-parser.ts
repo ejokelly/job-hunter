@@ -68,7 +68,7 @@ SKILL CATEGORIZATION GUIDELINES:
 - frontend: UI frameworks and libraries (React, Vue, Angular, CSS frameworks)
 - backend: Server frameworks and technologies (Node.js, Django, Rails, APIs)
 - testing: Testing frameworks and tools (Jest, Pytest, Selenium)
-- aiMl: AI/ML technologies (TensorFlow, PyTorch, OpenAI, LLMs)
+- machineLearning: Machine learning technologies (TensorFlow, PyTorch, OpenAI, LLMs)
 - awsServices: Specific AWS services (EC2, S3, Lambda, etc.)
 - cloudDevops: DevOps and infrastructure (Docker, Kubernetes, CI/CD)
 - databases: Database technologies (PostgreSQL, MongoDB, Redis)

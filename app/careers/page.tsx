@@ -1,7 +1,7 @@
 'use client';
 
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+import Header from '@/pc/auth/header';
+import Footer from '@/pc/layout/footer';
 
 const jobs = [
   {
@@ -41,7 +41,7 @@ const jobs = [
       "Participate in code reviews and learn best practices",
       "Debug and fix issues reported by users",
       "Assist with mobile-responsive design implementation",
-      "Learn about AI integration and prompt engineering"
+      "Learn about intelligent automation and prompt engineering"
     ],
     requirements: [
       "Basic knowledge of JavaScript/TypeScript and React",

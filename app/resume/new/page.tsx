@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
-import Header from '@/components/header';
-import ActionButton from '@/components/action-button';
-import ThreeDotsLoader from '@/components/three-dots-loader';
-import PageContainer from '@/components/page-container';
-import PreviewPane from '@/components/preview-pane';
-import SkillPill from '@/components/skill-pill';
-import { LimitExceededModal } from '@/components/subscription-limit-warning';
-import Footer from '@/components/footer';
+import Header from '@/pc/auth/header';
+import ActionButton from '@/pc/ui/action-button';
+import ThreeDotsLoader from '@/pc/ui/three-dots-loader';
+import PageContainer from '@/pc/layout/page-container';
+import PreviewPane from '@/pc/resume/preview-pane';
+import SkillPill from '@/pc/resume/skill-pill';
+import { LimitExceededModal } from '@/pc/ui/subscription-limit-warning';
+import Footer from '@/pc/layout/footer';
 
 interface SkillGapReport {
   missingSkills: string[];

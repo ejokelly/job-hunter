@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractTextFromPDF } from '@/lib/utils/simple-pdf-parser';
-import { parseResumeWithClaude } from '@/lib/ai/resume-parser';
-import dbConnect from '@/lib/db/mongodb';
-import Resume from '@/lib/db/models/Resume';
+import { extractTextFromPDF } from '@/app/lib/utils/simple-pdf-parser';
+import { parseResumeWithClaude } from '@/app/lib/ai/resume-parser';
+import dbConnect from '@/app/lib/db/mongodb';
+import Resume from '@/app/lib/db/models/Resume';
 import { MongoClient } from 'mongodb';
 import * as postmark from 'postmark';
 import { randomUUID } from 'crypto';
-import { CodewordAuth } from '@/lib/auth/codeword-auth';
+import { CodewordAuth } from '@/app/lib/auth/codeword-auth';
 import { cookies } from 'next/headers';
 
 function cleanResumeText(text: string): string {

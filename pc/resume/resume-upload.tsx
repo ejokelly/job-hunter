@@ -2,9 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
-import ActionButton from './action-button';
-import ThreeDotsLoader from './three-dots-loader';
-import Brand from './brand';
+import ActionButton from '../ui/action-button';
+import ThreeDotsLoader from '../ui/three-dots-loader';
+import Brand from '../ui/brand';
 import posthog from 'posthog-js';
 
 interface ResumeUploadProps {

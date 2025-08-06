@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail } from 'lucide-react'
-import ActionButton from '@/components/action-button'
+import ActionButton from '@/pc/ui/action-button'
 import posthog from 'posthog-js'
 
 export default function SignIn() {

@@ -1,11 +1,11 @@
-# Job Hunter - AI-Powered Resume & Cover Letter Generator
+# Job Hunter - Intelligent Resume & Cover Letter Generator
 
-A sophisticated web application that leverages AI to create tailored resumes and cover letters that match job descriptions perfectly. Built with Next.js, TypeScript, and the Anthropic Claude API.
+A sophisticated web application that leverages advanced technology to create tailored resumes and cover letters that match job descriptions perfectly. Built with Next.js, TypeScript, and the Anthropic Claude API.
 
 ![Job Hunter](https://img.shields.io/badge/Next.js-15.4.5-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38B2AC?style=flat-square&logo=tailwind-css)
-![Claude AI](https://img.shields.io/badge/Claude-AI-orange?style=flat-square)
+![Claude](https://img.shields.io/badge/Claude-Powered-orange?style=flat-square)
 ![Built in](https://img.shields.io/badge/Built%20in-7h%2036m-green?style=flat-square)
 ![Tests](https://img.shields.io/badge/Tests-53%20Passing-brightgreen?style=flat-square)
 
@@ -62,19 +62,19 @@ Complete end-to-end functionality has been validated through **Tilt** ([whytilt.
 
 ## 🏆 Built in 7 Hours 36 Minutes with Claude Code
 
-This entire application was built from scratch in **7 hours and 36 minutes** using [Claude Code](https://claude.ai/code), demonstrating the powerful synergy between AI pair programming and experienced developers. The rapid development was made possible by:
+This entire application was built from scratch in **7 hours and 36 minutes** using [Claude Code](https://claude.ai/code), demonstrating the powerful synergy between intelligent programming assistance and experienced developers. The rapid development was made possible by:
 
-- **AI-Augmented Development**: Leveraging Claude Code for intelligent code generation and problem-solving
+- **Intelligent Development**: Leveraging Claude Code for smart code generation and problem-solving
 - **Developer Expertise**: 10+ years of React experience guiding architectural decisions and best practices
-- **Iterative Refinement**: Real-time collaboration between human creativity and AI capabilities
+- **Iterative Refinement**: Real-time collaboration between human creativity and intelligent assistance
 - **Modern Tooling**: Next.js, TypeScript, and Tailwind CSS enabling rapid, type-safe development
 
-This project showcases how experienced developers can leverage AI tools to dramatically accelerate development while maintaining production-quality code standards.
+This project showcases how experienced developers can leverage intelligent tools to dramatically accelerate development while maintaining production-quality code standards.
 
 ## 🚀 Key Features
 
 ### Intelligent Document Generation
-- **AI-Powered Customization**: Uses Anthropic's Claude API to intelligently tailor resumes and cover letters to specific job descriptions
+- **Intelligent Customization**: Uses Anthropic's Claude API to smartly tailor resumes and cover letters to specific job descriptions
 - **Skills Filtering**: Automatically filters and prioritizes skills based on job requirements
 - **Experience Optimization**: Reorders work experience bullet points to highlight the most relevant achievements
 - **No Fabrication**: Strictly uses only the applicant's actual experience - this is a filter, not a generator
@@ -93,7 +93,7 @@ This project showcases how experienced developers can leverage AI tools to drama
 
 ## 🏗️ Architecture
 
-### Three-Prompt AI System
+### Three-Prompt Intelligent System
 The application uses a sophisticated three-prompt architecture for optimal results:
 
 1. **Summary & Title Generation**: Creates a tailored professional title and summary that showcases how the candidate exceeds requirements
@@ -104,7 +104,7 @@ The application uses a sophisticated three-prompt architecture for optimal resul
 - **Frontend**: Next.js 15.4.5 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **AI Integration**: Anthropic Claude API (claude-3-5-sonnet)
+- **Advanced Processing**: Anthropic Claude API (claude-3-5-sonnet)
 - **PDF Generation**: Puppeteer
 - **State Management**: React useState with optimistic updates
 
@@ -204,7 +204,7 @@ npm run dev
 
 ### Quick Start: Building Your Own Resume
 
-To create your own tailored resumes and cover letters, you'll need to update the `data.json` file with your personal information. This file serves as your resume database that the AI uses to generate documents.
+To create your own tailored resumes and cover letters, you'll need to update the `data.json` file with your personal information. This file serves as your resume database that the system uses to generate documents.
 
 ### Step-by-Step Data Customization
 
@@ -283,7 +283,7 @@ To create your own tailored resumes and cover letters, you'll need to update the
 - **Be Specific**: Include exact years of experience and specific technologies
 - **Use Industry Terms**: Match common job posting terminology
 - **Quantify Achievements**: Include numbers, percentages, and measurable outcomes
-- **Keep It Truthful**: The AI will only use what you provide - no fabrication
+- **Keep It Truthful**: The system will only use what you provide - no fabrication
 - **Organize Skills**: Group similar skills together for better matching
 
 ### Data Privacy
@@ -292,8 +292,8 @@ Your personal `data.json` is yours to customize. The repository includes an anon
 
 ## 🔧 Configuration
 
-### AI Behavior Customization
-The AI prompts can be customized in the API routes to adjust generation behavior:
+### System Behavior Customization
+The prompts can be customized in the API routes to adjust generation behavior:
 - Enforce specific formatting rules
 - Add industry-specific requirements
 - Adjust tone and style
@@ -315,7 +315,7 @@ The analyze → generate workflow ensures users:
 
 ## 🔒 Security & Best Practices
 
-- **No Data Fabrication**: The AI is strictly instructed to use only provided information
+- **No Data Fabrication**: The system is strictly instructed to use only provided information
 - **Environment Variables**: API keys are never exposed in the codebase
 - **Type Safety**: Full TypeScript coverage prevents runtime errors
 - **Error Boundaries**: Graceful error handling throughout the application
@@ -329,7 +329,7 @@ The analyze → generate workflow ensures users:
 
 ## 🤝 Contributing
 
-This project showcases modern web development practices and AI integration. While it's primarily a portfolio piece, suggestions and feedback are welcome!
+This project showcases modern web development practices and intelligent automation. While it's primarily a portfolio piece, suggestions and feedback are welcome!
 
 ## 📄 License
 
@@ -337,10 +337,10 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
-- Built with [Claude Code](https://claude.ai/code) - AI pair programming at its finest
+- Built with [Claude Code](https://claude.ai/code) - Intelligent pair programming at its finest
 - Powered by [Anthropic's Claude API](https://www.anthropic.com/)
 - UI components styled with [Tailwind CSS](https://tailwindcss.com/)
 
 ---
 
-*This project demonstrates expertise in modern web development, AI integration, and user-centric design. Built in just 7 hours and 36 minutes, it showcases how experienced developers can leverage AI tools like Claude Code to build sophisticated, production-ready applications at unprecedented speed without compromising quality. The result is a testament to both the developer's decade of experience and the transformative power of AI-augmented development.*
+*This project demonstrates expertise in modern web development, intelligent automation, and user-centric design. Built in just 7 hours and 36 minutes, it showcases how experienced developers can leverage intelligent tools like Claude Code to build sophisticated, production-ready applications at unprecedented speed without compromising quality. The result is a testament to both the developer's decade of experience and the transformative power of intelligent development assistance.*

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateCoverLetterHTML } from '@/lib/generation/cover-letter-html-generator';
-import { loadApplicantData } from '@/lib/data/api-data-loader';
-import { extractJobDetails } from '@/lib/ai/job-extraction';
-import { generateCoverLetterContent } from '@/lib/generation/cover-letter-generator';
-import { SubscriptionManager } from '@/lib/subscription/subscription-manager';
-import { getServerAuthSession } from '@/lib/auth/server-auth';
+import { generateCoverLetterHTML } from '@/app/lib/generation/cover-letter-html-generator';
+import { loadApplicantData } from '@/app/lib/data/api-data-loader';
+import { extractJobDetails } from '@/app/lib/ai/job-extraction';
+import { generateCoverLetterContent } from '@/app/lib/generation/cover-letter-generator';
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
+import { getServerAuthSession } from '@/app/lib/auth/server-auth';
 
 export async function POST(request: NextRequest) {
   try {

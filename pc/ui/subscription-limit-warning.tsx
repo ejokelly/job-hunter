@@ -101,7 +101,7 @@ export default function SubscriptionLimitWarning({ className = '' }: Subscriptio
             <p className="text-xs text-amber-700 dark:text-amber-300 mb-3">
               {status.canCreateResume
                 ? `You have ${status.monthlyLimit - status.monthlyCount} resume${status.monthlyLimit - status.monthlyCount === 1 ? '' : 's'} remaining this month.`
-                : `Upgrade to ${planName} for ${status.upgradeToTier === 'unlimited' ? 'unlimited' : process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} resume generations per month.`
+                : `Upgrade to ${planName} for ${status.upgradeToTier === 'unlimited' ? 'unlimited' : '100'} resume generations per month.`
               }
             </p>
             <ActionButton
@@ -226,10 +226,10 @@ export function LimitExceededModal({ isOpen, onClose, limitData }: LimitExceeded
               {isFreeTier ? (
                 <>
                   <li className="flex items-center gap-2 theme-text-secondary">
-                    <span className="text-green-500">✓</span> {process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} resumes per month
+                    <span className="text-green-500">✓</span> 100 resumes per month
                   </li>
                   <li className="flex items-center gap-2 theme-text-secondary">
-                    <span className="text-green-500">✓</span> {process.env.NEXT_PUBLIC_STARTER_MONTHLY_LIMIT} cover letters per month
+                    <span className="text-green-500">✓</span> 100 cover letters per month
                   </li>
                 </>
               ) : (

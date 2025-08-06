@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Download, User, Mail, Phone, MapPin, Github, Linkedin, Briefcase, GraduationCap, Award, Calendar, Building, FileText, Edit3, Save, X, Plus, Trash2 } from 'lucide-react';
-import Header from '@/components/header';
-import PageContainer from '@/components/page-container';
-import Footer from '@/components/footer';
-import ConfirmModal from '@/components/ConfirmModal';
+import Header from '@/pc/auth/header';
+import PageContainer from '@/pc/layout/page-container';
+import Footer from '@/pc/layout/footer';
+import ConfirmModal from '@/pc/modals/confirm-modal';
 
 interface ISkill {
   name: string;
