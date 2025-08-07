@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "update-pricing": "node scripts/update-pricing.js",
-    "postinstall": "npx playwright install --with-deps chromium"
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
