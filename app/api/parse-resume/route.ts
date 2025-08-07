@@ -196,9 +196,17 @@ Be very careful with the email address - extract it exactly as it appears, no ex
     "title": "Professional Title"
   },
   "summary": "Professional summary paragraph",
-  "skills": [
-    {"name": "Skill Name", "level": "beginner|intermediate|advanced"}
-  ],
+  "skills": {
+    "frontend": [
+      {"name": "React", "years": 3}
+    ],
+    "backend": [
+      {"name": "Node.js", "years": 2}
+    ],
+    "languages": [
+      {"name": "JavaScript", "years": 5}
+    ]
+  },
   "experience": [
     {
       "role": "Job Title",
@@ -221,6 +229,8 @@ Be very careful with the email address - extract it exactly as it appears, no ex
   ],
   "activities": ["Activity 1", "Activity 2"]
 }
+
+IMPORTANT: Skills must be categorized into logical groups (frontend, backend, languages, databases, tools, etc). Each skill has "name" and "years" (estimate years of experience as a number).
 
 Extract all information accurately from the PDF.`,
       {
@@ -248,6 +258,52 @@ Extract all information accurately from the PDF.`,
       }
       resumeData = JSON.parse(jsonMatch[0]);
       console.log(`[RESUME-DEBUG-${requestId}] Claude full parsing completed. Resume data keys:`, Object.keys(resumeData));
+      
+      // Handle skills format - convert flat array to categorized object if needed
+      if (resumeData.skills && Array.isArray(resumeData.skills)) {
+        console.log(`[RESUME-DEBUG-${requestId}] Converting flat skills array to categorized object`);
+        const categorizedSkills: any = {};
+        
+        for (const skill of resumeData.skills) {
+          // Categorize skills based on common patterns
+          let category = 'general';
+          const skillName = skill.name.toLowerCase();
+          
+          if (skillName.includes('react') || skillName.includes('vue') || skillName.includes('angular') || skillName.includes('html') || skillName.includes('css')) {
+            category = 'frontend';
+          } else if (skillName.includes('node') || skillName.includes('express') || skillName.includes('django') || skillName.includes('flask') || skillName.includes('rails')) {
+            category = 'backend';
+          } else if (skillName.includes('python') || skillName.includes('javascript') || skillName.includes('typescript') || skillName.includes('java') || skillName.includes('c++') || skillName.includes('go') || skillName.includes('rust')) {
+            category = 'languages';
+          } else if (skillName.includes('sql') || skillName.includes('postgres') || skillName.includes('mongodb') || skillName.includes('redis') || skillName.includes('database')) {
+            category = 'databases';
+          } else if (skillName.includes('aws') || skillName.includes('docker') || skillName.includes('kubernetes') || skillName.includes('git') || skillName.includes('linux')) {
+            category = 'tools';
+          } else if (skillName.includes('machine learning') || skillName.includes('ai') || skillName.includes('data science') || skillName.includes('tensorflow') || skillName.includes('pytorch')) {
+            category = 'ai';
+          }
+          
+          if (!categorizedSkills[category]) {
+            categorizedSkills[category] = [];
+          }
+          
+          // Convert level to years estimate
+          let years = 2; // default
+          if (skill.level === 'beginner') years = 1;
+          else if (skill.level === 'intermediate') years = 3;
+          else if (skill.level === 'advanced') years = 5;
+          else if (typeof skill.years === 'number') years = skill.years;
+          
+          categorizedSkills[category].push({
+            name: skill.name,
+            years: years
+          });
+        }
+        
+        resumeData.skills = categorizedSkills;
+        console.log(`[RESUME-DEBUG-${requestId}] Skills converted to categorized format:`, Object.keys(categorizedSkills));
+      }
+      
     } catch (parseError) {
       console.log(`[RESUME-DEBUG-${requestId}] ERROR: Failed to parse full resume JSON:`, parseError);
       await client.close();
