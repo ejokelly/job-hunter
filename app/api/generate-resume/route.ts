@@ -96,19 +96,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
     }
 
-    // Get session information for usage tracking
-    const sessionId = TrackedAnthropic.getSessionId(request);
-    console.log('🔍 Session ID from request:', sessionId ? 'found' : 'not found');
-    
-    const userId = await TrackedAnthropic.getUserId(sessionId);
-    console.log('🔍 User ID from session:', userId || 'not found');
-
-    if (!userId) {
-      // Log all cookies for debugging
-      const cookies = request.headers.get('cookie');
-      console.log('🚨 AUTH FAILED - Cookies received:', cookies);
+    // Check session - use same method as other working routes
+    const session = await getServerAuthSession();
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+    
+    const userId = session.user.id;
 
     // Check monthly resume limit
     const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(userId);
@@ -126,11 +120,6 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    // Get user session
-    const session = await getServerAuthSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
 
     // Load applicant data from database (which includes user's skills)
     const applicantData = await loadApplicantData();
@@ -149,7 +138,6 @@ export async function POST(request: NextRequest) {
     const summaryTitleMessage = await TrackedAnthropic.createMessage(summaryTitlePrompt, {
       operation: 'tailor-summary-title',
       userId,
-      sessionId,
       jobDescription,
       endpoint: 'generate-resume'
     }, 800);
@@ -176,8 +164,7 @@ export async function POST(request: NextRequest) {
     const skillsMessage = await TrackedAnthropic.createMessage(skillsPrompt, {
       operation: 'filter-skills',
       userId,
-      sessionId,
-      jobDescription,
+            jobDescription,
       endpoint: 'generate-resume'
     }, 3000);
 
@@ -206,8 +193,7 @@ export async function POST(request: NextRequest) {
     const experienceMessage = await TrackedAnthropic.createMessage(experiencePrompt, {
       operation: 'reorder-experience',
       userId,
-      sessionId,
-      jobDescription,
+            jobDescription,
       endpoint: 'generate-resume'
     }, 4000);
 
