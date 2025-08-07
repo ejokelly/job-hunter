@@ -1,4 +1,5 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
+import chromiumExecutable from '@sparticuz/chromium';
 
 export async function extractTextFromPDFWithPuppeteer(buffer: Buffer): Promise<string> {
   let browser;
@@ -6,7 +7,9 @@ export async function extractTextFromPDFWithPuppeteer(buffer: Buffer): Promise<s
   try {
     // Launch Playwright
     browser = await chromium.launch({
-      headless: true
+      headless: true,
+      executablePath: await chromiumExecutable.executablePath(),
+      args: chromiumExecutable.args
     });
 
     const page = await browser.newPage();

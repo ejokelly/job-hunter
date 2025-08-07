@@ -1,4 +1,5 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
+import chromiumExecutable from '@sparticuz/chromium';
 import { ApplicantData } from '../data/data-loader';
 import { generateResumeHTML } from '../generation/resume-html-generator';
 
@@ -7,7 +8,9 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
   console.log('🖨️  PDF GENERATION: Starting browser launch...');
   
   const browser = await chromium.launch({
-    headless: true
+    headless: true,
+    executablePath: await chromiumExecutable.executablePath(),
+    args: chromiumExecutable.args
   });
   
   console.log('🖨️  PDF GENERATION: Browser launched in', Date.now() - pdfStartTime, 'ms');

@@ -1,4 +1,5 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
+import chromiumExecutable from '@sparticuz/chromium';
 
 interface CoverLetterData {
   personalInfo: {
@@ -81,7 +82,9 @@ function generateCoverLetterHTML(data: CoverLetterData): string {
 
 export async function generateCoverLetterPDF(data: CoverLetterData): Promise<Buffer> {
   const browser = await chromium.launch({
-    headless: true
+    headless: true,
+    executablePath: await chromiumExecutable.executablePath(),
+    args: chromiumExecutable.args
   });
 
   try {
