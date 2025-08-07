@@ -89,6 +89,9 @@ Respond with JSON in this format:
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  console.log('🚀 RESUME GENERATION STARTED at', new Date().toISOString());
+  
   try {
     const { jobDescription } = await request.json();
 
@@ -96,11 +99,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
     }
 
+    console.log('⏱️  TIMING: Request parsing took', Date.now() - startTime, 'ms');
+    const authStartTime = Date.now();
+    
     // Check session - use same method as other working routes
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+    
+    console.log('⏱️  TIMING: Authentication took', Date.now() - authStartTime, 'ms');
+    const subscriptionStartTime = Date.now();
     
     const userId = session.user.id;
 
@@ -120,19 +129,29 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
+    console.log('⏱️  TIMING: Subscription check took', Date.now() - subscriptionStartTime, 'ms');
+    const dataLoadStartTime = Date.now();
 
     // Load applicant data from database (which includes user's skills)
     const applicantData = await loadApplicantData(userId);
     
+    console.log('⏱️  TIMING: Data loading took', Date.now() - dataLoadStartTime, 'ms');
+    const skillsStartTime = Date.now();
+    
     // Process pending skills using the same categorization logic as preview-resume
     await categorizePendingSkills(session.user.id, applicantData);
+
+    console.log('⏱️  TIMING: Skills categorization took', Date.now() - skillsStartTime, 'ms');
+    const jobDetailsStartTime = Date.now();
 
     // Step 0: Extract job title and company name
     Logger.step(0, 'Extracting job details...');
     const jobDetails = await extractJobDetails(jobDescription);
     Logger.stepComplete(0, 'Job details extracted', jobDetails);
+    console.log('⏱️  TIMING: Job details extraction took', Date.now() - jobDetailsStartTime, 'ms');
 
     // Step 1: Tailor the summary and title
+    const summaryStartTime = Date.now();
     Logger.step(1, 'Starting summary and title tailoring...');
     const summaryTitlePrompt = createSummaryTitlePrompt(jobDescription, applicantData);
     const summaryTitleMessage = await TrackedAnthropic.createMessage(summaryTitlePrompt, {
@@ -157,8 +176,10 @@ export async function POST(request: NextRequest) {
     Logger.debug('Original title', applicantData.personalInfo.title);
     Logger.debug('Tailored title', tailoredTitle);
     Logger.debug('Tailored summary length', tailoredSummary.length);
+    console.log('⏱️  TIMING: Summary/title AI processing took', Date.now() - summaryStartTime, 'ms');
 
     // Step 2: Reorder and filter skills
+    const skillsFilterStartTime = Date.now();
     Logger.step(2, 'Starting skills reordering...');
     const skillsPrompt = createSkillsFilterPrompt(jobDescription, applicantData.skills);
     const skillsMessage = await TrackedAnthropic.createMessage(skillsPrompt, {
@@ -186,8 +207,10 @@ export async function POST(request: NextRequest) {
     Logger.debug('Original skills count', Object.entries(applicantData.skills).map(([cat, skills]: [string, any]) => `${cat}: ${skills.length}`));
     Logger.debug('Tailored skills count', Object.entries(tailoredSkills).map(([cat, skills]: [string, any]) => `${cat}: ${skills.length}`));
     Logger.debug('Tailored skills details', JSON.stringify(tailoredSkills, null, 2));
+    console.log('⏱️  TIMING: Skills filtering AI processing took', Date.now() - skillsFilterStartTime, 'ms');
 
     // Step 3: Reorder experience bullet points
+    const experienceStartTime = Date.now();
     Logger.step(3, 'Starting experience bullet point reordering...');
     const experiencePrompt = createExperienceReorderPrompt(jobDescription, applicantData.experience);
     const experienceMessage = await TrackedAnthropic.createMessage(experiencePrompt, {
@@ -212,8 +235,10 @@ export async function POST(request: NextRequest) {
     Logger.stepComplete(3, 'Experience bullet points reordered');
     Logger.debug('Original jobs count', applicantData.experience.length);
     Logger.debug('Tailored jobs count', tailoredExperience.length);
+    console.log('⏱️  TIMING: Experience reordering AI processing took', Date.now() - experienceStartTime, 'ms');
 
     // Combine all tailored data
+    const combineStartTime = Date.now();
     Logger.info('Combining all tailored data...');
     const tailoredData = {
       ...applicantData,
@@ -226,16 +251,29 @@ export async function POST(request: NextRequest) {
       experience: tailoredExperience
     };
 
+    console.log('⏱️  TIMING: Data combination took', Date.now() - combineStartTime, 'ms');
+    const pdfStartTime = Date.now();
+
     Logger.success('ALL STEPS COMPLETE - Generating resume PDF...');
 
     // Generate resume PDF using HTML template
     const resumePDF = await generateResumePDF(tailoredData, jobDescription);
 
+    console.log('⏱️  TIMING: PDF generation took', Date.now() - pdfStartTime, 'ms');
+    const filenameStartTime = Date.now();
+
     // Create filename
     const resumeFilename = generatePDFFilename('resume', jobDetails, applicantData.personalInfo.name);
 
+    console.log('⏱️  TIMING: Filename generation took', Date.now() - filenameStartTime, 'ms');
     Logger.success('Resume PDF generated successfully');
     Logger.debug('Resume filename', resumeFilename);
+
+    const totalDuration = Date.now() - startTime;
+    console.log('🏁 RESUME GENERATION COMPLETED in', totalDuration, 'ms');
+    console.log('📊 TIMING SUMMARY:');
+    console.log('   - Total duration:', totalDuration, 'ms');
+    console.log('   - PDF generation was', Math.round((Date.now() - pdfStartTime) / totalDuration * 100), '% of total time');
 
     // Return resume as direct PDF download
     return new NextResponse(resumePDF, {
@@ -246,7 +284,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating resume:', error);
+    const errorDuration = Date.now() - startTime;
+    console.error('❌ RESUME GENERATION FAILED after', errorDuration, 'ms:', error);
     return NextResponse.json({ error: 'Failed to generate resume' }, { status: 500 });
   }
 }

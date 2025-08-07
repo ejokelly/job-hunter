@@ -3,15 +3,24 @@ import { ApplicantData } from '../data/data-loader';
 import { generateResumeHTML } from '../generation/resume-html-generator';
 
 export async function generateResumePDF(data: ApplicantData, jobDescription: string): Promise<Buffer> {
+  const pdfStartTime = Date.now();
+  console.log('🖨️  PDF GENERATION: Starting browser launch...');
+  
   const browser = await chromium.launch({
     headless: true
   });
+  
+  console.log('🖨️  PDF GENERATION: Browser launched in', Date.now() - pdfStartTime, 'ms');
 
   try {
+    const pageStartTime = Date.now();
     const page = await browser.newPage();
+    console.log('🖨️  PDF GENERATION: New page created in', Date.now() - pageStartTime, 'ms');
     
+    const htmlStartTime = Date.now();
     // Generate HTML content using shared utility
     const htmlContent = generateResumeHTML(data, jobDescription);
+    console.log('🖨️  PDF GENERATION: HTML generated in', Date.now() - htmlStartTime, 'ms');
     
     // Create full HTML document with Tailwind CSS
     const fullHtml = `
@@ -43,10 +52,16 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
       </html>
     `;
 
+    const contentStartTime = Date.now();
     await page.setContent(fullHtml);
+    console.log('🖨️  PDF GENERATION: Content set in', Date.now() - contentStartTime, 'ms');
+    
+    const loadStartTime = Date.now();
     await page.waitForLoadState('networkidle');
+    console.log('🖨️  PDF GENERATION: Page loaded in', Date.now() - loadStartTime, 'ms');
 
     // Generate PDF with proper settings
+    const pdfGenerationStartTime = Date.now();
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
@@ -57,9 +72,17 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
         right: '0.5in'
       }
     });
+    console.log('🖨️  PDF GENERATION: PDF created in', Date.now() - pdfGenerationStartTime, 'ms');
 
-    return Buffer.from(pdfBuffer);
+    const bufferStartTime = Date.now();
+    const result = Buffer.from(pdfBuffer);
+    console.log('🖨️  PDF GENERATION: Buffer conversion in', Date.now() - bufferStartTime, 'ms');
+    console.log('🖨️  PDF GENERATION: TOTAL PDF process took', Date.now() - pdfStartTime, 'ms');
+    
+    return result;
   } finally {
+    const closeStartTime = Date.now();
     await browser.close();
+    console.log('🖨️  PDF GENERATION: Browser closed in', Date.now() - closeStartTime, 'ms');
   }
 }
