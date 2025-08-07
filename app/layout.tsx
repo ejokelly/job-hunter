@@ -7,8 +7,10 @@ import { AuthModalProvider } from "@/app/providers/auth-modal-provider";
 import { UIProvider } from "@/app/providers/ui-state-provider";
 import { DeviceProvider } from "@/app/providers/device-provider";
 import { NavigationProvider } from "@/app/providers/navigation-provider";
+import { NotificationProvider } from "@/app/providers/notification-provider";
 import { AuthProvider } from "@/app/lib/auth/providers";
 import { PostHogProvider } from './providers';
+import NotificationManager from '@/pc/auth/notification-manager';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,15 +60,18 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider>
               <DeviceProvider>
-                <FrontendAuthProvider>
-                  <AuthModalProvider>
-                    <NavigationProvider>
-                      <UIProvider>
-                        {children}
-                      </UIProvider>
-                    </NavigationProvider>
-                  </AuthModalProvider>
-                </FrontendAuthProvider>
+                <NotificationProvider>
+                  <FrontendAuthProvider>
+                    <AuthModalProvider>
+                      <NavigationProvider>
+                        <UIProvider>
+                          {children}
+                          <NotificationManager />
+                        </UIProvider>
+                      </NavigationProvider>
+                    </AuthModalProvider>
+                  </FrontendAuthProvider>
+                </NotificationProvider>
               </DeviceProvider>
             </ThemeProvider>
           </AuthProvider>
