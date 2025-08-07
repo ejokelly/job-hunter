@@ -205,14 +205,17 @@ export default function NewResumePage() {
   };
 
   const handleAddSkill = async (skill: string) => {
+    if (!skillGapReport) return;
+
+    // Capture original state before optimistic update
+    const originalReport = { ...skillGapReport };
+    
     // Optimistically update the UI immediately
-    if (skillGapReport) {
-      setSkillGapReport({
-        ...skillGapReport,
-        missingSkills: skillGapReport.missingSkills.filter(s => s !== skill),
-        matchingSkills: [...(skillGapReport.matchingSkills || []), skill]
-      });
-    }
+    setSkillGapReport({
+      ...skillGapReport,
+      missingSkills: skillGapReport.missingSkills.filter(s => s !== skill),
+      matchingSkills: [...(skillGapReport.matchingSkills || []), skill]
+    });
 
     // Make API call in background
     try {
@@ -225,25 +228,13 @@ export default function NewResumePage() {
       });
 
       if (!response.ok) {
-        // Revert on error
-        if (skillGapReport) {
-          setSkillGapReport({
-            ...skillGapReport,
-            missingSkills: [...skillGapReport.missingSkills, skill],
-            matchingSkills: skillGapReport.matchingSkills.filter(s => s !== skill)
-          });
-        }
+        // Revert to original state on error
+        setSkillGapReport(originalReport);
       }
     } catch (error) {
       console.error('Error adding skill:', error);
-      // Revert on error
-      if (skillGapReport) {
-        setSkillGapReport({
-          ...skillGapReport,
-          missingSkills: [...skillGapReport.missingSkills, skill],
-          matchingSkills: skillGapReport.matchingSkills.filter(s => s !== skill)
-        });
-      }
+      // Revert to original state on error
+      setSkillGapReport(originalReport);
     }
   };
 
