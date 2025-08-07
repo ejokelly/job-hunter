@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { execSync } from 'child_process';
 import { ApplicantData } from '../data/data-loader';
 import { generateResumeHTML } from '../generation/resume-html-generator';
 
@@ -19,7 +20,33 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
     });
   } catch (error) {
     console.error('Failed to launch browser for PDF generation:', error);
-    throw new Error('PDF generation service is temporarily unavailable. Please try again later.');
+    
+    // Try to install Chrome if it's not found
+    if (error instanceof Error && error.message.includes('Could not find Chrome')) {
+      console.log('Attempting to install Chrome...');
+      try {
+        execSync('npx puppeteer browsers install chrome', { stdio: 'inherit' });
+        
+        // Try launching again after installation
+        browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+          ]
+        });
+      } catch (installError) {
+        console.error('Failed to install Chrome:', installError);
+        throw new Error('PDF generation service is temporarily unavailable. Please try again later.');
+      }
+    } else {
+      throw new Error('PDF generation service is temporarily unavailable. Please try again later.');
+    }
   }
 
   try {
