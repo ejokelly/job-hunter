@@ -578,8 +578,8 @@ export default function NewResumePage() {
 
         {/* Preview Content */}
         <div className="flex-1 flex flex-col p-4 lg:p-6 theme-bg-gradient">
-          {/* Mobile Tabs - only show if cover letter exists */}
-          {coverLetterData && (
+          {/* Mobile Tabs - show when resume exists */}
+          {previewData && (
             <div className="lg:hidden mb-4">
               <div className="flex border-b theme-border-light">
                 <button
@@ -594,11 +594,12 @@ export default function NewResumePage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('cover-letter')}
+                  disabled={!coverLetterData}
                   className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'cover-letter'
                       ? 'border-[var(--accent-color)] theme-text-accent'
                       : 'border-transparent theme-text-secondary hover:theme-text-primary'
-                  }`}
+                  } ${!coverLetterData ? 'opacity-50' : ''}`}
                 >
                   Cover Letter
                 </button>
@@ -608,42 +609,7 @@ export default function NewResumePage() {
 
           {/* Mobile Content */}
           <div className="flex-1 lg:hidden">
-            {coverLetterData ? (
-              // Show tabs and tab content when cover letter exists
-              <>
-                {activeTab === 'resume' && (
-                  <PreviewPane
-                    title="Resume"
-                    html={previewData?.html}
-                    onRegenerate={handleRegenerateResume}
-                    isRegenerating={isRegeneratingResume}
-                    isLoading={isGenerating && !previewData}
-                    loadingText="Generating resume..."
-                    actionButton={
-                      <ActionButton
-                        onClick={handleGenerateCoverLetter}
-                        variant="ghost"
-                        busy={isGeneratingCoverLetter}
-                        className="text-xs px-2 py-1"
-                      >
-                        Regenerate Cover Letter
-                      </ActionButton>
-                    }
-                  />
-                )}
-                {activeTab === 'cover-letter' && (
-                  <PreviewPane
-                    title="Cover Letter"
-                    html={coverLetterData?.html}
-                    onRegenerate={handleRegenerateCoverLetter}
-                    isRegenerating={isRegeneratingCoverLetter}
-                    isLoading={false}
-                    loadingText="Generating cover letter..."
-                  />
-                )}
-              </>
-            ) : (
-              // Show only resume when no cover letter exists
+            {activeTab === 'resume' && (
               <PreviewPane
                 title="Resume"
                 html={previewData?.html}
@@ -652,7 +618,16 @@ export default function NewResumePage() {
                 isLoading={isGenerating && !previewData}
                 loadingText="Generating resume..."
                 actionButton={
-                  !hasGeneratedCoverLetter ? (
+                  coverLetterData ? (
+                    <ActionButton
+                      onClick={handleGenerateCoverLetter}
+                      variant="ghost"
+                      busy={isGeneratingCoverLetter}
+                      className="text-xs px-2 py-1"
+                    >
+                      Regenerate Cover Letter
+                    </ActionButton>
+                  ) : (
                     <ActionButton
                       onClick={handleGenerateCoverLetter}
                       variant="ghost"
@@ -661,9 +636,34 @@ export default function NewResumePage() {
                     >
                       Generate Cover Letter
                     </ActionButton>
-                  ) : null
+                  )
                 }
               />
+            )}
+            {activeTab === 'cover-letter' && (
+              coverLetterData ? (
+                <PreviewPane
+                  title="Cover Letter"
+                  html={coverLetterData?.html}
+                  onRegenerate={handleRegenerateCoverLetter}
+                  isRegenerating={isRegeneratingCoverLetter}
+                  isLoading={false}
+                  loadingText="Generating cover letter..."
+                />
+              ) : (
+                <div className="theme-card rounded-lg overflow-hidden flex items-center justify-center h-96">
+                  <div className="text-center">
+                    <p className="theme-text-secondary mb-4">No cover letter generated yet</p>
+                    <ActionButton
+                      onClick={handleGenerateCoverLetter}
+                      variant="primary"
+                      busy={isGeneratingCoverLetter}
+                    >
+                      Generate Cover Letter
+                    </ActionButton>
+                  </div>
+                </div>
+              )
             )}
           </div>
 
