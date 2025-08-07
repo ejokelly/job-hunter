@@ -112,7 +112,10 @@ export default function MobileHomepage() {
         {/* Auth Resume Upload Section */}
         {showAuthResumeUpload && (
           <section className="h-full snap-start flex-shrink-0" style={{ height: 'calc(100vh - 64px)' }}>
-            <MobileAuthResumeUpload />
+            <MobileAuthResumeUpload 
+              onUploadSuccess={handleUploadSuccess}
+              onUploadError={handleUploadError}
+            />
           </section>
         )}
         
