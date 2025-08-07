@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/app/providers/auth-provider';
 import { useUI } from '@/app/providers/ui-state-provider';
+import Brand from '@/pc/ui/brand';
 
 interface MobileHeaderProps {
   title?: string;
@@ -34,14 +35,7 @@ export default function MobileHeader({ title, onBack }: MobileHeaderProps) {
                 ← Back
               </button>
             )}
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">❤</span>
-              </div>
-              <h1 className="text-lg font-semibold theme-text-primary">
-                {title || 'resumelove'}
-              </h1>
-            </div>
+            <Brand />
           </div>
           
           {/* Right side - Sign In */}

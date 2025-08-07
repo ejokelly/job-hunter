@@ -563,11 +563,8 @@ export default function NewResumePage() {
           {/* Mobile Footer - Below the fold */}
           <div className="theme-bg-primary border-t theme-border-light">
             <div className="px-4 py-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">❤</span>
-                </div>
-                <span className="text-lg font-semibold theme-text-primary">resumelove</span>
+              <div className="mb-4">
+                <Brand />
               </div>
               <p className="theme-text-secondary text-sm mb-3">
                 Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.

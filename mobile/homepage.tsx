@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useNavigation } from '@/app/providers/navigation-provider';
 import { useUI } from '@/app/providers/ui-state-provider';
 import { useState } from 'react';
+import Brand from '@/pc/ui/brand';
 import MobileHeader from './header';
 import MobileHeroSection from './hero-section';
 import MobileUploadSection from './upload-section';
@@ -298,11 +299,8 @@ export default function MobileHomepage() {
         {/* Simple Footer - Full viewport section */}
         <div className="h-full flex items-center justify-center theme-homepage-bg border-t theme-border-light" style={{ height: 'calc(100vh - 64px)' }}>
           <div className="px-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">❤</span>
-              </div>
-              <span className="text-xl font-semibold theme-text-primary">resumelove</span>
+            <div className="mb-6">
+              <Brand />
             </div>
             <div className="flex justify-center gap-8 text-base theme-text-secondary mb-6">
               <button onClick={() => router.push('/privacy')} className="hover:theme-text-primary transition-colors">Privacy</button>
