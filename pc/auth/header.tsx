@@ -24,6 +24,7 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
   const router = useRouter();
 
   const handleMobileNewResume = () => {
+    console.log('New resume button clicked, navigating to /resume/new');
     router.push('/resume/new');
   };
 
@@ -55,15 +56,16 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
           </div>
 
           {/* Mobile Actions */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-6">
             {user && (
-              <ActionButton
+              <button
+                type="button"
                 onClick={handleMobileNewResume}
-                variant="ghost"
-                className="gap-1 text-xs px-2 py-1"
+                className="theme-text-primary hover:theme-text-secondary transition-colors"
+                aria-label="Create new resume"
               >
-                <FileText className="w-3 h-3" />
-              </ActionButton>
+                <FileText className="w-5 h-5" />
+              </button>
             )}
             <button
               onClick={toggleMobileMenu}

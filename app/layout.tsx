@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 import { AuthProvider as FrontendAuthProvider } from "@/app/providers/auth-provider";
+import { AuthModalProvider } from "@/app/providers/auth-modal-provider";
 import { UIProvider } from "@/app/providers/ui-state-provider";
 import { DeviceProvider } from "@/app/providers/device-provider";
+import { NavigationProvider } from "@/app/providers/navigation-provider";
 import { AuthProvider } from "@/app/lib/auth/providers";
 import { PostHogProvider } from './providers';
 
@@ -57,9 +59,13 @@ export default function RootLayout({
             <ThemeProvider>
               <DeviceProvider>
                 <FrontendAuthProvider>
-                  <UIProvider>
-                    {children}
-                  </UIProvider>
+                  <AuthModalProvider>
+                    <NavigationProvider>
+                      <UIProvider>
+                        {children}
+                      </UIProvider>
+                    </NavigationProvider>
+                  </AuthModalProvider>
                 </FrontendAuthProvider>
               </DeviceProvider>
             </ThemeProvider>

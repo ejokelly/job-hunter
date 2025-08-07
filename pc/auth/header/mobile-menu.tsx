@@ -1,14 +1,11 @@
 'use client';
 
-import { FileText } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import ActionButton from '../../ui/action-button';
 import ThemeToggle from './theme-toggle';
 import UserMenu from './user-menu';
 import GuestMenu from './guest-menu';
 import { useAuth } from '@/app/providers/auth-provider';
 import { useUI } from '@/app/providers/ui-state-provider';
-import posthog from 'posthog-js';
 
 interface MobileMenuProps {
   onLoginClick?: () => void;
@@ -16,14 +13,7 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ onLoginClick }: MobileMenuProps) {
   const { user } = useAuth();
-  const { isMobileMenuOpen, closeMobileMenu } = useUI();
-  const router = useRouter();
-
-  const handleNewResume = () => {
-    posthog.capture('mobile_menu_clicked', { item: 'resume' });
-    closeMobileMenu();
-    router.push('/resume/new');
-  };
+  const { isMobileMenuOpen } = useUI();
 
   if (!isMobileMenuOpen) return null;
 
@@ -36,16 +26,6 @@ export default function MobileMenu({ onLoginClick }: MobileMenuProps) {
         
         <GuestMenu onLoginClick={onLoginClick} isMobile />
         
-        {user && (
-          <ActionButton
-            onClick={handleNewResume}
-            variant="ghost"
-            className="gap-2 text-sm justify-center"
-          >
-            <FileText className="w-4 h-4" />
-            New Resume
-          </ActionButton>
-        )}
         
         <UserMenu isMobile />
       </div>

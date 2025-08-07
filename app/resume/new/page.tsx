@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDevice } from '@/app/providers/device-provider';
 import posthog from 'posthog-js';
 import Header from '@/pc/auth/header';
 import ActionButton from '@/pc/ui/action-button';
@@ -28,6 +29,7 @@ interface PreviewData {
 
 export default function NewResumePage() {
   const router = useRouter();
+  const { isMobile } = useDevice();
   const [session, setSession] = useState<any>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
 
@@ -467,6 +469,120 @@ export default function NewResumePage() {
 
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
+    // Mobile version with full viewport
+    if (isMobile) {
+      return (
+        <div className="min-h-screen theme-bg-gradient">
+          <Header />
+
+          {/* Loading/Preview Content - Full viewport */}
+          <div className="flex-1 flex flex-col px-4" style={{ height: 'calc(100vh - 64px)' }}>
+            {isGenerating && !previewData ? (
+              <div className="flex-1 flex items-center justify-start">
+                <div className="text-left px-2">
+                  <ThreeDotsLoader />
+                  <h2 className="text-4xl font-light theme-text-primary mt-8 leading-tight">Generating resume...</h2>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col">
+                {/* Mobile action icons */}
+                <div className="flex-shrink-0 py-3 border-b theme-border-light">
+                  <div className="flex justify-center gap-8">
+                    <button
+                      onClick={handleDownloadResume}
+                      disabled={isDownloadingResume}
+                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                    >
+                      {isDownloadingResume ? (
+                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      )}
+                      <span className="text-xs">Download</span>
+                    </button>
+                    
+                    <button
+                      onClick={handleRegenerateResume}
+                      disabled={isRegeneratingResume}
+                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                    >
+                      {isRegeneratingResume ? (
+                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      )}
+                      <span className="text-xs">Regenerate</span>
+                    </button>
+                    
+                    <button
+                      onClick={handleGenerateCoverLetter}
+                      disabled={isGeneratingCoverLetter}
+                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                    >
+                      {isGeneratingCoverLetter ? (
+                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      )}
+                      <span className="text-xs">Cover Letter</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile preview content scaled down */}
+                <div className="flex-1 overflow-auto relative">
+                  <div 
+                    className={`h-full origin-top transition-opacity duration-300 ${
+                      isDownloadingResume || isRegeneratingResume || isGeneratingCoverLetter || isDownloadingCoverLetter 
+                        ? 'opacity-30' 
+                        : 'opacity-100'
+                    }`}
+                    style={{ 
+                      transform: 'scale(0.6)',
+                      transformOrigin: 'top center',
+                      width: '166.67%', // Compensate for 0.6 scale
+                      marginLeft: '-33.33%' // Center the scaled content
+                    }}
+                  >
+                    {previewData && (
+                      <div dangerouslySetInnerHTML={{ __html: previewData.html }} />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Footer - Below the fold */}
+          <div className="theme-bg-primary border-t theme-border-light">
+            <div className="px-4 py-6 text-left">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">❤</span>
+                </div>
+                <span className="text-lg font-semibold theme-text-primary">resumelove</span>
+              </div>
+              <p className="theme-text-secondary text-sm mb-3">
+                Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
+              </p>
+              <p className="theme-text-tertiary text-xs">
+                © 2025 resumelove. All rights reserved.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      );
+    }
+
+    // Desktop version
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -638,28 +754,32 @@ export default function NewResumePage() {
   return (
     <div className="min-h-screen theme-bg-gradient">
       <Header />
-      <PageContainer>
-        <div className="w-full">
-          <div className="text-center mb-4 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Tailor Your Resume</h1>
+      {isMobile ? (
+        // Mobile Apple-style layout
+        <div className="px-6 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-light theme-text-primary mb-4 text-left leading-tight">
+              Tailor Your Resume
+            </h1>
             {!skillGapReport && (
-              <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
+              <p className="theme-text-secondary text-lg text-left leading-relaxed">
+                Paste a job description to get a tailored resume and cover letter
+              </p>
             )}
           </div>
 
-          <div className="space-y-6 md:space-y-8">
+          <div className="space-y-6">
               {!skillGapReport && (
                 <div>
-                  <label htmlFor="jobDescription" className="block text-base md:text-lg font-semibold theme-text-primary mb-2 md:mb-3">
-                    📄 Job Description
+                  <label htmlFor="jobDescription" className="block text-lg font-medium theme-text-primary mb-4 text-left">
+                    Job Description
                   </label>
                   <div className="relative">
                     <textarea
                       id="jobDescription"
                       value={jobDescription}
                       onChange={(e) => setJobDescription(e.target.value)}
-                      className="w-full h-80 md:h-72 p-3 md:p-6 border-2 theme-border rounded-lg md:rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 focus:shadow-lg"
-                      style={{}}
+                      className="w-full h-96 p-4 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl theme-text-primary placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all text-base resize-none"
                       placeholder="Paste the complete job description here...
 
 Include role title, company, requirements, responsibilities, and qualifications for the best results."
@@ -843,7 +963,211 @@ Include role title, company, requirements, responsibilities, and qualifications 
             />
           </div>
         </div>
-      </PageContainer>
+      ) : (
+        // Desktop layout
+        <PageContainer>
+          <div className="w-full">
+            <div className="text-center mb-4 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold theme-text-primary mb-2">Tailor Your Resume</h1>
+              {!skillGapReport && (
+                <p className="theme-text-secondary text-sm md:text-base">Paste a job description to get a tailored resume and cover letter</p>
+              )}
+            </div>
+
+            <div className="space-y-6 md:space-y-8">
+              {!skillGapReport && (
+                <div>
+                  <label htmlFor="jobDescription" className="block text-base md:text-lg font-semibold theme-text-primary mb-2 md:mb-3">
+                    📄 Job Description
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      id="jobDescription"
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="w-full h-80 md:h-72 p-3 md:p-6 border-2 theme-border rounded-lg md:rounded-xl theme-input focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50 resize-none transition-all duration-200 focus:shadow-lg"
+                      placeholder="Paste the complete job description here...
+
+Include role title, company, requirements, responsibilities, and qualifications for the best results."
+                      spellCheck="false"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {skillGapReport && (
+                <div className="theme-card p-4 md:p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 text-base md:text-lg">🎯</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg md:text-xl font-bold theme-text-primary">Skill Gap Analysis</h3>
+                      <p className="text-xs md:text-sm theme-text-secondary">Review and optimize your skills for this role</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-6 p-4 theme-bg-secondary rounded-lg">
+                    <p className="theme-text-secondary text-sm leading-relaxed">
+                      We accumulate all the skills that hiring managers actually use in their posts. Select the ones that apply to you and we will add them to your profile. When generating your resume, we&apos;ll automatically select the closest matching skills from your profile that align with this specific job.
+                    </p>
+                  </div>
+
+                  {skillGapReport.missingSkills && skillGapReport.missingSkills.length > 0 && (
+                    <div className="mb-8">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="theme-text-accent font-medium">Missing Skills</span>
+                        <span className="text-sm theme-text-tertiary">Click to add to your profile</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {skillGapReport.missingSkills.map((skill, index) => (
+                          <SkillPill
+                            key={index}
+                            onClick={() => handleAddSkill(skill)}
+                            variant="missing"
+                          >
+                            + {skill}
+                          </SkillPill>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {skillGapReport.matchingSkills && skillGapReport.matchingSkills.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="font-medium theme-text-primary">Matching Skills</span>
+                        <span className="text-sm theme-text-tertiary">Great! These align with the job requirements</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {skillGapReport.matchingSkills.map((skill, index) => (
+                          <SkillPill
+                            key={index}
+                            variant="matching"
+                          >
+                            ✓ {skill}
+                          </SkillPill>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Terms of Service */}
+              {skillGapReport ? (
+                <div className="flex items-center gap-2 text-sm theme-text-tertiary theme-card p-3 rounded-lg">
+                  <span className="theme-text-accent">✓</span>
+                  Agreed to the Terms of Service and Privacy Policy
+                </div>
+              ) : (
+                <div className="theme-card p-4 md:p-6 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="acceptTerms"
+                      checked={acceptedTerms}
+                      onChange={async (e) => {
+                        const accepted = e.target.checked;
+                        setAcceptedTerms(accepted);
+
+                        if (accepted) {
+                          const timestamp = new Date().toISOString();
+
+                          localStorage.setItem('termsAccepted', 'true');
+                          localStorage.setItem('termsAcceptedDate', timestamp);
+
+                          const expires = new Date();
+                          expires.setDate(expires.getDate() + 30);
+                          document.cookie = `termsAccepted=true; expires=${expires.toUTCString()}; path=/`;
+                          document.cookie = `termsAcceptedDate=${timestamp}; expires=${expires.toUTCString()}; path=/`;
+
+                          try {
+                            await fetch('/api/save-terms-agreement', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({ agreedAt: timestamp }),
+                            });
+                          } catch (error) {
+                            console.error('Error saving terms agreement to database:', error);
+                          }
+                        }
+                      }}
+                      className="mt-1 w-5 h-5 rounded border-2 border-gray-300 transition-colors"
+                      style={{
+                        accentColor: 'var(--accent-color)'
+                      }}
+                    />
+                    <div>
+                      <label htmlFor="acceptTerms" className="text-sm font-medium theme-text-primary cursor-pointer block mb-1">
+                        📋 Terms & Privacy Agreement
+                      </label>
+                      <p className="text-sm theme-text-secondary">
+                        I accept the{' '}
+                        <span className="theme-text-accent hover:underline cursor-pointer font-medium">
+                          Terms of Service and Privacy Policy
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                {!skillGapReport ? (
+                  <ActionButton
+                    onClick={handleAnalyze}
+                    disabled={!jobDescription.trim() || !acceptedTerms}
+                    busy={isAnalyzing}
+                    variant="primary"
+                    className="w-full py-4 px-8 justify-center text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    {isAnalyzing ? (
+                      'Analyzing Skills...'
+                    ) : (
+                      <>
+                        🔍 Analyze Skill Gaps
+                      </>
+                    )}
+                  </ActionButton>
+                ) : (
+                  <div className="text-center">
+                    <ActionButton
+                      onClick={handleGenerate}
+                      disabled={!acceptedTerms}
+                      busy={isGenerating}
+                      variant="primary"
+                      className="w-full py-4 px-8 justify-center text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                          Generating Preview...
+                        </>
+                      ) : (
+                        <>
+                          Generate Resume
+                        </>
+                      )}
+                    </ActionButton>
+                    <p className="text-sm theme-text-tertiary mt-3">
+                      This will create a tailored resume and cover letter based on your skills and the job requirements
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <LimitExceededModal
+                isOpen={showLimitModal}
+                onClose={() => setShowLimitModal(false)}
+                limitData={limitData || {}}
+              />
+            </div>
+          </div>
+        </PageContainer>
+      )}
       <Footer />
     </div>
   );

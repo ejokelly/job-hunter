@@ -4,6 +4,7 @@ import { LogOut, User, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ActionButton from '../../ui/action-button';
 import { useAuth } from '@/app/providers/auth-provider';
+import { useUI } from '@/app/providers/ui-state-provider';
 import posthog from 'posthog-js';
 
 interface UserMenuProps {
@@ -13,9 +14,11 @@ interface UserMenuProps {
 export default function UserMenu({ isMobile = false }: UserMenuProps) {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const { closeMobileMenu } = useUI();
 
   const handleSignOut = async () => {
     posthog.capture('user_signed_out');
+    closeMobileMenu();
     await signOut();
     router.push('/');
   };
@@ -23,6 +26,7 @@ export default function UserMenu({ isMobile = false }: UserMenuProps) {
   const handleNavigation = (path: string, item: string) => {
     const eventName = isMobile ? 'mobile_menu_clicked' : 'header_menu_clicked';
     posthog.capture(eventName, { item });
+    closeMobileMenu();
     router.push(path);
   };
 

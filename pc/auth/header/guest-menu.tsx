@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import ActionButton from '../../ui/action-button';
 import { useAuth } from '@/app/providers/auth-provider';
+import { useUI } from '@/app/providers/ui-state-provider';
 import posthog from 'posthog-js';
 
 interface GuestMenuProps {
@@ -13,12 +14,14 @@ interface GuestMenuProps {
 export default function GuestMenu({ onLoginClick, isMobile = false }: GuestMenuProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const { closeMobileMenu } = useUI();
 
   if (user) return null;
 
   const handleSignIn = () => {
     const eventName = isMobile ? 'mobile_login_clicked' : 'header_login_clicked';
     posthog.capture(eventName);
+    closeMobileMenu();
     if (onLoginClick) {
       onLoginClick();
     } else {

@@ -42,7 +42,7 @@ export default function PreviewPane({
   }
 
   return (
-    <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating ? 'opacity-50' : 'opacity-100'} relative`}>
+    <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating || isDownloading ? 'opacity-50' : 'opacity-100'} relative`}>
       <div className="theme-bg-tertiary px-4 py-1 border-b theme-border-light flex justify-between items-center">
         {actionButton && (
           <div className="flex-1">
