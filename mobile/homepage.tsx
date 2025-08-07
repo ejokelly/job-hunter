@@ -25,6 +25,7 @@ export default function MobileHomepage() {
   const [verificationCode, setVerificationCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAuthResumeUpload, setShowAuthResumeUpload] = useState(false);
 
   const handleUploadSuccess = createUploadSuccessHandler(router);
   const handleUploadError = createUploadErrorHandler();
