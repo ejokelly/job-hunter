@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "update-pricing": "node scripts/update-pricing.js",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
@@ -22,9 +22,9 @@
     "next": "15.4.5",
     "pdf-parse": "^1.1.1",
     "pdf2json": "^3.2.0",
+    "playwright": "^1.54.2",
     "posthog-js": "^1.258.5",
     "postmark": "^4.0.5",
-    "puppeteer": "^24.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-page-scroller": "^3.0.1",

@@ -1,19 +1,10 @@
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 import { ApplicantData } from '../data/data-loader';
 import { generateResumeHTML } from '../generation/resume-html-generator';
 
 export async function generateResumePDF(data: ApplicantData, jobDescription: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--disable-gpu'
-    ]
+  const browser = await chromium.launch({
+    headless: true
   });
 
   try {
@@ -52,9 +43,8 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
       </html>
     `;
 
-    await page.setContent(fullHtml, { 
-      waitUntil: 'networkidle0' 
-    });
+    await page.setContent(fullHtml);
+    await page.waitForLoadState('networkidle');
 
     // Generate PDF with proper settings
     const pdfBuffer = await page.pdf({

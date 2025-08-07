@@ -1,21 +1,12 @@
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 
 export async function extractTextFromPDFWithPuppeteer(buffer: Buffer): Promise<string> {
   let browser;
 
   try {
-    // Launch Puppeteer
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu'
-      ]
+    // Launch Playwright
+    browser = await chromium.launch({
+      headless: true
     });
 
     const page = await browser.newPage();
@@ -26,7 +17,7 @@ export async function extractTextFromPDFWithPuppeteer(buffer: Buffer): Promise<s
     
     // Navigate to the PDF data URL
     await page.goto(dataUrl, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'networkidle',
       timeout: 30000
     });
 
@@ -61,8 +52,8 @@ export async function extractTextFromPDFWithPuppeteer(buffer: Buffer): Promise<s
     return text.trim();
 
   } catch (error) {
-    console.error('Puppeteer PDF extraction error:', error);
-    throw new Error('Failed to extract text from PDF using Puppeteer');
+    console.error('Playwright PDF extraction error:', error);
+    throw new Error('Failed to extract text from PDF using Playwright');
   } finally {
     // Cleanup
     if (browser) {
