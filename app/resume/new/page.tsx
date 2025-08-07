@@ -473,109 +473,110 @@ export default function NewResumePage() {
     // Mobile version with full viewport
     if (isMobile) {
       return (
-        <div className="min-h-screen theme-bg-gradient">
+        <div className="h-screen theme-bg-gradient">
           <Header />
 
-          {/* Loading/Preview Content - Full viewport */}
-          <div className="flex-1 flex flex-col px-4" style={{ height: 'calc(100vh - 64px)' }}>
-            {isGenerating && !previewData ? (
-              <div className="flex-1 flex items-center justify-start">
-                <div className="text-left px-2">
-                  <ThreeDotsLoader />
-                  <h2 className="text-4xl font-light theme-text-primary mt-8 leading-tight">Generating resume...</h2>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full h-full flex flex-col">
-                {/* Mobile action icons */}
-                <div className="flex-shrink-0 py-3 border-b theme-border-light">
-                  <div className="flex justify-center gap-8">
-                    <button
-                      onClick={handleDownloadResume}
-                      disabled={isDownloadingResume}
-                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                    >
-                      {isDownloadingResume ? (
-                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      )}
-                      <span className="text-xs">Download</span>
-                    </button>
-                    
-                    <button
-                      onClick={handleRegenerateResume}
-                      disabled={isRegeneratingResume}
-                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                    >
-                      {isRegeneratingResume ? (
-                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      )}
-                      <span className="text-xs">Regenerate</span>
-                    </button>
-                    
-                    <button
-                      onClick={handleGenerateCoverLetter}
-                      disabled={isGeneratingCoverLetter}
-                      className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                    >
-                      {isGeneratingCoverLetter ? (
-                        <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      )}
-                      <span className="text-xs">Cover Letter</span>
-                    </button>
+          <div className="snap-y snap-mandatory overflow-y-scroll" style={{ height: 'calc(100vh - 64px)' }}>
+            {/* Main Content - Full viewport */}
+            <section className="h-full snap-start flex-shrink-0 flex flex-col px-4" style={{ height: 'calc(100vh - 64px)' }}>
+              {isGenerating && !previewData ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <ThreeDotsLoader />
+                    <h2 className="text-4xl font-light theme-text-primary mt-8 leading-tight">Generating resume...</h2>
                   </div>
                 </div>
+              ) : (
+                <div className="w-full h-full flex flex-col">
+                  {/* Mobile action icons */}
+                  <div className="flex-shrink-0 py-3 border-b theme-border-light">
+                    <div className="flex justify-center gap-8">
+                      <button
+                        onClick={handleDownloadResume}
+                        disabled={isDownloadingResume}
+                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                      >
+                        {isDownloadingResume ? (
+                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        )}
+                        <span className="text-xs">Download</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleRegenerateResume}
+                        disabled={isRegeneratingResume}
+                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                      >
+                        {isRegeneratingResume ? (
+                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        )}
+                        <span className="text-xs">Regenerate</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleGenerateCoverLetter}
+                        disabled={isGeneratingCoverLetter}
+                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                      >
+                        {isGeneratingCoverLetter ? (
+                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        )}
+                        <span className="text-xs">Cover Letter</span>
+                      </button>
+                    </div>
+                  </div>
 
-                {/* Mobile preview content scaled down */}
-                <div className="flex-1 overflow-auto relative">
-                  <div 
-                    className={`h-full origin-top transition-opacity duration-300 ${
-                      isDownloadingResume || isRegeneratingResume || isGeneratingCoverLetter || isDownloadingCoverLetter 
-                        ? 'opacity-30' 
-                        : 'opacity-100'
-                    }`}
-                    style={{ 
-                      transform: 'scale(0.6)',
-                      transformOrigin: 'top center',
-                      width: '166.67%', // Compensate for 0.6 scale
-                      marginLeft: '-33.33%' // Center the scaled content
-                    }}
-                  >
-                    {previewData && (
-                      <div dangerouslySetInnerHTML={{ __html: previewData.html }} />
-                    )}
+                  {/* Mobile preview content scaled down */}
+                  <div className="flex-1 overflow-auto relative">
+                    <div 
+                      className={`h-full origin-top transition-opacity duration-300 ${
+                        isDownloadingResume || isRegeneratingResume || isGeneratingCoverLetter || isDownloadingCoverLetter 
+                          ? 'opacity-30' 
+                          : 'opacity-100'
+                      }`}
+                      style={{ 
+                        transform: 'scale(0.6)',
+                        transformOrigin: 'top center',
+                        width: '166.67%', // Compensate for 0.6 scale
+                        marginLeft: '-33.33%' // Center the scaled content
+                      }}
+                    >
+                      {previewData && (
+                        <div dangerouslySetInnerHTML={{ __html: previewData.html }} />
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </section>
 
-          {/* Mobile Footer - Below the fold */}
-          <div className="theme-bg-primary border-t theme-border-light">
-            <div className="px-4 py-6 text-left">
-              <div className="mb-4">
-                <Brand />
+            {/* Footer Section - Below the fold */}
+            <section className="h-full snap-start flex-shrink-0 flex items-center justify-center theme-bg-primary border-t theme-border-light" style={{ height: 'calc(100vh - 64px)' }}>
+              <div className="px-4 text-center">
+                <div className="mb-6">
+                  <Brand />
+                </div>
+                <p className="theme-text-secondary text-sm mb-3">
+                  Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
+                </p>
+                <p className="theme-text-tertiary text-xs">
+                  © 2025 resumelove. All rights reserved.
+                </p>
               </div>
-              <p className="theme-text-secondary text-sm mb-3">
-                Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
-              </p>
-              <p className="theme-text-tertiary text-xs">
-                © 2025 resumelove. All rights reserved.
-              </p>
-            </div>
+            </section>
           </div>
-
         </div>
       );
     }
