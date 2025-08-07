@@ -7,6 +7,7 @@ import posthog from 'posthog-js';
 import Header from '@/pc/auth/header';
 import ActionButton from '@/pc/ui/action-button';
 import ThreeDotsLoader from '@/pc/ui/three-dots-loader';
+import Brand from '@/pc/ui/brand';
 import PageContainer from '@/pc/layout/page-container';
 import PreviewPane from '@/pc/resume/preview-pane';
 import SkillPill from '@/pc/resume/skill-pill';

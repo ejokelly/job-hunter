@@ -91,21 +91,10 @@ export default function MobileHomepage() {
   };
 
   return (
-    <div className="h-screen theme-homepage-bg theme-homepage-text overflow-hidden">
+    <div className="h-screen theme-homepage-bg theme-homepage-text">
       <MobileHeader />
       
-      <ReactPageScroller
-        pageOnChange={setCurrentPage}
-        customPageNumber={currentPage}
-        animationTimer={600}
-        animationTimerBuffer={200}
-        transitionTimingFunction="cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-        containerHeight="calc(100vh - 64px)"
-        containerWidth="100vw"
-        blockScrollUp={false}
-        blockScrollDown={false}
-        renderAllPagesOnFirstRender={false}
-      >
+      <div className="snap-y snap-mandatory overflow-y-scroll" style={{ height: 'calc(100vh - 64px)' }}>
         {/* Hero Section */}
         <section className="h-full snap-start flex-shrink-0" style={{ height: 'calc(100vh - 64px)' }}>
           <MobileHeroSection />
@@ -118,10 +107,16 @@ export default function MobileHomepage() {
             onUploadError={handleUploadError}
           />
         </section>
-        
+
+        {/* Auth Resume Upload Section */}
+        {showAuthResumeUpload && (
+          <section className="h-full snap-start flex-shrink-0" style={{ height: 'calc(100vh - 64px)' }}>
+            <MobileAuthResumeUpload />
+          </section>
+        )}
         
         {/* Real Pricing - Mobile optimized */}
-        <div className="h-full flex flex-col theme-homepage-bg px-4 py-6" style={{ height: 'calc(100vh - 64px)' }}>
+        <section className="h-full snap-start flex-shrink-0 flex flex-col theme-homepage-bg px-4 py-6" style={{ height: 'calc(100vh - 64px)' }}>
           <div className="flex-1"></div>
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold mb-3 theme-text-primary">
@@ -294,10 +289,10 @@ export default function MobileHomepage() {
               </div>
             </div>
           </div>
-        </div>
+        </section>
         
         {/* Simple Footer - Full viewport section */}
-        <div className="h-full flex items-center justify-center theme-homepage-bg border-t theme-border-light" style={{ height: 'calc(100vh - 64px)' }}>
+        <section className="h-full snap-start flex-shrink-0 flex items-center justify-center theme-homepage-bg border-t theme-border-light" style={{ height: 'calc(100vh - 64px)' }}>
           <div className="px-4 text-center">
             <div className="mb-6">
               <Brand />
@@ -311,8 +306,8 @@ export default function MobileHomepage() {
               © 2025 resumelove. All rights reserved.
             </p>
           </div>
-        </div>
-      </ReactPageScroller>
+        </section>
+      </div>
       
       {/* Login Modal with Apple-style full page design */}
       {showLoginModal && (
