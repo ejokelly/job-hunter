@@ -135,8 +135,10 @@ export default function MobileHomepage() {
             {/* Free Plan */}
             <div className="rounded-xl p-4 theme-text-primary" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="text-center">
-                <h3 className="font-semibold text-base mb-1">Free</h3>
-                <div className="text-2xl font-bold mb-3">$0</div>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <h3 className="font-semibold text-base">Free</h3>
+                  <div className="text-xl font-bold">$0</div>
+                </div>
                 <ul className="space-y-2">
                   <li className="flex items-center text-xs theme-text-secondary">
                     <div className="w-3 h-3 bg-green-600 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
@@ -166,8 +168,10 @@ export default function MobileHomepage() {
                 </span>
               </div>
               <div className="text-center">
-                <h3 className="font-semibold theme-text-primary text-base mb-1">Starter</h3>
-                <div className="text-2xl font-bold theme-text-primary mb-3">$25<span className="text-sm font-normal">/month</span></div>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <h3 className="font-semibold theme-text-primary text-base">Starter</h3>
+                  <div className="text-xl font-bold theme-text-primary">$25<span className="text-sm font-normal">/month</span></div>
+                </div>
                 <ul className="space-y-2">
                   <li className="flex items-center text-xs theme-text-secondary">
                     <div className="w-3 h-3 bg-green-600 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
@@ -200,8 +204,10 @@ export default function MobileHomepage() {
             {/* Unlimited Plan */}
             <div className="rounded-xl p-4 theme-text-primary" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="text-center">
-                <h3 className="font-semibold text-base mb-1">Unlimited</h3>
-                <div className="text-2xl font-bold mb-3">$250<span className="text-sm font-normal">/month</span></div>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <h3 className="font-semibold text-base">Unlimited</h3>
+                  <div className="text-xl font-bold">$250<span className="text-sm font-normal">/month</span></div>
+                </div>
                 <ul className="space-y-2">
                   <li className="flex items-center text-xs theme-text-secondary">
                     <div className="w-3 h-3 bg-green-600 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
