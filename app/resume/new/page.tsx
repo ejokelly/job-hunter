@@ -13,6 +13,7 @@ import PreviewPane from '@/pc/resume/preview-pane';
 import SkillPill from '@/pc/resume/skill-pill';
 import { LimitExceededModal } from '@/pc/ui/subscription-limit-warning';
 import Footer from '@/pc/layout/footer';
+import MobileNewResumePage from '@/mobile/resume/new-resume-page';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -472,101 +473,31 @@ export default function NewResumePage() {
 
   // Show preview if generating or preview is available
   if (showPreview || isGenerating) {
-    // Mobile version with full viewport
+    // Mobile version with tabs
     if (isMobile) {
       return (
-        <div className="h-screen theme-bg-gradient">
+        <div className="h-screen flex flex-col">
           <Header />
-
-          <div className="snap-y snap-mandatory overflow-y-scroll" style={{ height: 'calc(100vh - 64px)' }}>
-            {/* Main Content - Full viewport */}
-            <section className="h-full snap-start flex-shrink-0 flex flex-col px-4" style={{ height: 'calc(100vh - 64px)' }}>
-              {isGenerating && !previewData ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <ThreeDotsLoader />
-                    <h2 className="text-4xl font-light theme-text-primary mt-8 leading-tight">Generating resume...</h2>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col">
-                  {/* Mobile action icons */}
-                  <div className="flex-shrink-0 py-3 border-b theme-border-light">
-                    <div className="flex justify-center gap-8">
-                      
-                      <button
-                        onClick={handleRegenerateResume}
-                        disabled={isRegeneratingResume}
-                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                      >
-                        {isRegeneratingResume ? (
-                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        )}
-                        <span className="text-xs">Regenerate</span>
-                      </button>
-                      
-                      {!hasGeneratedCoverLetter && (
-                        <button
-                          onClick={handleGenerateCoverLetter}
-                          disabled={isGeneratingCoverLetter}
-                          className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                        >
-                          {isGeneratingCoverLetter ? (
-                            <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          )}
-                          <span className="text-xs">Cover Letter</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile preview content scaled down */}
-                  <div className="flex-1 overflow-auto relative">
-                    <div 
-                      className={`h-full origin-top transition-opacity duration-300 ${
-                        isRegeneratingResume || isGeneratingCoverLetter 
-                          ? 'opacity-30' 
-                          : 'opacity-100'
-                      }`}
-                      style={{ 
-                        transform: 'scale(0.6)',
-                        transformOrigin: 'top center',
-                        width: '166.67%', // Compensate for 0.6 scale
-                        marginLeft: '-33.33%' // Center the scaled content
-                      }}
-                    >
-                      {previewData && (
-                        <div dangerouslySetInnerHTML={{ __html: previewData.html }} />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            {/* Footer Section - Below the fold */}
-            <section className="h-full snap-start flex-shrink-0 flex items-center justify-center theme-bg-primary border-t theme-border-light" style={{ height: 'calc(100vh - 64px)' }}>
-              <div className="px-4 text-center">
-                <div className="mb-6">
-                  <Brand />
-                </div>
-                <p className="theme-text-secondary text-sm mb-3">
-                  Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
-                </p>
-                <p className="theme-text-tertiary text-xs">
-                  © 2025 resumelove. All rights reserved.
-                </p>
+          {isGenerating && !previewData ? (
+            <div className="flex-1 flex items-center justify-center theme-bg-gradient">
+              <div className="text-center">
+                <ThreeDotsLoader />
+                <h2 className="text-4xl font-light theme-text-primary mt-8 leading-tight">Generating resume...</h2>
               </div>
-            </section>
-          </div>
+            </div>
+          ) : (
+            <MobileNewResumePage
+              previewData={previewData}
+              coverLetterData={coverLetterData}
+              handleRegenerateResume={handleRegenerateResume}
+              handleRegenerateCoverLetter={handleRegenerateCoverLetter}
+              handleGenerateCoverLetter={handleGenerateCoverLetter}
+              isRegeneratingResume={isRegeneratingResume}
+              isRegeneratingCoverLetter={isRegeneratingCoverLetter}
+              isGeneratingCoverLetter={isGeneratingCoverLetter}
+              isGenerating={isGenerating}
+            />
+          )}
         </div>
       );
     }
@@ -576,98 +507,8 @@ export default function NewResumePage() {
       <div className="min-h-screen flex flex-col">
         <Header />
 
-        {/* Preview Content */}
+        {/* Desktop Layout */}
         <div className="flex-1 flex flex-col p-4 lg:p-6 theme-bg-gradient">
-          {/* Mobile Tabs - show when resume exists */}
-          {previewData && (
-            <div className="lg:hidden mb-4">
-              <div className="flex border-b theme-border-light">
-                <button
-                  onClick={() => setActiveTab('resume')}
-                  className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'resume'
-                      ? 'border-[var(--accent-color)] theme-text-accent'
-                      : 'border-transparent theme-text-secondary hover:theme-text-primary'
-                  }`}
-                >
-                  Resume
-                </button>
-                <button
-                  onClick={() => setActiveTab('cover-letter')}
-                  disabled={!coverLetterData}
-                  className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'cover-letter'
-                      ? 'border-[var(--accent-color)] theme-text-accent'
-                      : 'border-transparent theme-text-secondary hover:theme-text-primary'
-                  } ${!coverLetterData ? 'opacity-50' : ''}`}
-                >
-                  Cover Letter
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile Content */}
-          <div className="flex-1 lg:hidden">
-            {activeTab === 'resume' && (
-              <PreviewPane
-                title="Resume"
-                html={previewData?.html}
-                onRegenerate={handleRegenerateResume}
-                isRegenerating={isRegeneratingResume}
-                isLoading={isGenerating && !previewData}
-                loadingText="Generating resume..."
-                actionButton={
-                  coverLetterData ? (
-                    <ActionButton
-                      onClick={handleGenerateCoverLetter}
-                      variant="ghost"
-                      busy={isGeneratingCoverLetter}
-                      className="text-xs px-2 py-1"
-                    >
-                      Regenerate Cover Letter
-                    </ActionButton>
-                  ) : (
-                    <ActionButton
-                      onClick={handleGenerateCoverLetter}
-                      variant="ghost"
-                      busy={isGeneratingCoverLetter}
-                      className="text-xs px-2 py-1"
-                    >
-                      Generate Cover Letter
-                    </ActionButton>
-                  )
-                }
-              />
-            )}
-            {activeTab === 'cover-letter' && (
-              coverLetterData ? (
-                <PreviewPane
-                  title="Cover Letter"
-                  html={coverLetterData?.html}
-                  onRegenerate={handleRegenerateCoverLetter}
-                  isRegenerating={isRegeneratingCoverLetter}
-                  isLoading={false}
-                  loadingText="Generating cover letter..."
-                />
-              ) : (
-                <div className="theme-card rounded-lg overflow-hidden flex items-center justify-center h-96">
-                  <div className="text-center">
-                    <p className="theme-text-secondary mb-4">No cover letter generated yet</p>
-                    <ActionButton
-                      onClick={handleGenerateCoverLetter}
-                      variant="primary"
-                      busy={isGeneratingCoverLetter}
-                    >
-                      Generate Cover Letter
-                    </ActionButton>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-
-          {/* Desktop Layout */}
           <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1">
             {coverLetterData ? (
               // Two-column layout when cover letter exists
