@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
 
     // Load applicant data from database (which includes user's skills)
-    const applicantData = await loadApplicantData();
+    const applicantData = await loadApplicantData(userId);
     
     // Process pending skills using the same categorization logic as preview-resume
     await categorizePendingSkills(session.user.id, applicantData);
