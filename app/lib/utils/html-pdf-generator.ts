@@ -15,13 +15,7 @@ export async function generateResumePDF(data: ApplicantData, jobDescription: str
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu'
-      ],
-      // Try to use system Chrome if available
-      ...(process.env.NODE_ENV === 'production' ? {
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || 
-                       '/usr/bin/google-chrome-stable' || 
-                       '/usr/bin/chromium-browser'
-      } : {})
+      ]
     });
   } catch (error) {
     console.error('Failed to launch browser for PDF generation:', error);
