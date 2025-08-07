@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateCoverLetterPDF } from '@/app/lib/generation/cover-letter-html-generator';
+import { generateCoverLetterPDF, generateCoverLetterHTML } from '@/app/lib/generation/cover-letter-html-generator';
 import { loadApplicantData } from '@/app/lib/data/api-data-loader';
 import { extractJobDetails } from '@/app/lib/ai/job-extraction';
 import { generateCoverLetterContent } from '@/app/lib/generation/cover-letter-generator';
@@ -10,7 +10,7 @@ import { getServerAuthSession } from '@/app/lib/auth/server-auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { jobDescription } = await request.json();
+    const { jobDescription, isRegeneration = false } = await request.json();
 
     if (!jobDescription) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
@@ -22,8 +22,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Check monthly resume limit
-    const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(session.user.id);
+    // Check subscription limits
+    let subscriptionStatus;
+    if (isRegeneration) {
+      subscriptionStatus = await SubscriptionManager.checkAndIncrementRegenerationLimit(session.user.id, 'cover_letter');
+    } else {
+      subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(session.user.id);
+    }
     
     if (!subscriptionStatus.canCreateResume) {
       return NextResponse.json({ 
@@ -49,27 +54,32 @@ export async function POST(request: NextRequest) {
     Logger.info('Generating cover letter content...');
     const coverLetterContent = await generateCoverLetterContent(applicantData, jobDescription, jobDetails);
 
-    // Generate cover letter PDF
-    Logger.info('Generating cover letter PDF...');
+    // Generate both HTML for preview and PDF for download
+    Logger.info('Generating cover letter HTML and PDF...');
     const coverLetterData = {
       personalInfo: applicantData.personalInfo,
       jobDetails,
       content: coverLetterContent
     };
+    
+    const htmlContent = generateCoverLetterHTML(coverLetterData);
     const coverLetterPDF = await generateCoverLetterPDF(coverLetterData);
 
     // Create filename
     const coverLetterFilename = generatePDFFilename('cover-letter', jobDetails, applicantData.personalInfo.name);
 
-    Logger.success('Cover letter PDF generated successfully');
+    Logger.success('Cover letter HTML and PDF generated successfully');
     Logger.debug('Cover letter filename', coverLetterFilename);
 
-    // Return cover letter as direct PDF download
-    return new NextResponse(coverLetterPDF, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${coverLetterFilename}"`,
-      },
+    // Return JSON with both preview data and PDF data
+    return NextResponse.json({
+      html: htmlContent,
+      data: coverLetterData,
+      jobDetails,
+      pdf: {
+        buffer: Array.from(new Uint8Array(coverLetterPDF)),
+        filename: coverLetterFilename
+      }
     });
 
   } catch (error) {

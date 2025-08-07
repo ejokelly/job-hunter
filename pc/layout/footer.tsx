@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -43,7 +44,18 @@ export default function Footer() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 py-16">
         {/* Company Info */}
         <div className="text-center md:text-left">
-          <h3 className="text-2xl font-bold theme-text-primary mb-4">resumelove</h3>
+          <div className="flex items-center justify-center md:justify-start mb-4">
+            <Image
+              src="/favicon-32x32.png"
+              alt="resume love"
+              width={32}
+              height={32}
+              className="mr-2"
+            />
+            <h3 className="text-2xl font-bold theme-text-primary">
+              <span className="font-normal">resume</span><span className="font-bold">love</span>
+            </h3>
+          </div>
           <p className="theme-text-secondary mb-6 leading-relaxed">
             Take the hard work out of tailoring your resume for each job application. Get hired faster with personalized resumes and cover letters.
           </p>

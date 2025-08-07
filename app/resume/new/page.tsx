@@ -321,22 +321,37 @@ export default function NewResumePage() {
     });
     setIsGeneratingCoverLetter(true);
     try {
-      const response = await fetch('/api/preview-cover-letter', {
+      const response = await fetch('/api/generate-cover-letter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
           jobDescription,
-          isFirstGeneration: !hasGeneratedCoverLetter 
+          isRegeneration: false
         }),
       });
 
       if (response.ok) {
-        const coverLetterResult = await response.json();
-        setCoverLetterData(coverLetterResult);
+        const result = await response.json();
+        setCoverLetterData(result);
         setHasGeneratedCoverLetter(true);
         setActiveTab('cover-letter'); // Switch to cover letter tab on mobile
+        
+        // Auto-download PDF
+        if (result.pdf && result.pdf.buffer) {
+          const pdfBuffer = new Uint8Array(result.pdf.buffer);
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.pdf.filename || 'cover-letter.pdf';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
+        
         posthog.capture('cover_letter_generation_completed', {
           is_first_generation: !hasGeneratedCoverLetter
         });
@@ -407,7 +422,7 @@ export default function NewResumePage() {
     posthog.capture('cover_letter_regeneration_started');
     setIsRegeneratingCoverLetter(true);
     try {
-      const response = await fetch('/api/preview-cover-letter', {
+      const response = await fetch('/api/generate-cover-letter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -418,6 +433,21 @@ export default function NewResumePage() {
       if (response.ok) {
         const result = await response.json();
         setCoverLetterData(result);
+        
+        // Auto-download PDF on regenerate too
+        if (result.pdf && result.pdf.buffer) {
+          const pdfBuffer = new Uint8Array(result.pdf.buffer);
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.pdf.filename || 'cover-letter.pdf';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
+        
         posthog.capture('cover_letter_regeneration_completed');
       }
     } catch (error) {
@@ -479,20 +509,22 @@ export default function NewResumePage() {
                         <span className="text-xs">Regenerate</span>
                       </button>
                       
-                      <button
-                        onClick={handleGenerateCoverLetter}
-                        disabled={isGeneratingCoverLetter}
-                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                      >
-                        {isGeneratingCoverLetter ? (
-                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        )}
-                        <span className="text-xs">Cover Letter</span>
-                      </button>
+                      {!hasGeneratedCoverLetter && (
+                        <button
+                          onClick={handleGenerateCoverLetter}
+                          disabled={isGeneratingCoverLetter}
+                          className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
+                        >
+                          {isGeneratingCoverLetter ? (
+                            <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
+                          <span className="text-xs">Cover Letter</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -620,14 +652,16 @@ export default function NewResumePage() {
                 isLoading={isGenerating && !previewData}
                 loadingText="Generating resume..."
                 actionButton={
-                  <ActionButton
-                    onClick={handleGenerateCoverLetter}
-                    variant="ghost"
-                    busy={isGeneratingCoverLetter}
-                    className="text-xs px-2 py-1"
-                  >
-                    Generate Cover Letter
-                  </ActionButton>
+                  !hasGeneratedCoverLetter ? (
+                    <ActionButton
+                      onClick={handleGenerateCoverLetter}
+                      variant="ghost"
+                      busy={isGeneratingCoverLetter}
+                      className="text-xs px-2 py-1"
+                    >
+                      Generate Cover Letter
+                    </ActionButton>
+                  ) : null
                 }
               />
             )}
@@ -677,14 +711,16 @@ export default function NewResumePage() {
                   isLoading={isGenerating && !previewData}
                   loadingText="Generating resume..."
                   actionButton={
-                    <ActionButton
-                      onClick={handleGenerateCoverLetter}
-                      variant="ghost"
-                      busy={isGeneratingCoverLetter}
-                      className="text-xs px-2 py-1"
-                    >
-                      Generate Cover Letter
-                    </ActionButton>
+                    !hasGeneratedCoverLetter ? (
+                      <ActionButton
+                        onClick={handleGenerateCoverLetter}
+                        variant="ghost"
+                        busy={isGeneratingCoverLetter}
+                        className="text-xs px-2 py-1"
+                      >
+                        Generate Cover Letter
+                      </ActionButton>
+                    ) : null
                   }
                 />
               </div>
