@@ -227,10 +227,10 @@ export default function MobileHomepage() {
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Add How It Works with skill gap image */}
-        <div className="h-full flex flex-col theme-homepage-bg" style={{ height: 'calc(100vh - 64px)' }}>
+        <section className="h-full snap-start flex-shrink-0 flex flex-col theme-homepage-bg" style={{ height: 'calc(100vh - 64px)' }}>
           <div className="h-full flex flex-col">
             <div className="flex-1 flex flex-col justify-center px-4 py-8">
               <div className="text-center mb-8">
