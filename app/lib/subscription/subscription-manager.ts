@@ -142,8 +142,8 @@ export class SubscriptionManager {
     const currentTier = subscriptionStatus || 'free';
     const currentPlan = pricingData.plans[currentTier as keyof typeof pricingData.plans];
     
-    // Determine monthly limit and access
-    const monthlyLimit = currentPlan?.monthlyLimit || pricingData.plans.free.monthlyLimit;
+    // Determine monthly limit and access  
+    const monthlyLimit = currentPlan?.monthlyLimit !== undefined ? currentPlan.monthlyLimit : pricingData.plans.free.monthlyLimit;
     let canCreateResume = true;
     
     if (monthlyLimit !== null) {
@@ -219,8 +219,14 @@ export class SubscriptionManager {
         
         // Update counts for return value
         status.monthlyCount += 1
-        status.canCreateResume = status.monthlyCount < status.monthlyLimit
-        status.needsUpgrade = !status.canCreateResume
+        // Don't apply limits to unlimited subscriptions
+        if (status.subscriptionStatus === 'unlimited') {
+          status.canCreateResume = true
+          status.needsUpgrade = false
+        } else {
+          status.canCreateResume = status.monthlyCount < status.monthlyLimit
+          status.needsUpgrade = !status.canCreateResume
+        }
       }
     }
     
@@ -244,8 +250,14 @@ export class SubscriptionManager {
       
       // Update counts for return value
       status.monthlyCount += 1
-      status.canCreateResume = status.monthlyCount < status.monthlyLimit
-      status.needsUpgrade = !status.canCreateResume
+      // Don't apply limits to unlimited subscriptions
+      if (status.subscriptionStatus === 'unlimited') {
+        status.canCreateResume = true
+        status.needsUpgrade = false
+      } else {
+        status.canCreateResume = status.monthlyCount < status.monthlyLimit
+        status.needsUpgrade = !status.canCreateResume
+      }
     }
     
     return status

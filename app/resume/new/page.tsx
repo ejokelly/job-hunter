@@ -40,8 +40,6 @@ export default function NewResumePage() {
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [isRegeneratingResume, setIsRegeneratingResume] = useState(false);
   const [isRegeneratingCoverLetter, setIsRegeneratingCoverLetter] = useState(false);
-  const [isDownloadingResume, setIsDownloadingResume] = useState(false);
-  const [isDownloadingCoverLetter, setIsDownloadingCoverLetter] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [skillGapReport, setSkillGapReport] = useState<SkillGapReport | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -251,8 +249,8 @@ export default function NewResumePage() {
 
     setIsGenerating(true);
     try {
-      // Generate only resume initially
-      const resumeResponse = await fetch('/api/preview-resume', {
+      // Generate resume and auto-download
+      const resumeResponse = await fetch('/api/generate-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -263,9 +261,25 @@ export default function NewResumePage() {
       console.log('Response status:', resumeResponse.status);
       
       if (resumeResponse.ok) {
-        const resumeResult = await resumeResponse.json();
-        setPreviewData(resumeResult);
+        const result = await resumeResponse.json();
+        
+        // Set preview data
+        setPreviewData(result);
         setShowPreview(true);
+        
+        // Auto-download the PDF
+        if (result.pdf && result.pdf.buffer) {
+          const pdfBuffer = new Uint8Array(result.pdf.buffer);
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.pdf.filename || 'resume.pdf';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
       } else if (resumeResponse.status === 429) {
         // Subscription limit exceeded
         console.log('429 response received, showing limit modal');
@@ -341,67 +355,7 @@ export default function NewResumePage() {
     }
   };
 
-  const handleDownloadResume = async () => {
-    if (!jobDescription.trim()) return;
 
-    setIsDownloadingResume(true);
-    try {
-      const response = await fetch('/api/generate-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'resume.pdf';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error('Error generating resume:', error);
-    } finally {
-      setIsDownloadingResume(false);
-    }
-  };
-
-  const handleDownloadCoverLetter = async () => {
-    if (!jobDescription.trim()) return;
-
-    setIsDownloadingCoverLetter(true);
-    try {
-      const response = await fetch('/api/generate-cover-letter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'cover-letter.pdf';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error('Error generating cover letter:', error);
-    } finally {
-      setIsDownloadingCoverLetter(false);
-    }
-  };
 
   const handleRegenerateResume = async () => {
     if (!jobDescription.trim()) return;
@@ -409,7 +363,8 @@ export default function NewResumePage() {
     posthog.capture('resume_regeneration_started');
     setIsRegeneratingResume(true);
     try {
-      const response = await fetch('/api/preview-resume', {
+      // Same call as generate - just pass isRegeneration flag
+      const response = await fetch('/api/generate-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -419,7 +374,24 @@ export default function NewResumePage() {
 
       if (response.ok) {
         const result = await response.json();
+        
+        // Set updated preview data
         setPreviewData(result);
+        
+        // Auto-download the regenerated PDF
+        if (result.pdf && result.pdf.buffer) {
+          const pdfBuffer = new Uint8Array(result.pdf.buffer);
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.pdf.filename || 'resume-regenerated.pdf';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
+        
         posthog.capture('resume_regeneration_completed');
       }
     } catch (error) {
@@ -491,20 +463,6 @@ export default function NewResumePage() {
                   {/* Mobile action icons */}
                   <div className="flex-shrink-0 py-3 border-b theme-border-light">
                     <div className="flex justify-center gap-8">
-                      <button
-                        onClick={handleDownloadResume}
-                        disabled={isDownloadingResume}
-                        className="flex flex-col items-center gap-1 theme-text-primary hover:theme-text-accent disabled:opacity-50"
-                      >
-                        {isDownloadingResume ? (
-                          <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        )}
-                        <span className="text-xs">Download</span>
-                      </button>
                       
                       <button
                         onClick={handleRegenerateResume}
@@ -542,7 +500,7 @@ export default function NewResumePage() {
                   <div className="flex-1 overflow-auto relative">
                     <div 
                       className={`h-full origin-top transition-opacity duration-300 ${
-                        isDownloadingResume || isRegeneratingResume || isGeneratingCoverLetter || isDownloadingCoverLetter 
+                        isRegeneratingResume || isGeneratingCoverLetter 
                           ? 'opacity-30' 
                           : 'opacity-100'
                       }`}
@@ -625,10 +583,8 @@ export default function NewResumePage() {
                   <PreviewPane
                     title="Resume"
                     html={previewData?.html}
-                    onDownload={handleDownloadResume}
                     onRegenerate={handleRegenerateResume}
                     isRegenerating={isRegeneratingResume}
-                    isDownloading={isDownloadingResume}
                     isLoading={isGenerating && !previewData}
                     loadingText="Generating resume..."
                     actionButton={
@@ -647,10 +603,8 @@ export default function NewResumePage() {
                   <PreviewPane
                     title="Cover Letter"
                     html={coverLetterData?.html}
-                    onDownload={handleDownloadCoverLetter}
                     onRegenerate={handleRegenerateCoverLetter}
                     isRegenerating={isRegeneratingCoverLetter}
-                    isDownloading={isDownloadingCoverLetter}
                     isLoading={false}
                     loadingText="Generating cover letter..."
                   />
@@ -661,10 +615,8 @@ export default function NewResumePage() {
               <PreviewPane
                 title="Resume"
                 html={previewData?.html}
-                onDownload={handleDownloadResume}
                 onRegenerate={handleRegenerateResume}
                 isRegenerating={isRegeneratingResume}
-                isDownloading={isDownloadingResume}
                 isLoading={isGenerating && !previewData}
                 loadingText="Generating resume..."
                 actionButton={
@@ -689,10 +641,8 @@ export default function NewResumePage() {
                 <PreviewPane
                   title="Resume"
                   html={previewData?.html}
-                  onDownload={handleDownloadResume}
                   onRegenerate={handleRegenerateResume}
                   isRegenerating={isRegeneratingResume}
-                  isDownloading={isDownloadingResume}
                   isLoading={isGenerating && !previewData}
                   loadingText="Generating resume..."
                   actionButton={
@@ -710,10 +660,8 @@ export default function NewResumePage() {
                 <PreviewPane
                   title="Cover Letter"
                   html={coverLetterData?.html}
-                  onDownload={handleDownloadCoverLetter}
                   onRegenerate={handleRegenerateCoverLetter}
                   isRegenerating={isRegeneratingCoverLetter}
-                  isDownloading={isDownloadingCoverLetter}
                   isLoading={false}
                   loadingText="Generating cover letter..."
                 />
@@ -724,10 +672,8 @@ export default function NewResumePage() {
                 <PreviewPane
                   title="Resume"
                   html={previewData?.html}
-                  onDownload={handleDownloadResume}
                   onRegenerate={handleRegenerateResume}
                   isRegenerating={isRegeneratingResume}
-                  isDownloading={isDownloadingResume}
                   isLoading={isGenerating && !previewData}
                   loadingText="Generating resume..."
                   actionButton={

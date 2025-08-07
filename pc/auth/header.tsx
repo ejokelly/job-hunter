@@ -25,7 +25,12 @@ export default function Header({ title, onBack, actions, onLoginClick }: HeaderP
 
   const handleMobileNewResume = () => {
     console.log('New resume button clicked, navigating to /resume/new');
-    router.push('/resume/new');
+    if (window.location.pathname === '/resume/new') {
+      // If already on resume page, reload to reset state
+      window.location.reload();
+    } else {
+      router.push('/resume/new');
+    }
   };
 
   return (

@@ -1,13 +1,10 @@
-import IconButton from '../ui/icon-button';
 import RegenerateButton from './regenerate-button';
 
 interface PreviewPaneProps {
   title: string;
   html?: string;
-  onDownload: () => void;
   onRegenerate: () => void;
   isRegenerating?: boolean;
-  isDownloading?: boolean;
   isLoading?: boolean;
   loadingText?: string;
   actionButton?: React.ReactNode;
@@ -16,10 +13,8 @@ interface PreviewPaneProps {
 export default function PreviewPane({ 
   title, 
   html, 
-  onDownload, 
   onRegenerate, 
   isRegenerating = false,
-  isDownloading = false,
   isLoading = false,
   loadingText = 'Generating...',
   actionButton
@@ -42,7 +37,7 @@ export default function PreviewPane({
   }
 
   return (
-    <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating || isDownloading ? 'opacity-50' : 'opacity-100'} relative`}>
+    <div className={`theme-card rounded-lg overflow-hidden transition-opacity duration-300 ${isRegenerating ? 'opacity-50' : 'opacity-100'} relative`}>
       <div className="theme-bg-tertiary px-4 py-1 border-b theme-border-light flex justify-between items-center">
         {actionButton && (
           <div className="flex-1">
@@ -50,13 +45,9 @@ export default function PreviewPane({
           </div>
         )}
         <div className="flex gap-1">
-          <IconButton onClick={onDownload} busy={isDownloading} disabled={isRegenerating}>
-            ⬇
-          </IconButton>
           <RegenerateButton 
             onClick={onRegenerate} 
             isRegenerating={isRegenerating} 
-            disabled={isDownloading} 
           />
         </div>
       </div>
@@ -120,20 +111,6 @@ export default function PreviewPane({
         title={`${title} Preview`}
       />
       
-      {/* Download overlay */}
-      {isDownloading && (
-        <div className="absolute inset-0 theme-overlay flex items-center justify-center z-10">
-          <div className="theme-card p-6 rounded-lg text-center">
-            <div className="flex justify-center space-x-2 mb-4">
-              <div className="w-3 h-3 rounded-full animate-bounce" style={{ backgroundColor: 'var(--accent-color)' }}></div>
-              <div className="w-3 h-3 rounded-full animate-bounce" style={{ backgroundColor: 'var(--accent-color)', animationDelay: '0.1s' }}></div>
-              <div className="w-3 h-3 rounded-full animate-bounce" style={{ backgroundColor: 'var(--accent-color)', animationDelay: '0.2s' }}></div>
-            </div>
-            <p className="theme-text-primary font-medium">Preparing your download</p>
-            <p className="theme-text-secondary text-sm mt-1">Give us a few seconds...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

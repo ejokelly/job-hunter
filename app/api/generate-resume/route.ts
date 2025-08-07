@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateResumePDF } from '@/app/lib/utils/html-pdf-generator';
 import { loadApplicantData } from '@/app/lib/data/api-data-loader';
 import { TrackedAnthropic, extractJsonFromResponse } from '@/app/lib/ai/tracked-anthropic';
 import { extractJobDetails } from '@/app/lib/ai/job-extraction';
+import { generateResumePDF } from '@/app/lib/utils/html-pdf-generator';
 import { generatePDFFilename } from '@/app/lib/utils/filename-utils';
 import { Logger } from '@/app/lib/utils/logger';
 import { createSummaryTitlePrompt, createSkillsFilterPrompt, createExperienceReorderPrompt } from '@/app/lib/ai/prompt-templates';
-import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
 import { getServerAuthSession } from '@/app/lib/auth/server-auth';
 import dbConnect from '@/app/lib/db/mongodb';
 import Resume from '@/app/lib/db/models/Resume';
+import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager';
 
 async function categorizePendingSkills(userId: string, applicantData: any) {
   try {
@@ -17,15 +17,12 @@ async function categorizePendingSkills(userId: string, applicantData: any) {
     const resume = await Resume.findOne({ userId }).sort({ updatedAt: -1 });
     
     if (!resume || !resume.pendingSkills || resume.pendingSkills.length === 0) {
-      return; // No pending skills to process
+      return;
     }
     
     Logger.info('Processing pending skills', resume.pendingSkills.map((s: any) => s.name));
     
-    // Get existing categories
     const existingCategories = Object.keys(resume.skills || {});
-    
-    // Use Claude to categorize all pending skills at once
     const skillsList = resume.pendingSkills.map((skill: any) => skill.name).join(', ');
     const categoriesString = existingCategories.length > 0 ? existingCategories.join(', ') : 'No existing categories';
     
@@ -50,41 +47,32 @@ Respond with JSON in this format:
     }, 1000);
     const categorization = await extractJsonFromResponse(response);
     
-    // Merge skills into appropriate categories
     for (const item of categorization.categorizedSkills) {
       const { skill, category } = item;
       const pendingSkill = resume.pendingSkills.find((s: any) => s.name.toLowerCase() === skill.toLowerCase());
       
       if (pendingSkill) {
-        // Initialize category if it doesn't exist
         if (!resume.skills[category]) {
           resume.skills[category] = [];
         }
-        
-        // Add skill to category
         resume.skills[category].push({
           name: pendingSkill.name,
           years: pendingSkill.years
         });
-        
         Logger.info(`Added "${pendingSkill.name}" to "${category}" category`);
       }
     }
     
-    // Clear pending skills and update applicantData
     resume.pendingSkills = [];
     resume.markModified('skills');
     resume.markModified('pendingSkills');
     await resume.save();
     
-    // Update the applicantData object with new skills
     applicantData.skills = resume.skills.toObject ? resume.skills.toObject() : resume.skills;
-    
     Logger.info('All pending skills have been categorized and merged');
     
   } catch (error) {
     Logger.error('Error categorizing pending skills', error);
-    // Don't fail the whole operation if skill categorization fails
   }
 }
 
@@ -93,28 +81,24 @@ export async function POST(request: NextRequest) {
   console.log('🚀 RESUME GENERATION STARTED at', new Date().toISOString());
   
   try {
-    const { jobDescription } = await request.json();
+    const { jobDescription, isRegeneration = false } = await request.json();
 
     if (!jobDescription) {
       return NextResponse.json({ error: 'Job description is required' }, { status: 400 });
     }
 
-    console.log('⏱️  TIMING: Request parsing took', Date.now() - startTime, 'ms');
-    const authStartTime = Date.now();
-    
-    // Check session - use same method as other working routes
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
     
-    console.log('⏱️  TIMING: Authentication took', Date.now() - authStartTime, 'ms');
-    const subscriptionStartTime = Date.now();
-    
-    const userId = session.user.id;
-
-    // Check monthly resume limit
-    const subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(userId);
+    // Check subscription limits
+    let subscriptionStatus;
+    if (isRegeneration) {
+      subscriptionStatus = await SubscriptionManager.checkAndIncrementRegenerationLimit(session.user.id, 'resume');
+    } else {
+      subscriptionStatus = await SubscriptionManager.checkAndIncrementLimit(session.user.id);
+    }
     
     if (!subscriptionStatus.canCreateResume) {
       return NextResponse.json({ 
@@ -129,34 +113,16 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    console.log('⏱️  TIMING: Subscription check took', Date.now() - subscriptionStartTime, 'ms');
-    const dataLoadStartTime = Date.now();
-
-    // Load applicant data from database (which includes user's skills)
-    const applicantData = await loadApplicantData(userId);
-    
-    console.log('⏱️  TIMING: Data loading took', Date.now() - dataLoadStartTime, 'ms');
-    const skillsStartTime = Date.now();
-    
-    // Process pending skills using the same categorization logic as preview-resume
+    // Load and process data
+    const applicantData = await loadApplicantData();
     await categorizePendingSkills(session.user.id, applicantData);
-
-    console.log('⏱️  TIMING: Skills categorization took', Date.now() - skillsStartTime, 'ms');
-    const jobDetailsStartTime = Date.now();
-
-    // Step 0: Extract job title and company name
-    Logger.step(0, 'Extracting job details...');
     const jobDetails = await extractJobDetails(jobDescription);
-    Logger.stepComplete(0, 'Job details extracted', jobDetails);
-    console.log('⏱️  TIMING: Job details extraction took', Date.now() - jobDetailsStartTime, 'ms');
 
-    // Step 1: Tailor the summary and title
-    const summaryStartTime = Date.now();
-    Logger.step(1, 'Starting summary and title tailoring...');
+    // AI processing for tailoring
     const summaryTitlePrompt = createSummaryTitlePrompt(jobDescription, applicantData);
     const summaryTitleMessage = await TrackedAnthropic.createMessage(summaryTitlePrompt, {
       operation: 'tailor-summary-title',
-      userId,
+      userId: session.user.id,
       jobDescription,
       endpoint: 'generate-resume'
     }, 800);
@@ -169,81 +135,47 @@ export async function POST(request: NextRequest) {
       tailoredSummary = parsed.summary || applicantData.summary;
       tailoredTitle = parsed.title || applicantData.personalInfo.title;
     } catch (parseError) {
-      Logger.stepError(1, 'Summary/title parsing failed', parseError);
+      Logger.error('Summary/title parsing failed', parseError);
     }
-    
-    Logger.stepComplete(1, 'Summary and title tailored');
-    Logger.debug('Original title', applicantData.personalInfo.title);
-    Logger.debug('Tailored title', tailoredTitle);
-    Logger.debug('Tailored summary length', tailoredSummary.length);
-    console.log('⏱️  TIMING: Summary/title AI processing took', Date.now() - summaryStartTime, 'ms');
 
-    // Step 2: Reorder and filter skills
-    const skillsFilterStartTime = Date.now();
-    Logger.step(2, 'Starting skills reordering...');
     const skillsPrompt = createSkillsFilterPrompt(jobDescription, applicantData.skills);
     const skillsMessage = await TrackedAnthropic.createMessage(skillsPrompt, {
       operation: 'filter-skills',
-      userId,
-            jobDescription,
+      userId: session.user.id,
+      jobDescription,
       endpoint: 'generate-resume'
     }, 3000);
 
-    let tailoredSkills;
+    let tailoredSkills = applicantData.skills;
     try {
-      const skillsContent = skillsMessage.content[0];
-      if (skillsContent.type === 'text') {
-        Logger.debug('Raw skills response', skillsContent.text);
-      }
       tailoredSkills = await extractJsonFromResponse(skillsMessage);
-      Logger.debug('JSON parsing', 'successful');
     } catch (parseError) {
-      Logger.stepError(2, 'Skills parsing failed', parseError);
-      Logger.debug('Failed content', skillsMessage.content[0]);
+      Logger.error('Skills parsing failed', parseError);
       tailoredSkills = applicantData.skills;
     }
 
-    Logger.stepComplete(2, 'Skills reordered');
-    Logger.debug('Original skills count', Object.entries(applicantData.skills).map(([cat, skills]: [string, any]) => `${cat}: ${skills.length}`));
-    Logger.debug('Tailored skills count', Object.entries(tailoredSkills).map(([cat, skills]: [string, any]) => `${cat}: ${skills.length}`));
-    Logger.debug('Tailored skills details', JSON.stringify(tailoredSkills, null, 2));
-    console.log('⏱️  TIMING: Skills filtering AI processing took', Date.now() - skillsFilterStartTime, 'ms');
-
-    // Step 3: Reorder experience bullet points
-    const experienceStartTime = Date.now();
-    Logger.step(3, 'Starting experience bullet point reordering...');
     const experiencePrompt = createExperienceReorderPrompt(jobDescription, applicantData.experience);
     const experienceMessage = await TrackedAnthropic.createMessage(experiencePrompt, {
       operation: 'reorder-experience',
-      userId,
-            jobDescription,
+      userId: session.user.id,
+      jobDescription,
       endpoint: 'generate-resume'
     }, 4000);
 
-    let tailoredExperience;
+    let tailoredExperience = applicantData.experience;
     try {
-      const expContent = experienceMessage.content[0];
-      if (expContent.type === 'text') {
-        const jsonMatch = expContent.text.match(/\[[\s\S]*\]/);
-        tailoredExperience = jsonMatch ? JSON.parse(jsonMatch[0]) : applicantData.experience;
-      }
+      const jsonMatch = experienceMessage.content[0].type === 'text' ? 
+        experienceMessage.content[0].text.match(/\[[\s\S]*\]/) : null;
+      tailoredExperience = jsonMatch ? JSON.parse(jsonMatch[0]) : applicantData.experience;
     } catch (parseError) {
-      Logger.stepError(3, 'Experience parsing failed', parseError);
+      Logger.error('Experience parsing failed', parseError);
       tailoredExperience = applicantData.experience;
     }
 
-    Logger.stepComplete(3, 'Experience bullet points reordered');
-    Logger.debug('Original jobs count', applicantData.experience.length);
-    Logger.debug('Tailored jobs count', tailoredExperience.length);
-    console.log('⏱️  TIMING: Experience reordering AI processing took', Date.now() - experienceStartTime, 'ms');
-
-    // Combine all tailored data
-    const combineStartTime = Date.now();
-    Logger.info('Combining all tailored data...');
     const tailoredData = {
       ...applicantData,
       personalInfo: {
-        ...applicantData.personalInfo,
+        ...(applicantData.personalInfo as any).toObject ? (applicantData.personalInfo as any).toObject() : applicantData.personalInfo,
         title: tailoredTitle
       },
       summary: tailoredSummary,
@@ -251,36 +183,25 @@ export async function POST(request: NextRequest) {
       experience: tailoredExperience
     };
 
-    console.log('⏱️  TIMING: Data combination took', Date.now() - combineStartTime, 'ms');
-    const pdfStartTime = Date.now();
-
-    Logger.success('ALL STEPS COMPLETE - Generating resume PDF...');
-
-    // Generate resume PDF using HTML template
+    // Generate both HTML for preview and PDF for download
+    const { generateResumeHTML } = await import('@/app/lib/generation/resume-html-generator');
+    const htmlContent = generateResumeHTML(tailoredData, jobDescription);
+    
     const resumePDF = await generateResumePDF(tailoredData, jobDescription);
-
-    console.log('⏱️  TIMING: PDF generation took', Date.now() - pdfStartTime, 'ms');
-    const filenameStartTime = Date.now();
-
-    // Create filename
-    const resumeFilename = generatePDFFilename('resume', jobDetails, applicantData.personalInfo.name);
-
-    console.log('⏱️  TIMING: Filename generation took', Date.now() - filenameStartTime, 'ms');
-    Logger.success('Resume PDF generated successfully');
-    Logger.debug('Resume filename', resumeFilename);
+    const resumeFilename = generatePDFFilename('resume', jobDetails, tailoredData.personalInfo.name);
 
     const totalDuration = Date.now() - startTime;
     console.log('🏁 RESUME GENERATION COMPLETED in', totalDuration, 'ms');
-    console.log('📊 TIMING SUMMARY:');
-    console.log('   - Total duration:', totalDuration, 'ms');
-    console.log('   - PDF generation was', Math.round((Date.now() - pdfStartTime) / totalDuration * 100), '% of total time');
 
-    // Return resume as direct PDF download
-    return new NextResponse(resumePDF, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${resumeFilename}"`,
-      },
+    // Return JSON with both preview data and PDF data
+    return NextResponse.json({
+      html: htmlContent,
+      data: tailoredData,
+      jobDetails,
+      pdf: {
+        buffer: Array.from(new Uint8Array(resumePDF)),
+        filename: resumeFilename
+      }
     });
 
   } catch (error) {

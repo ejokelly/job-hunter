@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Data passed to generateResumeHTML personalInfo:', JSON.stringify(tailoredData.personalInfo, null, 2));
     const htmlContent = generateResumeHTML(tailoredData, jobDescription);
 
-    // Return both HTML and data for preview
+    // Return HTML and data for preview
     return NextResponse.json({
       html: htmlContent,
       data: tailoredData,

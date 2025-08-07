@@ -27,7 +27,13 @@ export default function UserMenu({ isMobile = false }: UserMenuProps) {
     const eventName = isMobile ? 'mobile_menu_clicked' : 'header_menu_clicked';
     posthog.capture(eventName, { item });
     closeMobileMenu();
-    router.push(path);
+    
+    // If clicking "New Resume" while already on resume page, reload to reset state
+    if (path === '/resume/new' && window.location.pathname === '/resume/new') {
+      window.location.reload();
+    } else {
+      router.push(path);
+    }
   };
 
   if (!user) return null;
