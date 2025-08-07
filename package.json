@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "update-pricing": "node scripts/update-pricing.js"
+    "update-pricing": "node scripts/update-pricing.js",
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

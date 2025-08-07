@@ -98,9 +98,15 @@ export async function POST(request: NextRequest) {
 
     // Get session information for usage tracking
     const sessionId = TrackedAnthropic.getSessionId(request);
+    console.log('🔍 Session ID from request:', sessionId ? 'found' : 'not found');
+    
     const userId = await TrackedAnthropic.getUserId(sessionId);
+    console.log('🔍 User ID from session:', userId || 'not found');
 
     if (!userId) {
+      // Log all cookies for debugging
+      const cookies = request.headers.get('cookie');
+      console.log('🚨 AUTH FAILED - Cookies received:', cookies);
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 

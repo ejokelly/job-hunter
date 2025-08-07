@@ -3,10 +3,30 @@ import { ApplicantData } from '../data/data-loader';
 import { generateResumeHTML } from '../generation/resume-html-generator';
 
 export async function generateResumePDF(data: ApplicantData, jobDescription: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ],
+      // Try to use system Chrome if available
+      ...(process.env.NODE_ENV === 'production' ? {
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || 
+                       '/usr/bin/google-chrome-stable' || 
+                       '/usr/bin/chromium-browser'
+      } : {})
+    });
+  } catch (error) {
+    console.error('Failed to launch browser for PDF generation:', error);
+    throw new Error('PDF generation service is temporarily unavailable. Please try again later.');
+  }
 
   try {
     const page = await browser.newPage();
