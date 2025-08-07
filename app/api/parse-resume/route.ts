@@ -1,63 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractTextFromPDF } from '@/app/lib/utils/simple-pdf-parser';
-import { parseResumeWithClaude } from '@/app/lib/ai/resume-parser';
 import dbConnect from '@/app/lib/db/mongodb';
 import Resume from '@/app/lib/db/models/Resume';
 import { MongoClient } from 'mongodb';
-import * as postmark from 'postmark';
 import { randomUUID } from 'crypto';
 import { CodewordAuth } from '@/app/lib/auth/codeword-auth';
 import { cookies } from 'next/headers';
-
-function cleanResumeText(text: string): string {
-  console.log('[CLEAN-TEXT] Starting text cleaning, input length:', text.length);
-  console.log('[CLEAN-TEXT] Input preview (first 200 chars):', text.substring(0, 200));
-  
-  // Check if text has spaced characters pattern (every char separated by space)
-  const spacedPattern = /([A-Z]\s){5,}/; // Look for pattern like "T E C H N I C A L"
-  const hasSpacedChars = spacedPattern.test(text);
-  
-  console.log('[CLEAN-TEXT] Has spaced characters pattern:', hasSpacedChars);
-  
-  let cleaned = text;
-  
-  // If we detect spaced characters, try to fix them
-  if (hasSpacedChars) {
-    console.log('[CLEAN-TEXT] Attempting to fix spaced characters');
-    
-    // More aggressive approach: find sequences of single characters separated by spaces
-    // and merge them into words, but preserve actual word boundaries
-    cleaned = text.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, (match, a, b, c) => {
-      // If this looks like spaced letters, merge them
-      return a + b + c;
-    });
-    
-    // Handle longer sequences
-    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4');
-    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4$5');
-    cleaned = cleaned.replace(/\b([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])\s+([A-Za-z])/g, '$1$2$3$4$5$6');
-    
-    console.log('[CLEAN-TEXT] After fixing spaced chars, length:', cleaned.length);
-    console.log('[CLEAN-TEXT] Fixed text preview (first 200 chars):', cleaned.substring(0, 200));
-  }
-
-  // Standard cleanup
-  cleaned = cleaned
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
-    .replace(/\u00A0/g, ' ') // Non-breaking spaces
-    .replace(/\s*\|\s*/g, ' ') // Remove table separators
-    .replace(/_{3,}/g, '') // Remove underline artifacts
-    .replace(/-{3,}/g, '') // Remove dash artifacts
-    .trim();
-
-  console.log('[CLEAN-TEXT] Final cleaned text length:', cleaned.length);
-  console.log('[CLEAN-TEXT] Final preview (first 200 chars):', cleaned.substring(0, 200));
-
-  return cleaned;
-}
 
 export async function POST(request: NextRequest) {
   const requestId = randomUUID().substring(0, 8);
@@ -110,112 +57,74 @@ export async function POST(request: NextRequest) {
     console.log(`[RESUME-DEBUG-${requestId}] Buffer created, size: ${buffer.length} bytes`);
 
     // Try to extract text from PDF - if that fails, use Anthropic to read it directly
-    console.log(`[RESUME-DEBUG-${requestId}] Step 4: Extracting text from PDF`);
-    let cleanedText = '';
+    console.log(`[RESUME-DEBUG-${requestId}] Step 4: Using Claude to extract personal info directly from PDF`);
     
-    try {
-      const rawText = await extractTextFromPDF(buffer);
-      console.log(`[RESUME-DEBUG-${requestId}] Raw text extracted successfully, length: ${rawText.length}`);
-      console.log(`[RESUME-DEBUG-${requestId}] Raw text preview (first 200 chars):`, rawText.substring(0, 200));
-      
-      cleanedText = cleanResumeText(rawText);
-      console.log(`[RESUME-DEBUG-${requestId}] Text cleaned, final length: ${cleanedText.length}`);
-      console.log(`[RESUME-DEBUG-${requestId}] Cleaned text preview (first 200 chars):`, cleanedText.substring(0, 200));
-    } catch (pdfError) {
-      console.log(`[RESUME-DEBUG-${requestId}] PDF extraction failed:`, pdfError);
-      console.log(`[RESUME-DEBUG-${requestId}] Step 4b: Trying Anthropic direct PDF read`);
-      // Fallback: use Anthropic to read the PDF directly
-      const anthropic = new (await import('@anthropic-ai/sdk')).default({
-        apiKey: process.env.ANTHROPIC_API_KEY!,
-      });
-      
-      console.log(`[RESUME-DEBUG-${requestId}] Creating Anthropic message for PDF extraction`);
-      const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Extract all text content from this PDF resume. Return the raw text exactly as it appears.'
-            },
-            {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: buffer.toString('base64')
-              }
-            }
-          ]
-        }]
-      });
+    // Use Claude to extract personal info directly from PDF
+    const { TrackedAnthropic } = await import('@/app/lib/ai/tracked-anthropic');
+    
+    const personalInfoMessage = await TrackedAnthropic.createMessage(
+      `Extract the personal information from this PDF resume. Return ONLY a JSON object with this exact structure:
 
-      console.log(`[RESUME-DEBUG-${requestId}] Anthropic response received, content type:`, message.content[0].type);
-      
-      if (message.content[0].type !== 'text') {
-        console.log(`[RESUME-DEBUG-${requestId}] ERROR: Anthropic returned non-text content`);
-        throw new Error('Failed to read PDF with Anthropic');
-      }
-      
-      cleanedText = message.content[0].text.trim();
-      console.log(`[RESUME-DEBUG-${requestId}] Anthropic extracted text length: ${cleanedText.length}`);
-      console.log(`[RESUME-DEBUG-${requestId}] Anthropic text preview (first 200 chars):`, cleanedText.substring(0, 200));
+{
+  "name": "Full Name",
+  "email": "email@domain.com",
+  "phone": "phone number",
+  "location": "city, state or full address"
+}
+
+Be very careful with the email address - extract it exactly as it appears, no extra characters.`,
+      {
+        operation: 'extract-personal-info',
+        userId: 'anonymous', // Will be updated after user creation
+        endpoint: 'parse-resume'
+      },
+      2000,
+      [{
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: buffer.toString('base64')
+        }
+      }]
+    );
+
+    console.log(`[RESUME-DEBUG-${requestId}] Claude personal info response received`);
+    
+    if (personalInfoMessage.content[0].type !== 'text') {
+      console.log(`[RESUME-DEBUG-${requestId}] ERROR: Claude returned non-text content`);
+      throw new Error('Failed to extract personal info from PDF');
     }
-
-    console.log(`[RESUME-DEBUG-${requestId}] Step 5: Validating extracted text`);
     
-    // Validate extracted text
-    if (cleanedText.length < 100) {
-      console.log(`[RESUME-DEBUG-${requestId}] ERROR: Text too short: ${cleanedText.length} characters`);
+    let personalInfo;
+    try {
+      // Extract JSON from response
+      const responseText = personalInfoMessage.content[0].text;
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response');
+      }
+      personalInfo = JSON.parse(jsonMatch[0]);
+      console.log(`[RESUME-DEBUG-${requestId}] Extracted personal info:`, personalInfo);
+    } catch (parseError) {
+      console.log(`[RESUME-DEBUG-${requestId}] ERROR: Failed to parse personal info JSON:`, parseError);
       return NextResponse.json(
-        { error: 'Resume appears to be empty or unreadable' },
+        { error: 'Could not extract personal information from resume' },
         { status: 400 }
       );
     }
-
-    console.log(`[RESUME-DEBUG-${requestId}] Step 6: Extracting email address`);
-    // First, do a quick email extraction to check if user exists
-    // Handle cases where PDF extraction might add spaces in email addresses
-    const emailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-    let extractedEmail = emailMatch ? emailMatch[0] : null;
     
-    // If no email found, try to find email with spaces (common PDF extraction issue)
-    if (!extractedEmail) {
-      console.log(`[RESUME-DEBUG-${requestId}] No email found with standard regex, trying space-tolerant extraction`);
-      
-      // First try a more lenient pattern for emails with minimal spaces around @ and .
-      const lenientEmailMatch = cleanedText.match(/([a-zA-Z0-9._%+-]+)\s*@\s*([a-zA-Z0-9.-]+)\s*\.\s*([a-zA-Z]{2,})/);
-      if (lenientEmailMatch) {
-        extractedEmail = lenientEmailMatch[0].replace(/\s+/g, ''); // Remove all spaces
-        console.log(`[RESUME-DEBUG-${requestId}] Found email with minimal spaces, cleaned to:`, extractedEmail);
-      } else {
-        // Try to find email pattern with spaces between characters (e.g., "j o h n @ e x a m p l e . c o m")
-        // Use word boundaries to prevent capturing extra characters
-        const spaceEmailPattern = /\b([a-zA-Z0-9._%+-]\s*){3,}\s*@\s*([a-zA-Z0-9.-]\s*){2,}\s*\.\s*([a-zA-Z]\s*){2,}\b/g;
-        const spaceMatches = cleanedText.match(spaceEmailPattern);
-        
-        if (spaceMatches && spaceMatches.length > 0) {
-          // Take the first match and remove all spaces
-          extractedEmail = spaceMatches[0].replace(/\s+/g, '');
-          console.log(`[RESUME-DEBUG-${requestId}] Found spaced email pattern, cleaned to:`, extractedEmail);
-        }
-      }
-    }
-    
-    console.log(`[RESUME-DEBUG-${requestId}] Email extraction result:`, extractedEmail);
-    
-    if (!extractedEmail) {
-      console.log(`[RESUME-DEBUG-${requestId}] ERROR: No email found in text`);
+    // Validate essential fields
+    if (!personalInfo.name || !personalInfo.email) {
+      console.log(`[RESUME-DEBUG-${requestId}] ERROR: Missing essential fields - name: ${!!personalInfo.name}, email: ${!!personalInfo.email}`);
       return NextResponse.json(
-        { error: 'Could not find email address in resume' },
+        { error: 'Could not extract essential information (name/email) from resume' },
         { status: 400 }
       );
     }
 
     // Use email override for development if available
-    const userEmail = process.env.DEV_EMAIL_OVERRIDE || extractedEmail;
+    const userEmail = process.env.DEV_EMAIL_OVERRIDE || personalInfo.email;
     console.log(`[RESUME-DEBUG-${requestId}] Final user email:`, userEmail, process.env.DEV_EMAIL_OVERRIDE ? '(using override)' : '(from resume)');
     
     console.log(`[RESUME-DEBUG-${requestId}] Step 7: Connecting to database`);
@@ -239,21 +148,19 @@ export async function POST(request: NextRequest) {
       });
       
       // Check if user has existing resume - if they do, require login
-      const { ObjectId } = await import('mongodb');
-      const userObjectId = new ObjectId(existingUser._id);
-      const hasExistingResume = await Resume.findOne({ userId: userObjectId });
+      const hasExistingResume = await Resume.findOne({ userId: existingUser._id });
       
       if (hasExistingResume) {
         console.log(`[RESUME-DEBUG-${requestId}] User has existing resume, checking authentication`);
         
-        // Check if user is authenticated by looking for session
-        const sessionHeader = request.headers.get('Authorization');
-        const sessionCookie = request.headers.get('Cookie');
+        // Check if user is authenticated by looking for session-token cookie
+        const cookieHeader = request.headers.get('Cookie');
+        const hasSessionToken = cookieHeader?.includes('session-token=');
         
-        console.log(`[RESUME-DEBUG-${requestId}] Auth check - sessionHeader:`, !!sessionHeader, 'sessionCookie:', !!sessionCookie?.includes('session='));
+        console.log(`[RESUME-DEBUG-${requestId}] Auth check - cookieHeader present:`, !!cookieHeader, 'has session-token:', hasSessionToken);
         
         // If user exists with resume but no valid session, require login
-        if (!sessionHeader && !sessionCookie?.includes('session=')) {
+        if (!hasSessionToken) {
           console.log(`[RESUME-DEBUG-${requestId}] ERROR: User exists with resume but not authenticated`);
           await client.close();
           return NextResponse.json(
@@ -272,10 +179,83 @@ export async function POST(request: NextRequest) {
       console.log(`[RESUME-DEBUG-${requestId}] No existing user found for email: ${userEmail} - new user signup`);
     }
 
-    console.log(`[RESUME-DEBUG-${requestId}] Step 9: Parsing resume with Claude`);
-    // Now do the full parsing with Claude
-    const resumeData = await parseResumeWithClaude(cleanedText);
-    console.log(`[RESUME-DEBUG-${requestId}] Claude parsing completed. Resume data keys:`, Object.keys(resumeData));
+    console.log(`[RESUME-DEBUG-${requestId}] Step 9: Parsing full resume with Claude`);
+    
+    // Now do the full parsing with Claude, using the personal info we already extracted
+    const fullResumeMessage = await TrackedAnthropic.createMessage(
+      `Parse this entire PDF resume and return a complete JSON object with all resume information. Use this exact structure:
+
+{
+  "personalInfo": {
+    "name": "${personalInfo.name}",
+    "email": "${personalInfo.email}",
+    "phone": "${personalInfo.phone || ''}",
+    "location": "${personalInfo.location || ''}",
+    "github": "",
+    "linkedin": "",
+    "title": "Professional Title"
+  },
+  "summary": "Professional summary paragraph",
+  "skills": [
+    {"name": "Skill Name", "level": "beginner|intermediate|advanced"}
+  ],
+  "experience": [
+    {
+      "role": "Job Title",
+      "company": "Company Name", 
+      "location": "City, State",
+      "startDate": "MM/YYYY",
+      "endDate": "MM/YYYY or Present",
+      "achievements": ["Achievement 1", "Achievement 2"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Degree Type",
+      "institution": "School Name",
+      "location": "City, State", 
+      "graduationDate": "MM/YYYY",
+      "coursework": ["Course 1", "Course 2"],
+      "capstone": "Project name if any"
+    }
+  ],
+  "activities": ["Activity 1", "Activity 2"]
+}
+
+Extract all information accurately from the PDF.`,
+      {
+        operation: 'parse-full-resume',
+        userId: userEmail, // Use email as identifier for now
+        endpoint: 'parse-resume'
+      },
+      8000,
+      [{
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: buffer.toString('base64')
+        }
+      }]
+    );
+    
+    let resumeData;
+    try {
+      const responseText = fullResumeMessage.content[0].text;
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response');
+      }
+      resumeData = JSON.parse(jsonMatch[0]);
+      console.log(`[RESUME-DEBUG-${requestId}] Claude full parsing completed. Resume data keys:`, Object.keys(resumeData));
+    } catch (parseError) {
+      console.log(`[RESUME-DEBUG-${requestId}] ERROR: Failed to parse full resume JSON:`, parseError);
+      await client.close();
+      return NextResponse.json(
+        { error: 'Could not parse resume content' },
+        { status: 400 }
+      );
+    }
 
     console.log(`[RESUME-DEBUG-${requestId}] Step 10: Validating parsed data`);
     console.log(`[RESUME-DEBUG-${requestId}] Personal info:`, resumeData.personalInfo);
@@ -315,6 +295,18 @@ export async function POST(request: NextRequest) {
       });
       userId = userResult.insertedId.toString();
       console.log(`[RESUME-DEBUG-${requestId}] New user ID: ${userId}`);
+    }
+
+    // Update usage tracking with actual user ID
+    console.log(`[RESUME-DEBUG-${requestId}] Step 11b: Updating usage tracking for user: ${userId}`);
+    const { UsageTracker } = await import('@/app/lib/tracking/usage-tracker');
+    try {
+      // Update the personal info extraction usage
+      await UsageTracker.updateUsageUserId(userEmail, userId);
+      console.log(`[RESUME-DEBUG-${requestId}] Usage tracking updated for personal info extraction`);
+    } catch (usageError) {
+      console.error(`[RESUME-DEBUG-${requestId}] Error updating usage tracking:`, usageError);
+      // Don't fail the whole process if usage tracking fails
     }
 
     console.log(`[RESUME-DEBUG-${requestId}] Step 12: Managing resume record`);
@@ -382,8 +374,26 @@ export async function POST(request: NextRequest) {
 
     console.log(`[RESUME-DEBUG-${requestId}] Step 13: Creating session for user`);
     
-    // Create session for the user (new or existing)
-    const sessionResult = await CodewordAuth.signIn(userEmail, resumeData.personalInfo.name);
+    let sessionResult;
+    if (existingUser) {
+      // For existing users, just create a session - DON'T call signIn which creates users
+      console.log(`[RESUME-DEBUG-${requestId}] Creating session for existing user: ${existingUser._id}`);
+      const { sessionToken, expires: sessionExpires } = await CodewordAuth.createSession(existingUser._id);
+      sessionResult = {
+        user: {
+          id: existingUser._id.toString(),
+          email: existingUser.email,
+          name: existingUser.name,
+          emailVerified: existingUser.emailVerified
+        },
+        sessionToken,
+        expires: sessionExpires
+      };
+    } else {
+      // For new users, use signIn which will create the user
+      console.log(`[RESUME-DEBUG-${requestId}] Creating new user and session`);
+      sessionResult = await CodewordAuth.signIn(userEmail, resumeData.personalInfo.name);
+    }
     console.log(`[RESUME-DEBUG-${requestId}] Session created: ${sessionResult.sessionToken}`);
     
     // Set the session cookie

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import posthog from 'posthog-js';
 
 interface User {
   id: string;
@@ -94,7 +95,14 @@ export default function Footer() {
               <>
                 <div>
                   <p className="theme-text-secondary">Questions or need help?</p>
-                  <a href="mailto:helpme@resumelove.app" className="theme-text-primary hover:opacity-80 transition-opacity font-medium">
+                  <a 
+                    href="mailto:helpme@resumelove.app" 
+                    className="theme-text-primary hover:opacity-80 transition-opacity font-medium"
+                    onClick={() => posthog.capture('help_email_clicked', {
+                      email: 'helpme@resumelove.app',
+                      user_subscription: 'subscribed'
+                    })}
+                  >
                     helpme@resumelove.app
                   </a>
                 </div>

@@ -63,21 +63,34 @@ export interface AuthCode {
 export class CodewordAuth {
   private static async getDatabase() {
     const connection = await clientPromise
-    return connection.db()
+    const db = connection.db()
+    
+    // Ensure unique index on email field - prevents duplicate emails at database level
+    try {
+      await db.collection('users').createIndex({ email: 1 }, { unique: true });
+    } catch (error) {
+      // Index might already exist, that's fine
+      console.log('Email unique index already exists or failed to create:', error);
+    }
+    
+    return db
   }
 
   static async sendCodeword(email: string) {
     const db = await this.getDatabase()
     
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim().replace(/\s+/g, '');
+    
     // Generate codeword and set 10-minute expiration
     const code = generateCodeword()
     const expires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
     
-    console.log('💾 Storing codeword:', { email, code, expires })
+    console.log('💾 Storing codeword:', { email: normalizedEmail, code, expires })
     
     // Store code in database
     await db.collection('auth_codes').insertOne({
-      email,
+      email: normalizedEmail,
       code,
       expires,
       used: false,
@@ -110,12 +123,15 @@ export class CodewordAuth {
   private static async findOrCreateUser(email: string, name: string) {
     const db = await this.getDatabase()
     
+    // Normalize email to prevent duplicates from slight variations
+    const normalizedEmail = email.toLowerCase().trim().replace(/\s+/g, '');
+    
     // Use findOneAndUpdate with upsert to prevent duplicate creation
     const result = await db.collection('users').findOneAndUpdate(
-      { email }, // Find by email
+      { email: normalizedEmail }, // Find by normalized email
       {
         $setOnInsert: {
-          email,
+          email: normalizedEmail,
           name,
           emailVerified: null,
           createdAt: new Date(),
@@ -133,7 +149,7 @@ export class CodewordAuth {
     return result
   }
 
-  private static async createSession(userId: any) {
+  static async createSession(userId: any) {
     const db = await this.getDatabase()
     
     // Create session

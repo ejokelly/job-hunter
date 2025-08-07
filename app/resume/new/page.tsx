@@ -176,6 +176,7 @@ export default function NewResumePage() {
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
 
+    posthog.capture('skill_gap_analysis_started');
     setIsAnalyzing(true);
     try {
       const response = await fetch('/api/analyze-skills', {
@@ -189,6 +190,10 @@ export default function NewResumePage() {
       if (response.ok) {
         const report = await response.json();
         setSkillGapReport(report);
+        posthog.capture('skill_gap_analysis_completed', {
+          missing_skills_count: report.missingSkills?.length || 0,
+          matching_skills_count: report.matchingSkills?.length || 0
+        });
       } else if (response.status === 429) {
         // Subscription limit exceeded
         const errorData = await response.json();
@@ -230,6 +235,11 @@ export default function NewResumePage() {
       if (!response.ok) {
         // Revert to original state on error
         setSkillGapReport(originalReport);
+      } else {
+        posthog.capture('skill_added_to_profile', {
+          skill: skill,
+          method: 'skill_gap_suggestion'
+        });
       }
     } catch (error) {
       console.error('Error adding skill:', error);
@@ -241,6 +251,7 @@ export default function NewResumePage() {
   const handleGenerate = async () => {
     if (!jobDescription.trim()) return;
 
+    posthog.capture('resume_generation_started');
     setIsGenerating(true);
     try {
       // Generate resume and auto-download
@@ -278,6 +289,10 @@ export default function NewResumePage() {
           console.log('🔔 DOWNLOAD NOTIFICATION TRIGGER: Initial resume generation', result.pdf.filename || 'resume.pdf');
           showDownloadNotification(result.pdf.filename || 'resume.pdf', 'resume');
         }
+        
+        posthog.capture('resume_generation_completed', {
+          filename: result.pdf?.filename
+        });
       } else if (resumeResponse.status === 429) {
         // Subscription limit exceeded
         console.log('429 response received, showing limit modal');

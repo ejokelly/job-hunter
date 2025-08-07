@@ -154,14 +154,17 @@ export async function saveApplicantData(data: ApplicantData, userId?: string): P
         finalUserId = session.user.id;
       }
       
+      const { ObjectId } = await import('mongodb');
+      const userObjectId = new ObjectId(finalUserId);
+      
       if (data._id) {
         await Resume.findOneAndUpdate(
-          { _id: data._id, userId: finalUserId }, 
-          data, 
+          { _id: data._id, userId: userObjectId }, 
+          { ...data, userId: userObjectId }, 
           { new: true, runValidators: true }
         );
       } else {
-        const resume = new Resume({ ...data, userId: finalUserId });
+        const resume = new Resume({ ...data, userId: userObjectId });
         await resume.save();
       }
     } else {

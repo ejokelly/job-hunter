@@ -74,6 +74,22 @@ export default function MobileResumeUpload({ onUploadSuccess, onUploadError, onF
 
         onUploadSuccess(userData);
       } else {
+        // Handle different error types
+        if (response.status === 400) {
+          try {
+            const errorData = await response.json();
+            if (errorData.error === 'MISSING_EMAIL') {
+              throw new Error('❌ No email address found in your resume. Please add your email address to your resume and try uploading again.');
+            }
+            throw new Error(errorData.message || 'Resume upload failed. Please check your file and try again.');
+          } catch (parseError) {
+            if (parseError instanceof Error && parseError.message.includes('❌')) {
+              throw parseError; // Re-throw our custom error
+            }
+            const errorData = await response.text();
+            throw new Error(errorData || 'Upload failed');
+          }
+        }
         const errorData = await response.text();
         throw new Error(errorData || 'Upload failed');
       }

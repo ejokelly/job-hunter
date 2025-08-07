@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerAuthSession } from '@/app/lib/auth/server-auth'
 import Stripe from 'stripe'
+import { PostHog } from 'posthog-node'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: (process.env.STRIPE_API_VERSION as any) || '2025-07-30.basil'
@@ -95,6 +96,31 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Track subscription upgrade attempt
+    try {
+      // Only track on approved domains
+      const host = request.headers.get('host');
+      if (host?.includes('resumelove.app')) {
+        const client = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+          host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        });
+        
+        client.capture({
+          distinctId: session.user.id,
+          event: 'subscription_upgrade_started',
+          properties: {
+            price_id: priceId,
+            customer_id: customerId,
+            checkout_session_id: checkoutSession.id
+          }
+        });
+        
+        await client.shutdown();
+      }
+    } catch (trackingError) {
+      console.error('PostHog tracking error:', trackingError);
+    }
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {

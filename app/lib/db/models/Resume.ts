@@ -38,7 +38,7 @@ export interface IEducation {
 }
 
 export interface IResume extends Document {
-  userId: string;
+  userId: mongoose.Types.ObjectId;
   personalInfo: IPersonalInfo;
   summary: string;
   skills: ISkills;
@@ -90,7 +90,7 @@ const EducationSchema = new Schema({
 });
 
 const ResumeSchema = new Schema({
-  userId: { type: String, required: true, index: true },
+  userId: { type: Schema.Types.ObjectId, required: true, index: true },
   personalInfo: { type: PersonalInfoSchema, required: true },
   summary: { type: String, required: true },
   skills: { type: SkillsSchema, required: true },

@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     // Find user's resume
-    const resume = await Resume.findOne({ userId: session.user.id }).sort({ updatedAt: -1 });
+    const { ObjectId } = await import('mongodb');
+    const userObjectId = new ObjectId(session.user.id);
+    const resume = await Resume.findOne({ userId: userObjectId }).sort({ updatedAt: -1 });
     if (!resume) {
       return NextResponse.json({ error: 'No resume found' }, { status: 404 });
     }

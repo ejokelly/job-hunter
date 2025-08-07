@@ -241,4 +241,21 @@ export class UsageTracker {
       throw error
     }
   }
+
+  static async updateUsageUserId(temporaryUserId: string, actualUserId: string): Promise<void> {
+    try {
+      const db = await this.getDatabase()
+      
+      // Update all usage records that have the temporary user ID (email) to use the actual user ID
+      const result = await db.collection('usage').updateMany(
+        { userId: temporaryUserId },
+        { $set: { userId: actualUserId } }
+      )
+      
+      console.log(`📊 Updated ${result.modifiedCount} usage records from temporary ID "${temporaryUserId}" to actual user ID "${actualUserId}"`)
+    } catch (error) {
+      console.error('Error updating usage user ID:', error)
+      // Don't throw - we don't want usage tracking to break the actual functionality
+    }
+  }
 }

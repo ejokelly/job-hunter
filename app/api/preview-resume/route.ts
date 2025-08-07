@@ -13,7 +13,9 @@ import { SubscriptionManager } from '@/app/lib/subscription/subscription-manager
 async function categorizePendingSkills(userId: string, applicantData: any) {
   try {
     await dbConnect();
-    const resume = await Resume.findOne({ userId }).sort({ updatedAt: -1 });
+    const { ObjectId } = await import('mongodb');
+    const userObjectId = new ObjectId(userId);
+    const resume = await Resume.findOne({ userId: userObjectId }).sort({ updatedAt: -1 });
     
     if (!resume || !resume.pendingSkills || resume.pendingSkills.length === 0) {
       return; // No pending skills to process

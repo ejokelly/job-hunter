@@ -24,8 +24,20 @@ export class TrackedAnthropic {
   static async createMessage(
     prompt: string,
     options: TrackedClaudeOptions,
+    maxTokens?: number,
+    documents?: any[]
+  ): Promise<any>
+  static async createMessage(
+    prompt: string,
+    options: TrackedClaudeOptions,
+    maxTokens: number,
+    documents: any[]
+  ): Promise<any>
+  static async createMessage(
+    prompt: string,
+    options: TrackedClaudeOptions,
     maxTokens: number = 2000,
-    model: string = 'claude-3-5-sonnet-20241022'
+    documents?: any[]
   ) {
     const startTime = Date.now()
     const client = getAnthropicClient()
@@ -33,12 +45,21 @@ export class TrackedAnthropic {
     let error: string | undefined
     let inputTokens = 0
     let outputTokens = 0
+    const model = 'claude-3-5-sonnet-20241022'
 
     try {
+      // Build content array for message
+      const content = documents && documents.length > 0 
+        ? [
+            { type: 'text', text: prompt },
+            ...documents
+          ]
+        : prompt;
+
       const message = await client.messages.create({
         model,
         max_tokens: maxTokens,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content }],
       })
 
       success = true
@@ -72,7 +93,7 @@ export class TrackedAnthropic {
         endpoint: options.endpoint || 'messages',
         operation: options.operation,
         model,
-        inputTokens: this.estimateInputTokens(prompt),
+        inputTokens: this.estimateInputTokens(prompt, documents),
         outputTokens: 0,
         jobDescription: options.jobDescription,
         duration: Date.now() - startTime,
@@ -85,8 +106,17 @@ export class TrackedAnthropic {
   }
 
   // Rough estimation of input tokens (1 token ≈ 4 characters for English text)
-  private static estimateInputTokens(prompt: string): number {
-    return Math.ceil(prompt.length / 4)
+  // Documents (especially PDFs) have higher token density
+  private static estimateInputTokens(prompt: string, documents?: any[]): number {
+    let baseTokens = Math.ceil(prompt.length / 4)
+    
+    // If documents are present, estimate much higher token count
+    // PDFs typically have very high token density due to encoding
+    if (documents && documents.length > 0) {
+      baseTokens += 5000 // Conservative estimate for document processing
+    }
+    
+    return baseTokens
   }
 
   // Helper to get session ID from request headers or cookies
