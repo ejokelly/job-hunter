@@ -119,7 +119,6 @@ export class CodewordAuth {
           name,
           emailVerified: null,
           createdAt: new Date(),
-          updatedAt: new Date(),
         },
         $set: {
           updatedAt: new Date()
