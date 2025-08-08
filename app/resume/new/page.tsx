@@ -14,7 +14,7 @@ import SkillPill from '@/pc/resume/skill-pill';
 import { LimitExceededModal } from '@/pc/ui/subscription-limit-warning';
 import Footer from '@/pc/layout/footer';
 import MobileNewResumePage from '@/mobile/resume/new-resume-page';
-import { useNotificationContext } from '@/app/providers/notification-provider';
+import { triggerDownloadNotification } from '@/app/utils/notification-utils';
 
 interface SkillGapReport {
   missingSkills: string[];
@@ -33,7 +33,6 @@ interface PreviewData {
 export default function NewResumePage() {
   const router = useRouter();
   const { isMobile } = useDevice();
-  const { showDownloadNotification } = useNotificationContext();
   const [session, setSession] = useState<any>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
 
@@ -287,7 +286,7 @@ export default function NewResumePage() {
           
           // Show download notification
           console.log('🔔 DOWNLOAD NOTIFICATION TRIGGER: Initial resume generation', result.pdf.filename || 'resume.pdf');
-          showDownloadNotification(result.pdf.filename || 'resume.pdf', 'resume');
+          triggerDownloadNotification(result.pdf.filename || 'resume.pdf', 'resume');
         }
         
         posthog.capture('resume_generation_completed', {
@@ -366,7 +365,7 @@ export default function NewResumePage() {
           
           // Show download notification
           console.log('🔔 DOWNLOAD NOTIFICATION TRIGGER: Initial cover letter generation', result.pdf.filename || 'cover-letter.pdf');
-          showDownloadNotification(result.pdf.filename || 'cover-letter.pdf', 'cover-letter');
+          triggerDownloadNotification(result.pdf.filename || 'cover-letter.pdf', 'cover-letter');
         }
         
         posthog.capture('cover_letter_generation_completed', {
@@ -425,7 +424,7 @@ export default function NewResumePage() {
           
           // Show download notification
           console.log('🔔 DOWNLOAD NOTIFICATION TRIGGER: Resume regeneration', result.pdf.filename || 'resume-regenerated.pdf');
-          showDownloadNotification(result.pdf.filename || 'resume-regenerated.pdf', 'resume');
+          triggerDownloadNotification(result.pdf.filename || 'resume-regenerated.pdf', 'resume');
         }
         
         posthog.capture('resume_regeneration_completed');
@@ -470,7 +469,7 @@ export default function NewResumePage() {
           
           // Show download notification
           console.log('🔔 DOWNLOAD NOTIFICATION TRIGGER: Cover letter regeneration', result.pdf.filename || 'cover-letter.pdf');
-          showDownloadNotification(result.pdf.filename || 'cover-letter.pdf', 'cover-letter');
+          triggerDownloadNotification(result.pdf.filename || 'cover-letter.pdf', 'cover-letter');
         }
         
         posthog.capture('cover_letter_regeneration_completed');

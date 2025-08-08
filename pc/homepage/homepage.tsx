@@ -10,6 +10,7 @@ import PricingSection from './pricing-section';
 import Footer from '../layout/footer';
 import LoginModal from '../auth/login-modal';
 import { useUI } from '@/app/providers/ui-state-provider';
+import { useAuth } from '@/app/providers/auth-provider';
 import { createUploadSuccessHandler, createUploadErrorHandler } from './upload-handlers';
 
 const ReactPageScroller = dynamic(() => import('react-page-scroller'), {
@@ -18,9 +19,10 @@ const ReactPageScroller = dynamic(() => import('react-page-scroller'), {
 
 export default function Homepage() {
   const { showLoginModal, currentPage, closeLoginModal, openLoginModal, setCurrentPage } = useUI();
+  const { refreshSession } = useAuth();
   const router = useRouter();
 
-  const handleUploadSuccess = createUploadSuccessHandler(router);
+  const handleUploadSuccess = createUploadSuccessHandler(router, refreshSession);
   const handleUploadError = createUploadErrorHandler();
 
   return (

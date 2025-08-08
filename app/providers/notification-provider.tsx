@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useNotifications } from '@/app/hooks/useNotifications';
+import { registerNotificationService } from '@/app/utils/notification-utils';
 
 interface NotificationContextType {
   permission: NotificationPermission;
@@ -27,6 +28,23 @@ interface NotificationProviderProps {
 
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const notifications = useNotifications();
+
+  // Register this provider as the global notification service
+  useEffect(() => {
+    const service = {
+      showDownloadNotification: notifications.showDownloadNotification,
+      showUploadNotification: (filename: string) => {
+        return notifications.showDownloadNotification(filename, 'resume');
+      },
+      showGenerationNotification: (type: 'resume' | 'cover-letter') => {
+        const filename = type === 'resume' ? 'resume.pdf' : 'cover-letter.pdf';
+        return notifications.showDownloadNotification(filename, type);
+      }
+    };
+    
+    registerNotificationService(service);
+    console.log('Notification service registered globally');
+  }, [notifications.showDownloadNotification]);
 
   return (
     <NotificationContext.Provider value={notifications}>
